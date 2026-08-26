@@ -29,7 +29,7 @@ The core is complete only when a public deployed build can perform the judge jou
   Acceptance: The repository structure matches the approved architecture; TypeScript and Python can validate the same fixtures; no credentials or generated secrets are committed; the application has a documented local setup path.
   Verify: From `audience-take/`, run the workspace install, lint, TypeScript type check, Python lint/type check, and shared contract tests. Confirm `git status` contains only Audience Take files before committing.
 
-- [ ] **2. Establish Firebase identity, data rules, and local emulation**
+- [x] **2. Establish Firebase identity, data rules, and local emulation**
   Spec ref: `spec.md > Authentication, Authorization, And Rules`; `spec.md > Core Data Model`; `spec.md > Required Firestore Indexes`
   What to build: Configure Firebase Authentication, Firestore, Storage, Admin SDK access, App Check integration points, emulator configuration, initial collections/indexes, and server authorization helpers. Support Google and email sign-in, safe `returnTo`, profile creation, public/private field boundaries, and project-scoped role checks. Seed clearly labeled fan, creator, and industry/demo profiles without real credentials in source control.
   Acceptance: Public published records are readable; private claim/report/run internals are not; direct client writes to trusted collections are denied; multiple test accounts can sign in; creators cannot edit agent evidence or social history.

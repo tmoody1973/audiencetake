@@ -11,13 +11,19 @@
     "lint": "npm run lint --workspace @audience-take/web",
     "typecheck": "npm run typecheck --workspace @audience-take/web",
     "test": "npm run test --workspace @audience-take/web",
+    "test:rules": "npm run test:rules --workspace @audience-take/web",
+    "test:emulators": "firebase emulators:exec --only auth,firestore,storage --project audience-take-demo \"npm run test:rules\"",
+    "emulators:start": "firebase emulators:start --only auth,firestore,storage --project audience-take-demo",
+    "emulators:seed-demo": "firebase emulators:exec --only firestore --project audience-take-demo \"node firebase/seed/seed-demo.mjs\"",
+    "seed:demo": "node firebase/seed/seed-demo.mjs",
     "test:contracts": "node scripts/validate-contracts.mjs",
     "test:python": "uv run --project services/agents pytest services/agents/tests",
     "check": "npm run lint && npm run typecheck && npm run test:contracts && npm run test"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1"
+    "ajv-formats": "^3.0.1",
+    "firebase-tools": "^15.28.1"
   },
   "engines": {
     "node": ">=22"

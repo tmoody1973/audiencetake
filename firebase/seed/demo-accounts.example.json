@@ -1,0 +1,50 @@
+[
+  {
+    "uid": "demo-fan-scout",
+    "profile": {
+      "handle": "brooklynscout",
+      "displayName": "Brooklyn Scout",
+      "avatarUrl": "https://example.com/audience-take/demo-fan.png",
+      "bio": "Seeded fan profile for the Audience Take demo.",
+      "visibility": "public",
+      "publicActivity": true,
+      "demoLabel": "Demo profile"
+    },
+    "roleAssignment": {
+      "roles": { "fan": true },
+      "creatorProjectIds": []
+    }
+  },
+  {
+    "uid": "demo-approved-creator",
+    "profile": {
+      "handle": "creatorpreview",
+      "displayName": "Creator Preview",
+      "avatarUrl": "https://example.com/audience-take/demo-creator.png",
+      "bio": "Seeded creator profile for project-scoped controls.",
+      "visibility": "public",
+      "publicActivity": true,
+      "demoLabel": "Pre-approved creator demonstration"
+    },
+    "roleAssignment": {
+      "roles": { "approvedCreator": true },
+      "creatorProjectIds": ["junichiro-jackson"]
+    }
+  },
+  {
+    "uid": "demo-industry-researcher",
+    "profile": {
+      "handle": "slatereader",
+      "displayName": "Slate Reader",
+      "avatarUrl": "https://example.com/audience-take/demo-industry.png",
+      "bio": "Seeded industry-view profile for judge walkthroughs.",
+      "visibility": "public",
+      "publicActivity": false,
+      "demoLabel": "Demo profile"
+    },
+    "roleAssignment": {
+      "roles": { "industry": true },
+      "creatorProjectIds": []
+    }
+  }
+]

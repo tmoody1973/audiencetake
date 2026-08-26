@@ -88,3 +88,12 @@
 - Added six canonical JSON Schemas and Junichiro fixtures validated in both JavaScript and Python.
 - Verification passed: web lint, TypeScript, Vitest, JSON contract validation, Ruff, mypy, and Pytest.
 - Created a clean Git revert point: `chore: establish Audience Take foundation`.
+
+## 2026-08-26 — Build Item 2 Complete
+
+- Added Firebase browser/Admin initialization, Google and email authentication helpers, emulator routing, production-enforced App Check verification, safe same-origin `returnTo`, unique public profile creation, private role assignments, and project-scoped creator authorization.
+- Added Firestore and Storage rules that expose only published, non-moderated public records, derive Public Activity from the profile toggle, hide run/claim/report/admin internals, and deny direct client writes to trusted collections.
+- Added the required Firestore indexes, a guarded demo-profile seeder with explicit demo labels, Firebase emulator configuration, and reproducible local setup documentation.
+- Closed two verification-environment gaps: installed OpenJDK 21 for Firebase emulators and declared `firebase-tools` as a project dev dependency.
+- Verification passed: lint, TypeScript, 16 web unit tests, six shared contract fixtures, JSON/config validation, and nine Firestore/Storage emulator allow/deny tests.
+- Residual deployment work is intentionally deferred to later checklist items: real provider enablement, production App Check keys, cloud IAM, and deployed Firebase configuration.

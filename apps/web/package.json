@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --exclude tests/rules/**",
+    "test:rules": "vitest run --config vitest.rules.config.ts"
   },
   "dependencies": {
     "firebase": "^12.3.0",
