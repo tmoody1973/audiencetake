@@ -1,0 +1,25 @@
+{
+  "name": "audience-take",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @audience-take/web",
+    "build": "npm run build --workspace @audience-take/web",
+    "lint": "npm run lint --workspace @audience-take/web",
+    "typecheck": "npm run typecheck --workspace @audience-take/web",
+    "test": "npm run test --workspace @audience-take/web",
+    "test:contracts": "node scripts/validate-contracts.mjs",
+    "test:python": "uv run --project services/agents pytest services/agents/tests",
+    "check": "npm run lint && npm run typecheck && npm run test:contracts && npm run test"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

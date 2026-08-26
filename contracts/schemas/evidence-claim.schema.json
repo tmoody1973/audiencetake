@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.com/schemas/evidence-claim.schema.json",
+  "title": "EvidenceClaim",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "statement", "status", "sourceIds"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 1200 },
+    "status": { "enum": ["supported", "qualified", "conflicting", "unsupported", "inference"] },
+    "sourceIds": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "qualification": { "type": "string", "maxLength": 1000 }
+  }
+}

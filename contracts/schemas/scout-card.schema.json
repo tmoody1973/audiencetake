@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.com/schemas/scout-card.schema.json",
+  "title": "ScoutCard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["projectId", "title", "hook", "projectType", "submissionLabel", "claimStatus", "completeness", "sourceIds", "claimIds", "pathwayIds", "missingSections"],
+  "properties": {
+    "projectId": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "hook": { "type": "string", "minLength": 1 },
+    "projectType": { "enum": ["series", "film", "short_film", "documentary", "creator_project"] },
+    "submissionLabel": { "type": "string", "minLength": 1 },
+    "claimStatus": { "enum": ["unclaimed", "pending", "approved", "rejected"] },
+    "completeness": { "enum": ["complete", "partial"] },
+    "sourceIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "claimIds": { "type": "array", "items": { "type": "string" } },
+    "pathwayIds": { "type": "array", "maxItems": 3, "items": { "type": "string" } },
+    "missingSections": { "type": "array", "items": { "type": "string" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "completeness": { "const": "complete" } } },
+      "then": {
+        "properties": {
+          "pathwayIds": { "type": "array", "minItems": 3, "maxItems": 3 },
+          "missingSections": { "type": "array", "maxItems": 0 }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.com/schemas/nomination.schema.json",
+  "title": "Nomination",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["submittedUrl", "whyItShouldGrow", "submissionType", "supportingUrls"],
+  "properties": {
+    "submittedUrl": { "type": "string", "format": "uri", "pattern": "^https?://" },
+    "whyItShouldGrow": { "type": "string", "minLength": 20, "maxLength": 1200 },
+    "submissionType": { "enum": ["fan", "creator"] },
+    "suggestedFormat": { "type": "string", "maxLength": 240 },
+    "audienceFit": { "type": "string", "maxLength": 500 },
+    "supportingUrls": {
+      "type": "array",
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": { "type": "string", "format": "uri", "pattern": "^https?://" }
+    }
+  }
+}

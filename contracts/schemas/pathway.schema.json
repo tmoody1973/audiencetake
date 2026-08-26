@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.com/schemas/pathway.schema.json",
+  "title": "Pathway",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "label", "format", "audience", "rationale", "supportingClaimIds", "strengths", "risks", "openQuestions", "confidence", "nextExperiment"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "label": { "type": "string", "minLength": 1 },
+    "format": { "type": "string", "minLength": 1 },
+    "audience": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 },
+    "supportingClaimIds": { "type": "array", "items": { "type": "string" } },
+    "strengths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "risks": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "openQuestions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "confidence": { "enum": ["low", "medium", "high"] },
+    "nextExperiment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "hypothesis", "method", "signal", "timebox"],
+      "properties": {
+        "title": { "type": "string" },
+        "hypothesis": { "type": "string" },
+        "method": { "type": "string" },
+        "signal": { "type": "string" },
+        "timebox": { "type": "string" }
+      }
+    }
+  }
+}

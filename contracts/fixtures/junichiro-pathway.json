@@ -1,0 +1,19 @@
+{
+  "id": "pathway-series",
+  "label": "Premium adult animated series",
+  "format": "Serialized adult animation",
+  "audience": "Animation, manga, hip-hop, and psychological-horror audiences",
+  "rationale": "A serialized format can expand the Brooklyn storyworld and its recurring characters.",
+  "supportingClaimIds": ["claim-project-world"],
+  "strengths": ["Distinctive cultural and genre combination"],
+  "risks": ["Requires proof that the concept can sustain an episodic arc"],
+  "openQuestions": ["Which character relationship anchors a first season?"],
+  "confidence": "medium",
+  "nextExperiment": {
+    "title": "Pilot animatic audience test",
+    "hypothesis": "A short serialized proof will create stronger repeat-viewing intent than a standalone trailer.",
+    "method": "Release a labeled animatic chapter and collect voluntary Audience Take commitments.",
+    "signal": "Completion, follow, and next-chapter commitment intent",
+    "timebox": "Four weeks"
+  }
+}

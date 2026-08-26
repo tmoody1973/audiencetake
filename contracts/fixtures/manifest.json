@@ -1,0 +1,8 @@
+[
+  { "schema": "nomination.schema.json", "fixture": "junichiro-nomination.json" },
+  { "schema": "source.schema.json", "fixture": "junichiro-source.json" },
+  { "schema": "evidence-claim.schema.json", "fixture": "junichiro-claim.json" },
+  { "schema": "pathway.schema.json", "fixture": "junichiro-pathway.json" },
+  { "schema": "research-event.schema.json", "fixture": "junichiro-event.json" },
+  { "schema": "scout-card.schema.json", "fixture": "junichiro-card.json" }
+]
