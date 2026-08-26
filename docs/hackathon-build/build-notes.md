@@ -97,3 +97,12 @@
 - Closed two verification-environment gaps: installed OpenJDK 21 for Firebase emulators and declared `firebase-tools` as a project dev dependency.
 - Verification passed: lint, TypeScript, 16 web unit tests, six shared contract fixtures, JSON/config validation, and nine Firestore/Storage emulator allow/deny tests.
 - Residual deployment work is intentionally deferred to later checklist items: real provider enablement, production App Check keys, cloud IAM, and deployed Firebase configuration.
+
+## 2026-08-26 — Build Item 3 Complete
+
+- Built the responsive landing hierarchy, contact-sheet mission field, URL-first nomination ticket, authorized Junichiro source preview, compact research workflow, and uneven editorial Selects rail in the approved film-festival × underground-magazine world.
+- Built the full fan/creator nomination form with required and optional fields, up to five supporting links, public-URL validation, creator verification-pending labeling, review state, accessible errors/loading, and preserved input.
+- Added a locally hosted OFL-licensed League Gothic display face, real paper/ink texture, authored SVG primitives, keyboard focus treatment, reduced-motion behavior, and the URL → Research → Scout Card handoff motion.
+- Completed the Impeccable workflow: approved contact-sheet comp, surface brief, asset manifest, one detector pass, two screenshot rounds, fresh finish review, final `disposition: ship`, and portable `DESIGN.md` plus `.impeccable/design.json`.
+- Verification passed: lint, TypeScript, production build, 20 unit/component tests, responsive browser inspection, invalid-input preservation, creator-mode switching, and the five-link cap.
+- Tarik approved visual pause 1 on 2026-08-26.

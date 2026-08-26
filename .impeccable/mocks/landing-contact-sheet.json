@@ -1,0 +1,13 @@
+{
+  "surface": "Audience Take landing page and nomination entry",
+  "option": "Contact-sheet scouting wall",
+  "image": ".impeccable/mocks/landing-contact-sheet.png",
+  "approved": true,
+  "approval": "Delegated by the participant's autonomous-mode instruction; selected for immediate product clarity and fit with the pinned film-festival × underground-magazine direction.",
+  "promptSummary": "Desktop web comp with festival masthead, oversized mission, prominent nomination ticket, Junichiro contact sheet, three-step agent workflow, and The Selects. Warm paper, near-black, acid yellow, electric blue, coral, evidence green; compressed grotesk, sans and mono; neobrutalist controls; no gradients, glass, generic SaaS cards, fabricated proof, or creator endorsement.",
+  "doNotLiteralize": [
+    "Generated project stills or people as factual Junichiro imagery",
+    "Invented dates, locations, issue numbers, project facts, or verification claims",
+    "The comp's project-title-first form; the approved product requires URL-first nomination"
+  ]
+}

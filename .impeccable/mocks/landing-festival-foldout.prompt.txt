@@ -1,0 +1,9 @@
+Use case: ui-mockup
+Asset type: high-fidelity desktop landing-page composition study, 1536×1024 landscape
+Primary request: Design a complete desktop web interface comp for Audience Take. Composition option 2: FESTIVAL PROGRAM FOLDOUT.
+Surface structure in order: a narrow vertical festival credential rail at left with Home, The Selects, Nominate and Sign In; a huge off-center mission headline spanning a folded two-page program; a bold acid-yellow nomination panel physically overlapping the fold; a featured Junichiro Jackson Scout Card preview presented as a program selection with provenance and one evidence receipt; below, three numbered program bands for Nominate → Agents Scout → Audience Takes Action; a dense but calm The Selects strip.
+Style/medium: polished website UI mockup, not a poster or photo. Film-festival program × underground magazine × original neobrutalist UI. Letterboxd project-centered clarity, Sundance program identity, Are.na block organization, no copied interface.
+Composition/framing: full 1536×1024 website viewport, edge-to-edge, no browser chrome. Program fold seam, ticket perforations, registration stamps, halftone image placeholders, hard 3px black rules, offset shadows only on actionable controls. Warm paper, near-black, large electric-blue field, acid-yellow action, coral annotation, verified-evidence green.
+Typography: compressed grotesk display and utilitarian sans/mono; no display serif.
+Text verbatim: “AUDIENCE TAKE”; “FANS FIND IT FIRST.”; “NOMINATE A PROJECT”; “JUNICHIRO JACKSON”; “Fan nomination — unclaimed by creator”; “NOMINATE”; “AGENTS SCOUT”; “AUDIENCE TAKES ACTION”; “THE SELECTS”.
+Constraints: clearly usable semantic web UI, readable navigation and controls, first action obvious, show content below first fold; no gradients, glass, rounded bento cards, AI orb, invented claims/testimonials/metrics, photoreal people, copied logos, watermarks.

@@ -35,7 +35,7 @@ The core is complete only when a public deployed build can perform the judge jou
   Acceptance: Public published records are readable; private claim/report/run internals are not; direct client writes to trusted collections are denied; multiple test accounts can sign in; creators cannot edit agent evidence or social history.
   Verify: Run Firebase Emulator Suite rule tests covering anonymous reads, denied writes, Public Activity privacy, creator boundaries, and admin-only operations. Run route-guard tests with missing, invalid, and valid identity/App Check states.
 
-- [ ] **3. Build the visual foundation, landing page, and nomination experience**
+- [x] **3. Build the visual foundation, landing page, and nomination experience**
   Spec ref: `spec.md > Screen And Route Specification > / — Landing page`; `spec.md > /nominate — Nomination form`; `prd.md > Epic 1`
   What to build: Implement the film-festival/underground-magazine design system using licensed Neobrutalism.com Pro primitives and product-specific components. Build the responsive landing hierarchy, mission hero, bold nomination entry, featured Junichiro preview, three-step explanation, and editorial The Selects preview. Build the full nomination form with required/optional fields, up to five supporting links, fan/creator submission modes, validation, and accessible loading/error states.
   Acceptance: A first-time visitor understands the mission and can begin a nomination immediately; the form preserves input on errors; creator submissions receive the approved verification-pending label; keyboard, contrast, focus, reduced-motion, and mobile behavior meet the quality requirements.

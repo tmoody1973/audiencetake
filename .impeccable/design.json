@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-26T20:57:46Z",
+  "title": "Design System: Audience Take",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Near-Black Ink",
+        "canonical": "#11100d",
+        "tonalRamp": ["oklch(15% 0.012 80)", "oklch(26% 0.012 80)", "oklch(38% 0.012 80)", "oklch(50% 0.012 80)", "oklch(62% 0.012 80)", "oklch(74% 0.012 80)", "oklch(86% 0.012 80)", "oklch(95% 0.012 80)"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Program Paper",
+        "canonical": "#f4eedf",
+        "tonalRamp": ["oklch(15% 0.035 85)", "oklch(26% 0.035 85)", "oklch(38% 0.035 85)", "oklch(50% 0.035 85)", "oklch(62% 0.035 85)", "oklch(74% 0.035 85)", "oklch(86% 0.035 85)", "oklch(95% 0.035 85)"]
+      },
+      "acid-yellow": {
+        "role": "secondary",
+        "displayName": "Acid Yellow",
+        "canonical": "#f5d800",
+        "tonalRamp": ["oklch(15% 0.18 100)", "oklch(26% 0.18 100)", "oklch(38% 0.18 100)", "oklch(50% 0.18 100)", "oklch(62% 0.18 100)", "oklch(74% 0.18 100)", "oklch(86% 0.18 100)", "oklch(95% 0.18 100)"]
+      },
+      "electric-blue": {
+        "role": "primary",
+        "displayName": "Electric Blue",
+        "canonical": "#1539d6",
+        "tonalRamp": ["oklch(15% 0.22 264)", "oklch(26% 0.22 264)", "oklch(38% 0.22 264)", "oklch(50% 0.22 264)", "oklch(62% 0.22 264)", "oklch(74% 0.22 264)", "oklch(86% 0.22 264)", "oklch(95% 0.22 264)"]
+      },
+      "signal-coral": {
+        "role": "tertiary",
+        "displayName": "Signal Coral",
+        "canonical": "#f05037",
+        "tonalRamp": ["oklch(15% 0.2 32)", "oklch(26% 0.2 32)", "oklch(38% 0.2 32)", "oklch(50% 0.2 32)", "oklch(62% 0.2 32)", "oklch(74% 0.2 32)", "oklch(86% 0.2 32)", "oklch(95% 0.2 32)"]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "Clean White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(26% 0 0)", "oklch(38% 0 0)", "oklch(50% 0 0)", "oklch(62% 0 0)", "oklch(74% 0 0)", "oklch(86% 0 0)", "oklch(95% 0 0)"]
+      },
+      "field-paper": {
+        "role": "neutral",
+        "displayName": "Field Paper",
+        "canonical": "#fffdf7",
+        "tonalRamp": ["oklch(15% 0.02 85)", "oklch(26% 0.02 85)", "oklch(38% 0.02 85)", "oklch(50% 0.02 85)", "oklch(62% 0.02 85)", "oklch(74% 0.02 85)", "oklch(86% 0.02 85)", "oklch(95% 0.02 85)"]
+      },
+      "evidence-mint": {
+        "role": "neutral",
+        "displayName": "Evidence Mint",
+        "canonical": "#cbe9d9",
+        "tonalRamp": ["oklch(15% 0.055 155)", "oklch(26% 0.055 155)", "oklch(38% 0.055 155)", "oklch(50% 0.055 155)", "oklch(62% 0.055 155)", "oklch(74% 0.055 155)", "oklch(86% 0.055 155)", "oklch(95% 0.055 155)"]
+      },
+      "error-red": {
+        "role": "tertiary",
+        "displayName": "Error Red",
+        "canonical": "#951c13",
+        "tonalRamp": ["oklch(15% 0.18 28)", "oklch(26% 0.18 28)", "oklch(38% 0.18 28)", "oklch(50% 0.18 28)", "oklch(62% 0.18 28)", "oklch(74% 0.18 28)", "oklch(86% 0.18 28)", "oklch(95% 0.18 28)"]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#4f4a42",
+        "tonalRamp": ["oklch(15% 0.025 78)", "oklch(26% 0.025 78)", "oklch(38% 0.025 78)", "oklch(50% 0.025 78)", "oklch(62% 0.025 78)", "oklch(74% 0.025 78)", "oklch(86% 0.025 78)", "oklch(95% 0.025 78)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "First-view mission statements and page-scale editorial declarations." },
+      "headline": { "displayName": "Headline", "purpose": "Program, workflow, form, and ticket headings." },
+      "title": { "displayName": "Title", "purpose": "Short editorial titles inside selection entries." },
+      "body": { "displayName": "Body", "purpose": "Explanations, form support copy, and evidence context." },
+      "label": { "displayName": "Label", "purpose": "Evidence status, field labels, navigation numbers, steps, and receipts." }
+    },
+    "shadows": [
+      { "name": "action-lift", "value": "6px 7px 0 var(--ink)", "purpose": "Primary actions at rest." },
+      { "name": "ticket-lift", "value": "8px 9px 0 var(--ink)", "purpose": "The desktop nomination ticket." },
+      { "name": "selected-lift", "value": "5px 5px 0 var(--ink)", "purpose": "Selected mode choices and the emphasized primary field." },
+      { "name": "evidence-inset", "value": "inset 0 3px 0 var(--yellow)", "purpose": "The featured nomination detail strip." },
+      { "name": "focus-halo", "value": "0 0 0 7px var(--blue)", "purpose": "Outer layer of the global keyboard-focus treatment." }
+    ],
+    "motion": [
+      { "name": "handoff-cycle", "value": "3.6s steps(1, end) infinite", "purpose": "Advances URL, Research, and Scout Card through one truthful stepped sequence." },
+      { "name": "handoff-offset", "value": "1.2s", "purpose": "Offsets each successive handoff stage." },
+      { "name": "reduced-motion-floor", "value": "0.01ms", "purpose": "Collapses animation and transition duration when reduced motion is requested." }
+    ],
+    "breakpoints": [
+      { "name": "wide-reflow", "value": "1100px" },
+      { "name": "mobile", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main nomination and research action with compressed display type and hard lift.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">REVIEW NOMINATION <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 12h15M13 5l7 7-7 7\" /></svg></button>",
+      "css": ".ds-btn-primary { min-width: 260px; min-height: 62px; border: 3px solid var(--ink); padding: 0 22px; background: var(--coral); color: #fff; font-family: var(--display); font-size: 2rem; font-weight: 400; letter-spacing: .015em; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; gap: 30px; cursor: pointer; box-shadow: var(--shadow); } .ds-btn-primary svg { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; } .ds-btn-primary:hover { background: var(--blue); } .ds-btn-primary:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); } .ds-btn-primary:disabled { cursor: wait; opacity: .65; box-shadow: none; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A square, transparent companion action used for returning to edit.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\">BACK TO EDIT</button>",
+      "css": ".ds-btn-secondary { min-height: 62px; padding: 0 22px; background: transparent; color: var(--ink); border: 3px solid var(--ink); font-family: var(--body); font-weight: 900; cursor: pointer; } .ds-btn-secondary:hover { background: transparent; } .ds-btn-secondary:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); } .ds-btn-secondary:disabled { cursor: wait; opacity: .65; box-shadow: none; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "The labeled square writing surface used throughout the nomination form.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-project-url\">PUBLIC PROJECT URL <span class=\"ds-field-required\">*</span></label><p class=\"ds-field-help\" id=\"ds-url-help\">YouTube, Vimeo, a public creator page, or public campaign.</p><input class=\"ds-field-input\" id=\"ds-project-url\" type=\"url\" placeholder=\"https://…\" aria-describedby=\"ds-url-help\" /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; min-width: 0; font-family: var(--body); color: var(--ink); } .ds-field-label { font-family: var(--meta); font-size: .75rem; font-weight: 900; text-transform: uppercase; } .ds-field-required { color: #b52f1f; } .ds-field-help { margin: 6px 0 10px; color: #4f4a42; font-size: .82rem; } .ds-field-input { width: 100%; min-height: 56px; border: 2px solid var(--ink); border-radius: 0; background: #fffdf7; color: var(--ink); padding: 14px; font: inherit; } .ds-field-input:hover { border-color: var(--ink); } .ds-field-input:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); } .ds-field-input[aria-invalid=\"true\"] { border-color: #a21d14; background: #fff0eb; }"
+    },
+    {
+      "name": "Primary Navigation",
+      "kind": "nav",
+      "description": "The numbered festival-program navigation used in the shared site masthead.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary navigation\"><a class=\"ds-nav-link\" href=\"#\" aria-current=\"page\"><span class=\"ds-nav-number\">01</span> HOME</a><a class=\"ds-nav-link\" href=\"#\"><span class=\"ds-nav-number\">02</span> NOMINATE</a><a class=\"ds-nav-link\" href=\"#\"><span class=\"ds-nav-number\">03</span> THE SELECTS</a></nav>",
+      "css": ".ds-nav { display: flex; background: var(--paper); color: var(--ink); } .ds-nav-link { min-width: 132px; padding: 15px 22px 11px; border-left: 1px solid var(--ink); color: inherit; text-decoration: none; text-transform: uppercase; font-family: var(--body); font-size: .78rem; font-weight: 850; display: flex; flex-direction: column; justify-content: center; } .ds-nav-link:last-child { border-right: 1px solid var(--ink); } .ds-nav-number { color: var(--blue); font-family: var(--meta); font-weight: 800; } .ds-nav-link:hover { background: var(--yellow); } .ds-nav-link:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); }"
+    },
+    {
+      "name": "Submission Mode Switch",
+      "kind": "custom",
+      "refersTo": "mode-choice-selected",
+      "description": "A two-choice submission control whose pressed state uses the selected hard-lift pattern.",
+      "html": "<div class=\"ds-mode-switch\" role=\"group\" aria-label=\"Submission type\"><button class=\"ds-mode-choice\" type=\"button\" aria-pressed=\"true\">NOMINATE A PROJECT<span class=\"ds-mode-detail\">I found someone else’s work</span></button><button class=\"ds-mode-choice\" type=\"button\" aria-pressed=\"false\">SUBMIT MY PROJECT<span class=\"ds-mode-detail\">I am connected to this work</span></button></div>",
+      "css": ".ds-mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; color: var(--ink); font-family: var(--body); } .ds-mode-choice { min-height: 100px; background: transparent; color: inherit; border: 2px solid var(--ink); padding: 16px; text-align: left; font-weight: 900; cursor: pointer; } .ds-mode-detail { display: block; margin-top: 6px; font-weight: 500; font-size: .78rem; } .ds-mode-choice[aria-pressed=\"true\"] { background: var(--yellow); box-shadow: 5px 5px 0 var(--ink); transform: translate(-2px, -2px); } .ds-mode-choice:hover { border-color: var(--ink); } .ds-mode-choice:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); }"
+    },
+    {
+      "name": "Trust Stamp",
+      "kind": "chip",
+      "description": "A compact evidence promise pairing an eye icon with uppercase mono copy.",
+      "html": "<div class=\"ds-trust-stamp\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z\" /><circle cx=\"12\" cy=\"12\" r=\"2.8\" /></svg><span>PUBLIC SOURCES. CLEAR LABELS. NO MYSTERY SCORE.</span></div>",
+      "css": ".ds-trust-stamp { max-width: 280px; display: flex; gap: 12px; align-items: center; border: 2px solid var(--ink); padding: 12px 14px; color: var(--ink); font-family: var(--meta); font-size: .7rem; font-weight: 800; text-transform: uppercase; } .ds-trust-stamp svg { flex: 0 0 28px; width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; }"
+    },
+    {
+      "name": "Nomination Ticket",
+      "kind": "custom",
+      "refersTo": "nomination-ticket",
+      "description": "The signature warm-paper open-call object that makes URL-first nomination unmistakable.",
+      "html": "<section class=\"ds-ticket\"><span class=\"ds-ticket-hole\" aria-hidden=\"true\"></span><span class=\"ds-ticket-notch ds-ticket-notch-top\" aria-hidden=\"true\"></span><span class=\"ds-ticket-notch ds-ticket-notch-bottom\" aria-hidden=\"true\"></span><span class=\"ds-ticket-edge\" aria-hidden=\"true\">AT / OPEN CALL / 001</span><div class=\"ds-ticket-heading\"><h2>NOMINATE A PROJECT</h2></div><p>Found a trailer, short, series, documentary, creator page, or public campaign?</p><label class=\"ds-ticket-label\" for=\"ds-ticket-url\">PUBLIC PROJECT URL</label><input class=\"ds-ticket-input\" id=\"ds-ticket-url\" type=\"url\" placeholder=\"https://youtube.com/watch?v=…\" /></section>",
+      "css": ".ds-ticket { position: relative; overflow: hidden; background: var(--paper); color: var(--ink); padding: 42px 48px 42px 56px; border: 3px solid var(--ink); box-shadow: 8px 9px 0 var(--ink); font-family: var(--body); } .ds-ticket-hole { position: absolute; width: 32px; height: 32px; background: var(--ink); border-radius: 50%; top: -16px; right: 64px; } .ds-ticket-notch { position: absolute; right: -18px; width: 34px; height: 34px; border: 3px solid var(--ink); border-radius: 50%; background: var(--paper); } .ds-ticket-notch-top { top: 25%; } .ds-ticket-notch-bottom { bottom: 25%; } .ds-ticket-edge { position: absolute; inset: 70px auto 70px 18px; display: flex; align-items: center; border-right: 1px solid var(--ink); padding-right: 9px; writing-mode: vertical-rl; transform: rotate(180deg); font-family: var(--meta); font-size: .6rem; font-weight: 900; letter-spacing: .12em; } .ds-ticket-heading { padding-bottom: 14px; border-bottom: 3px solid var(--ink); } .ds-ticket-heading h2 { margin: 0; color: var(--coral); font-family: var(--display); font-size: clamp(3.5rem, 5.6vw, 6.3rem); font-weight: 400; line-height: .75; text-transform: uppercase; letter-spacing: -.01em; } .ds-ticket-label { display: block; margin-bottom: 8px; font-family: var(--meta); font-size: .72rem; font-weight: 800; text-transform: uppercase; } .ds-ticket-input { width: 100%; min-height: 58px; border: 2px solid var(--ink); border-radius: 0; background: rgba(255,255,255,.35); color: var(--ink); padding: 0 16px; font-family: var(--meta); } .ds-ticket-input:hover { border-color: var(--ink); } .ds-ticket-input:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); }"
+    },
+    {
+      "name": "Editorial Selection Entry",
+      "kind": "card",
+      "description": "A ruled program entry combining a geometric live-text poster, editorial rationale, and visible sample status.",
+      "html": "<article class=\"ds-select-entry\"><div class=\"ds-select-poster\" aria-hidden=\"true\"><span>01</span><i></i><b>AT</b></div><div class=\"ds-select-copy\"><span class=\"ds-select-type\">EDITORIAL EXAMPLE</span><h3>A LOCAL STORY WITH A WIDER HORIZON</h3><p>Selected to show how a distinctive storyworld could be surfaced.</p><span class=\"ds-select-status\">SAMPLE — NO AUDIENCE ACTIVITY CLAIMED</span></div></article>",
+      "css": ".ds-select-entry { min-width: 0; display: grid; grid-template-columns: 124px minmax(0,1fr); border: 3px solid var(--ink); background: var(--paper); color: var(--ink); font-family: var(--body); } .ds-select-poster { min-height: 176px; border-right: 2px solid var(--ink); position: relative; overflow: hidden; padding: 11px; background: var(--yellow); display: flex; flex-direction: column; justify-content: space-between; } .ds-select-poster span, .ds-select-poster b { font-family: var(--display); font-size: 2rem; font-weight: 400; line-height: 1; } .ds-select-poster b { font-size: 3.4rem; align-self: flex-end; } .ds-select-poster i { width: 130%; height: 34px; border-top: 3px solid; border-bottom: 3px solid; transform: rotate(-34deg) translateX(-20px); } .ds-select-copy { padding: 14px; display: flex; flex-direction: column; } .ds-select-type, .ds-select-status { font-family: var(--meta); font-size: .62rem; text-transform: uppercase; font-weight: 850; } .ds-select-copy h3 { margin: 10px 0 7px; font-family: var(--display); font-size: 2.15rem; font-weight: 400; line-height: .82; text-transform: uppercase; } .ds-select-copy p { font-size: .82rem; margin: 0 0 24px; } .ds-select-status { margin-top: auto; border-top: 1px solid var(--ink); padding-top: 10px; color: #4c473e; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Public Scouting Program",
+    "overview": "The Public Scouting Program treats every screen-story nomination as a physical piece of cultural evidence: a festival handbill, an open-call ticket, a contact sheet, or a research receipt. The atmosphere is energetic, tactile, and editorial—acid color fields and compressed headlines bring underground-magazine conviction, while explicit labels, program numbers, and visible rules keep the experience evidence-aware.\n\nThe system joins Letterboxd-like cultural fluency, Sundance-like programming authority, Are.na-like collected context, and neobrutalist construction without mimicking any one reference. Warm paper, near-black ink, square geometry, hard seams, restrained grain, and controlled offset shadows form one public identity; analytical surfaces become calmer through density and color restraint, not through a separate visual language. Generic centered AI heroes, floating glass cards, gradients, and decorative AI-orb imagery are outside this world.",
+    "keyCharacteristics": [
+      "Compressed, all-caps display type paired with sturdy sans-serif reading copy and monospaced evidence labels.",
+      "Warm paper and near-black ink interrupted by acid yellow, electric blue, and signal coral.",
+      "Contact-sheet grids, ticket cuts, program numbers, hard rules, and selectively lifted actions.",
+      "Explicit status language and semantic structure carry meaning alongside color, border, and motion.",
+      "One low-opacity paper-and-ink grain adds tactility without competing with content."
+    ],
+    "rules": [
+      { "name": "The Ink Has a Job Rule", "body": "Electric blue indicates mission or process, acid yellow indicates public programming or selection, and signal coral indicates nomination action; do not scatter the accents as interchangeable decoration.", "section": "colors" },
+      { "name": "The Paper Stays Warm Rule", "body": "Warm program paper is the default canvas. Clean white is reserved for contrast and field clarity rather than used as a generic page background.", "section": "colors" },
+      { "name": "The Poster Leads, the Receipt Proves Rule", "body": "Use the compressed face for cultural invitation and hierarchy; use mono for metadata and evidence; keep explanatory prose in the reading face.", "section": "typography" },
+      { "name": "The Continuous Program Rule", "body": "Build sections as adjacent fields joined by rules; use white space inside the fields, not floating rounded containers between them.", "section": "layout" },
+      { "name": "The Flat Until Lifted Rule", "body": "A surface earns an offset shadow only when it is an action, a selected control, or the signature nomination ticket.", "section": "elevation" },
+      { "name": "The Paper Is Cut, Not Cushioned Rule", "body": "Keep primary UI geometry square and use print-production details for character; rounded rectangles and pill-shaped containers do not belong in the implemented system.", "section": "shapes" },
+      { "name": "The State Must Speak Rule", "body": "Pair visual state with live labels, semantic attributes, and adjacent explanation; color, shadow, and motion are never the only carriers of meaning.", "section": "components" }
+    ],
+    "dos": [
+      "Do use compressed headlines, plain reading copy, and mono metadata for distinct rhetorical jobs.",
+      "Do build continuous program fields with exact rules, deliberate asymmetry, and square corners.",
+      "Do reserve hard shadows for actions, selections, and the signature nomination ticket.",
+      "Do keep evidence, source, claim, Demo, Sample, and error labels visible in live text.",
+      "Do preserve the stepped handoff as the single recurring motion and honor reduced-motion preferences."
+    ],
+    "donts": [
+      "Don't introduce gradients, glass panels, AI orbs, soft floating cards, or generic dashboard bento grids.",
+      "Don't turn saturated accents into decoration; each ink has an implemented semantic role.",
+      "Don't soften the system with pill controls or a family of rounded rectangles.",
+      "Don't use texture, imagery, borders, shadows, or motion as the sole carrier of status or evidence.",
+      "Don't imply festival affiliation, creator endorsement, verification, or audience proof through decorative program language."
+    ]
+  }
+}
