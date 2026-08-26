@@ -41,7 +41,7 @@ The core is complete only when a public deployed build can perform the judge jou
   Acceptance: A first-time visitor understands the mission and can begin a nomination immediately; the form preserves input on errors; creator submissions receive the approved verification-pending label; keyboard, contrast, focus, reduced-motion, and mobile behavior meet the quality requirements.
   Verify: Run component/accessibility tests and responsive browser checks. Manually inspect desktop and mobile landing/nomination screens with real typography, labels, empty/error states, and Junichiro imagery. **Visual pause 1: Tarik approves the landing page and nomination flow before autonomous work continues.**
 
-- [ ] **4. Implement nomination persistence, canonical deduplication, and safe source intake**
+- [x] **4. Implement nomination persistence, canonical deduplication, and safe source intake**
   Spec ref: `spec.md > Server Command API > Nomination and research`; `spec.md > Research Run Data Flow > Accept and deduplicate`; `spec.md > URL, Embed, And Media Policy`
   What to build: Implement the authenticated nomination endpoint, shared validation, safe URL normalization, source fingerprinting, supporting-link handling, duplicate routing, project shell creation, nomination provenance, queued research run creation, and first progress event. Enforce public HTTP(S) sources, safe redirects, SSRF protections, response limits, and consistent error envelopes.
   Acceptance: A new valid URL creates exactly one project/run; repeat and concurrent submissions route to the canonical Scout Card; unsafe/private URLs are rejected; fan and creator provenance is preserved; queue-dispatch failure does not lose the nomination.

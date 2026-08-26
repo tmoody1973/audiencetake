@@ -106,3 +106,13 @@
 - Completed the Impeccable workflow: approved contact-sheet comp, surface brief, asset manifest, one detector pass, two screenshot rounds, fresh finish review, final `disposition: ship`, and portable `DESIGN.md` plus `.impeccable/design.json`.
 - Verification passed: lint, TypeScript, production build, 20 unit/component tests, responsive browser inspection, invalid-input preservation, creator-mode switching, and the five-link cap.
 - Tarik approved visual pause 1 on 2026-08-26.
+
+## 2026-08-26 — Build Item 4 Complete
+
+- Added the authenticated `POST /api/nominations` command using the canonical nomination contract and existing Firebase ID-token/App Check verification.
+- Added HTTPS-first source intake with explicit HTTP allowlisting, credential/local/private/reserved-address rejection, DNS verification, pinned-address HEAD probes, bounded redirect revalidation, response-size and MIME limits, and safe public error envelopes.
+- Added stable URL canonicalization and SHA-256 fingerprints that remove fragments and trackers while preserving content identifiers and meaningful query parameters.
+- Added a `sourceFingerprints/{fingerprint}` transaction contention point that atomically creates exactly one project shell, nomination, queued research run, and first event; duplicates route to the canonical Scout Card.
+- Added post-transaction dispatch with durable dispatched/retryable-failure states so queue failure never loses a nomination.
+- Updated the nomination client to send canonical fields plus Firebase ID and App Check tokens while preserving entered text on failure.
+- Verification passed: web lint, TypeScript, 38 unit/route tests, and 10 Firebase emulator tests including concurrent Junichiro submissions that produced one fingerprint, project, nomination, run, and first event.

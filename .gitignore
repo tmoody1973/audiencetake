@@ -4,6 +4,7 @@ out/
 coverage/
 .firebase/
 firebase-debug.log*
+firepit-log.txt
 firestore-debug.log*
 ui-debug.log*
 .env

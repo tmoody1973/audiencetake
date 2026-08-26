@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 
 import { ArrowIcon } from "../../components/icons";
+import { nominationCommandHeaders } from "../../lib/nomination/client-auth";
 
 type Mode = "fan" | "creator";
 type FormState = {
@@ -78,20 +79,24 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
     try {
       const response = await fetch("/api/nominations", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: await nominationCommandHeaders(),
         body: JSON.stringify({
-          mode,
-          projectUrl: values.projectUrl.trim(),
-          reason: values.reason.trim(),
-          potential: values.potential.trim() || undefined,
-          audience: values.audience.trim() || undefined,
-          supportingLinks: completedSupportingLinks,
-          creatorConnection: mode === "creator" ? values.creatorConnection : undefined,
+          submittedUrl: values.projectUrl.trim(),
+          whyItShouldGrow: values.reason.trim(),
+          submissionType: mode,
+          suggestedFormat: values.potential.trim() || undefined,
+          audienceFit: values.audience.trim() || undefined,
+          supportingUrls: completedSupportingLinks,
         }),
       });
-      const result = (await response.json().catch(() => ({}))) as { researchUrl?: string; canonicalUrl?: string; error?: { message?: string } };
+      const result = (await response.json().catch(() => ({}))) as {
+        data?: { duplicate?: boolean; researchUrl?: string; canonicalUrl?: string };
+        error?: { message?: string };
+      };
       if (!response.ok) throw new Error(result.error?.message || "The research desk could not start this nomination.");
-      const destination = result.canonicalUrl || result.researchUrl;
+      const destination = result.data?.duplicate
+        ? result.data.canonicalUrl
+        : result.data?.researchUrl;
       if (!destination) throw new Error("The nomination was received, but no research destination was returned.");
       window.location.assign(destination);
     } catch (error) {
