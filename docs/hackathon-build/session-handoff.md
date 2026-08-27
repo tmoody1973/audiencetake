@@ -283,7 +283,8 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   installed globally in Codex; they become available on the next turn. Installing
   and verifying them did not invoke a search or other provider-bearing operation.
 - Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
-  at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is the next verified checkpoint. Public origin
+  at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is committed at
+  `f732262` and is the next GitHub sync checkpoint. Public origin
   `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
   tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
