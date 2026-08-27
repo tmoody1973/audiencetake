@@ -1,15 +1,11 @@
 import type { NextConfig } from "next";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+
+import { resolveOutputFileTracingRoot } from "./lib/build/output-tracing";
 
 const appRoot = process.cwd();
-const workspaceRoot = resolve(appRoot, "../..");
-const tracingRoot = existsSync(resolve(appRoot, "node_modules/next/package.json"))
-  ? appRoot
-  : workspaceRoot;
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: tracingRoot,
+  outputFileTracingRoot: resolveOutputFileTracingRoot(appRoot),
   serverExternalPackages: ["@google-cloud/tasks"],
   images: {
     remotePatterns: [
