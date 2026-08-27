@@ -20,6 +20,12 @@ __pycache__/
 .mypy_cache/
 .venv/
 .uv-cache/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+!example.tfvars
 dist/
 *.egg-info/
 *.tsbuildinfo

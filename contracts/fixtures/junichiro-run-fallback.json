@@ -1,0 +1,17 @@
+{
+  "runId": "run-junichiro-refresh-v2",
+  "projectId": "junichiro-jackson",
+  "attempt": 3,
+  "researchVersion": 2,
+  "status": "failed",
+  "currentStage": 3,
+  "completedStages": [1, 2],
+  "missingStages": [3, 4, 5, 6],
+  "publicFailureMessage": "The live refresh was unavailable. The previous card remains available with its original research date.",
+  "projectSlug": "junichiro-jackson",
+  "cardUrl": "/projects/junichiro-jackson",
+  "retryEligible": true,
+  "fallbackUsed": true,
+  "fallbackLabel": "Previously generated — live refresh unavailable.",
+  "updatedAt": "2026-08-26T12:25:00Z"
+}

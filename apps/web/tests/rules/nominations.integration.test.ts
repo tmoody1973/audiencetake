@@ -56,15 +56,16 @@ describe("nomination persistence against the Firestore emulator", () => {
     const duplicate = first.kind === "duplicate" ? first : second;
     expect(created.kind).toBe("created");
     expect(duplicate.kind).toBe("duplicate");
+    if (created.kind !== "created") throw new Error("Expected one created nomination.");
     expect(duplicate.projectId).toBe(created.projectId);
     expect(duplicate.canonicalUrl).toBe(created.canonicalUrl);
 
     const counts = await Promise.all(
-      ["sourceFingerprints", "projects", "nominations", "researchRuns", "events"].map(
+      ["sourceFingerprints", "projects", "nominations", "researchRuns", "publicResearchRuns", "events"].map(
         async (name) => (await database.collection(name).get()).size,
       ),
     );
-    expect(counts).toEqual([1, 1, 1, 1, 1]);
+    expect(counts).toEqual([1, 1, 1, 1, 1, 1]);
 
     const storedNomination = (await database.collection("nominations").limit(1).get()).docs[0];
     expect(storedNomination.data()).toMatchObject({
@@ -72,6 +73,23 @@ describe("nomination persistence against the Firestore emulator", () => {
       submittedUrl: expect.stringContaining("utm_source=integration"),
       canonicalUrl,
       submissionType: "fan",
+    });
+    const publicRun = (await database.collection("publicResearchRuns").limit(1).get()).docs[0];
+    expect(publicRun.data()).toEqual({
+      runId: created.runId,
+      projectId: created.projectId,
+      attempt: 1,
+      researchVersion: 1,
+      status: "queued",
+      currentStage: 1,
+      completedStages: [],
+      missingStages: [],
+      publicFailureMessage: null,
+      projectSlug: expect.stringMatching(/^project-/),
+      cardUrl: expect.stringMatching(/^\/projects\/project-/),
+      retryEligible: false,
+      fallbackUsed: false,
+      updatedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
     });
   });
 });

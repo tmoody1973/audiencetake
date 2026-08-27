@@ -5,9 +5,10 @@ import { fail, ok } from "@/lib/api/response";
 import { AuthenticationError, verifyAuthenticatedRequest } from "@/lib/auth/verify-request";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { nominationInputSchema } from "@/lib/nomination/contract";
-import { acceptNomination, noOpResearchDispatcher, type ResearchDispatcher } from "@/lib/nomination/service";
+import { acceptNomination, type ResearchDispatcher } from "@/lib/nomination/service";
 import { createFirestoreNominationStore, type NominationStore } from "@/lib/nomination/store";
 import { UnsafeUrlError, type SafeUrlPolicy } from "@/lib/nomination/url-policy";
+import { createCloudTasksResearchDispatcher } from "@/lib/tasks/cloud-tasks";
 
 const MAX_BODY_BYTES = 16_384;
 
@@ -60,7 +61,7 @@ export async function handleNominationPost(request: NextRequest, dependencies: R
 
     const result = await acceptNomination(parsed.data, user.uid, {
       store: dependencies.store ?? createFirestoreNominationStore(getAdminFirestore()),
-      dispatch: dependencies.dispatch ?? noOpResearchDispatcher(),
+      dispatch: dependencies.dispatch ?? ((job) => createCloudTasksResearchDispatcher()(job)),
       urlPolicy: dependencies.urlPolicy ?? { allowedHttpHosts: allowedHttpHosts() },
     });
     return ok(result);
@@ -87,4 +88,3 @@ export async function handleNominationPost(request: NextRequest, dependencies: R
 export async function POST(request: NextRequest) {
   return handleNominationPost(request);
 }
-

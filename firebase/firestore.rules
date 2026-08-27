@@ -52,9 +52,45 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /publicResearchRuns/{runId} {
+      // This collection is a deliberately narrow server-authored projection.
+      // Lease holders, task metadata, provider payloads, and prompts stay in
+      // researchRuns and stageOutputs, which have no client read path.
+      allow read: if resource.data.runId == runId &&
+        resource.data.keys().hasAll([
+          'runId', 'projectId', 'attempt', 'researchVersion', 'status',
+          'currentStage', 'completedStages', 'missingStages',
+          'publicFailureMessage', 'projectSlug', 'cardUrl', 'retryEligible',
+          'fallbackUsed', 'updatedAt'
+        ]) &&
+        resource.data.keys().hasOnly([
+          'runId', 'projectId', 'attempt', 'researchVersion', 'status',
+          'currentStage', 'completedStages', 'missingStages',
+          'publicFailureMessage', 'projectSlug', 'cardUrl', 'retryEligible',
+          'fallbackUsed', 'fallbackLabel', 'updatedAt'
+        ]);
+      allow write: if false;
+    }
+
     match /events/{eventId} {
-      allow read: if resource.data.publicVisibility == true &&
-        isPublishedProject(resource.data.projectId);
+      allow get: if resource.data.publicVisibility == 'public' &&
+        resource.data.stage is int &&
+        resource.data.stage >= 1 && resource.data.stage <= 6 &&
+        resource.data.keys().hasAll([
+          'runId', 'projectId', 'sequence', 'attempt', 'stage', 'status',
+          'kind', 'publicTitle', 'publicSummary', 'publicVisibility', 'occurredAt'
+        ]) &&
+        resource.data.keys().hasOnly([
+          'runId', 'projectId', 'sequence', 'attempt', 'stage', 'status',
+          'kind', 'publicTitle', 'publicSummary', 'publicVisibility',
+          'toolName', 'queryLabel', 'resultCount', 'sourceIds', 'destination',
+          'occurredAt'
+        ]);
+      // Firestore list rules must be provable from query constraints and cannot
+      // prove a document key allowlist. The server is the only writer and
+      // contract-validates every public event; client queries must still bind
+      // the explicit public marker.
+      allow list: if resource.data.publicVisibility == 'public';
       allow write: if false;
     }
 
@@ -65,6 +101,12 @@ service cloud.firestore {
     }
 
     match /pathways/{pathwayId} {
+      allow read: if resource.data.visibility == 'public' &&
+        isPublishedProject(resource.data.projectId);
+      allow write: if false;
+    }
+
+    match /scoutCards/{cardVersionId} {
       allow read: if resource.data.visibility == 'public' &&
         isPublishedProject(resource.data.projectId);
       allow write: if false;

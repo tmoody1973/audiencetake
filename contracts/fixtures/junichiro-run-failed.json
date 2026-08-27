@@ -1,0 +1,16 @@
+{
+  "runId": "run-junichiro-failed-v1",
+  "projectId": "junichiro-jackson",
+  "attempt": 3,
+  "researchVersion": 1,
+  "status": "failed",
+  "currentStage": 2,
+  "completedStages": [1],
+  "missingStages": [2, 3, 4, 5, 6],
+  "publicFailureMessage": "Research could not produce enough useful sourced material to publish a Scout Card. You can retry without losing this nomination.",
+  "projectSlug": null,
+  "cardUrl": null,
+  "retryEligible": true,
+  "fallbackUsed": false,
+  "updatedAt": "2026-08-26T12:20:00Z"
+}

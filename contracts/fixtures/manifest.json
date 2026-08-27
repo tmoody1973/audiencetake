@@ -1,8 +1,22 @@
 [
   { "schema": "nomination.schema.json", "fixture": "junichiro-nomination.json" },
   { "schema": "source.schema.json", "fixture": "junichiro-source.json" },
+  { "schema": "source-analysis.schema.json", "fixture": "junichiro-source-analysis.json" },
+  { "schema": "research-bundle.schema.json", "fixture": "junichiro-research-bundle.json" },
   { "schema": "evidence-claim.schema.json", "fixture": "junichiro-claim.json" },
+  { "schema": "evidence-ledger.schema.json", "fixture": "junichiro-evidence-ledger.json" },
   { "schema": "pathway.schema.json", "fixture": "junichiro-pathway.json" },
   { "schema": "research-event.schema.json", "fixture": "junichiro-event.json" },
-  { "schema": "scout-card.schema.json", "fixture": "junichiro-card.json" }
+  { "schema": "public-run-projection.schema.json", "fixture": "junichiro-run-complete.json" },
+  { "schema": "public-run-projection.schema.json", "fixture": "junichiro-run-partial.json" },
+  { "schema": "public-run-projection.schema.json", "fixture": "junichiro-run-failed.json" },
+  { "schema": "public-run-projection.schema.json", "fixture": "junichiro-run-fallback.json" },
+  { "schema": "card-publication.schema.json", "fixture": "junichiro-publication-complete.json" },
+  { "schema": "card-publication.schema.json", "fixture": "junichiro-publication-partial.json" },
+  { "schema": "card-publication.schema.json", "fixture": "junichiro-publication-failed.json" },
+  { "schema": "card-publication.schema.json", "fixture": "junichiro-publication-fallback.json" },
+  { "schema": "scout-card.schema.json", "fixture": "junichiro-card.json" },
+  { "schema": "scout-card.schema.json", "fixture": "junichiro-card-partial.json" },
+  { "schema": "scout-card.schema.json", "fixture": "junichiro-card-unavailable-media.json" },
+  { "schema": "scout-card.schema.json", "fixture": "junichiro-card-fallback.json" }
 ]

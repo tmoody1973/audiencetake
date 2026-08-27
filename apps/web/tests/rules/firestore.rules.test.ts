@@ -4,7 +4,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, where } from "firebase/firestore";
 import { getBytes, ref, uploadBytes } from "firebase/storage";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -66,10 +66,64 @@ beforeAll(async () => {
         publicVisibility: true,
         leaseOwner: "server-worker",
       }),
+      setDoc(doc(database, "publicResearchRuns/public-run"), {
+        runId: "public-run",
+        projectId: "pending-project",
+        attempt: 1,
+        researchVersion: 1,
+        status: "running",
+        currentStage: 3,
+        completedStages: [1, 2],
+        missingStages: [],
+        publicFailureMessage: null,
+        projectSlug: "pending-project",
+        cardUrl: "/projects/pending-project",
+        retryEligible: false,
+        fallbackUsed: false,
+        updatedAt: "2026-08-26T12:00:00Z",
+      }),
       setDoc(doc(database, "events/public-event"), {
         projectId: "published",
-        publicVisibility: true,
+        runId: "public-run",
+        sequence: 1,
+        attempt: 1,
+        stage: 1,
+        status: "active",
+        kind: "stage",
+        publicVisibility: "public",
         publicTitle: "Scouting public sources",
+        publicSummary: "The public research run is reading the submitted source.",
+        occurredAt: "2026-08-26T12:00:00Z",
+      }),
+      setDoc(doc(database, "events/private-event"), {
+        projectId: "published",
+        runId: "public-run",
+        sequence: 2,
+        attempt: 1,
+        stage: 2,
+        status: "active",
+        kind: "stage",
+        publicVisibility: "private",
+        publicTitle: "Internal worker detail",
+        publicSummary: "This row is intentionally private.",
+        occurredAt: "2026-08-26T12:01:00Z",
+      }),
+      setDoc(doc(database, "publicResearchRuns/leaky-run"), {
+        runId: "leaky-run",
+        projectId: "pending-project",
+        attempt: 1,
+        researchVersion: 1,
+        status: "running",
+        currentStage: 2,
+        completedStages: [1],
+        missingStages: [],
+        publicFailureMessage: null,
+        projectSlug: "pending-project",
+        cardUrl: "/projects/pending-project",
+        retryEligible: false,
+        fallbackUsed: false,
+        updatedAt: "2026-08-26T12:00:00Z",
+        leaseOwner: "must-not-be-public",
       }),
       setDoc(doc(database, "follows/private-follow"), {
         uid: "fan-private",
@@ -86,6 +140,16 @@ beforeAll(async () => {
       setDoc(doc(database, "nominations/public-nomination"), {
         nominatorUid: "fan-private",
         visibility: "public",
+      }),
+      setDoc(doc(database, "scoutCards/published-card-v1"), {
+        projectId: "published",
+        visibility: "public",
+        cardVersionId: "published-card-v1",
+      }),
+      setDoc(doc(database, "scoutCards/pending-card-v1"), {
+        projectId: "pending",
+        visibility: "public",
+        cardVersionId: "pending-card-v1",
       }),
       setDoc(doc(database, "takes/public-take"), {
         uid: "fan-private",
@@ -116,7 +180,26 @@ describe("Firestore public/private boundary", () => {
   it("publishes safe receipts while hiding research-run internals", async () => {
     const database = environment.unauthenticatedContext().firestore();
     await assertSucceeds(getDoc(doc(database, "events/public-event")));
+    await assertFails(getDoc(doc(database, "events/private-event")));
     await assertFails(getDoc(doc(database, "researchRuns/private-run")));
+  });
+
+  it("restores the safe public run projection and its ordered public events", async () => {
+    const database = environment.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(database, "publicResearchRuns/public-run")));
+    await assertFails(getDoc(doc(database, "publicResearchRuns/leaky-run")));
+    await assertSucceeds(getDoc(doc(database, "scoutCards/published-card-v1")));
+    await assertFails(getDoc(doc(database, "scoutCards/pending-card-v1")));
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(database, "events"),
+          where("publicVisibility", "==", "public"),
+          where("runId", "==", "public-run"),
+          orderBy("sequence", "asc"),
+        ),
+      ),
+    );
   });
 
   it("allows a claimant to read their own private request and report only", async () => {

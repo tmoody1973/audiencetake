@@ -774,6 +774,38 @@ Required visible status labels include:
 - Basic Scout Profile and Public Activity toggle
 - Report flow and essential trust states
 - Clearly labeled seeded demonstration activity
+- Approved, bounded YouTube public-comment analysis in the Industry Lens
+
+### Final MVP slice — approved YouTube comment signals
+
+Build this after the rest of the critical MVP is stable, but before the
+hackathon submission is finalized. The Industry Lens adds aggregate sentiment,
+recurring themes, constructive feedback, and common questions from a bounded
+sample of public YouTube comments. This slice is compliance-gated: it must not
+be enabled until YouTube approves Audience Take's Analytics & Reporting use
+case and explicitly permits derived metrics through the YouTube Data API audit
+and quota-extension process.
+
+- Retrieve public comments server-side through `commentThreads.list` and
+  `comments.list`; do not scrape YouTube or expose credentials to the browser.
+- Keep external comment analysis separate from Audience Take-native follows,
+  commitments, votes, and Takes. It must never enter native counts or model
+  confidence as if it were first-party demand.
+- Label every result as an independently calculated Audience Take estimate,
+  including sample size, collection date, coverage limits, unavailable-comment
+  states, and material sampling or model limitations.
+- Do not infer protected or sensitive traits, profile individual commenters,
+  or use the feature for automated eligibility, acquisition, or greenlight
+  decisions.
+- Minimize author data, avoid persisting commenter identity, and refresh or
+  delete stored raw API data within YouTube's required window. Retain only what
+  the granted approval and Audience Take's published privacy/retention policy
+  permit.
+- Complete the public privacy policy, terms, deletion/refresh behavior,
+  screenshots, and audit evidence before applying. Approval is an enablement
+  gate, not an assumed entitlement. If approval is still pending at the
+  submission deadline, keep the integration disabled and disclose that status
+  rather than presenting derived metrics without permission.
 
 ## What We Would Add With More Time
 

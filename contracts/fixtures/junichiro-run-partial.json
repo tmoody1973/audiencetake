@@ -1,0 +1,16 @@
+{
+  "runId": "run-junichiro-partial-v1",
+  "projectId": "junichiro-jackson",
+  "attempt": 3,
+  "researchVersion": 1,
+  "status": "partial",
+  "currentStage": 6,
+  "completedStages": [1, 2, 5, 6],
+  "missingStages": [3, 4],
+  "publicFailureMessage": "Public-web research and comparable verification were unavailable; a Partial Scout Card was published from useful submitted-source evidence.",
+  "projectSlug": "junichiro-jackson",
+  "cardUrl": "/projects/junichiro-jackson",
+  "retryEligible": true,
+  "fallbackUsed": false,
+  "updatedAt": "2026-08-26T12:15:00Z"
+}

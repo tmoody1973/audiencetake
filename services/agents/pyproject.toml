@@ -4,10 +4,14 @@ version = "0.1.0"
 description = "Google ADK research service for Audience Take"
 requires-python = ">=3.12,<3.14"
 dependencies = [
-  "google-adk>=1.0.0",
+  "fastapi>=0.116.0",
+  # Keep structured-output schema behavior reproducible across smoke revisions.
+  "google-adk==2.7.1",
+  "google-genai==2.20.0",
   "google-cloud-firestore>=2.21.0",
   "jsonschema>=4.25.0",
-  "pydantic>=2.11.0",
+  "pydantic==2.13.4",
+  "uvicorn[standard]>=0.35.0",
 ]
 
 [dependency-groups]
@@ -25,7 +29,7 @@ build-backend = "hatchling.build"
 packages = ["src/audience_take_agents"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "../.."]
 
 [tool.ruff]
 line-length = 100

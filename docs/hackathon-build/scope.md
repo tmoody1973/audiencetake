@@ -134,6 +134,11 @@ The Industry Lens is a core MVP requirement, not a stretch goal. It includes:
 - Creator claim status
 - Audience-signal definitions and limitations
 - Recommended next validation experiment
+- As the final MVP slice, an approved bounded sample of public YouTube comments
+  summarized as independently calculated sentiment, themes, constructive
+  feedback, and common questions, with sample, date, coverage, and limitation
+  labels. It remains disabled until YouTube explicitly approves the Analytics &
+  Reporting derived-metrics use case.
 
 It demonstrates B2B value without requiring a separate professional dashboard.
 
@@ -202,7 +207,7 @@ Slate View must not delay submission readiness, partner-integration proof, testi
 - Advanced moderation queue, appeals, trust tiers, or AI moderation — the MVP provides reporting and basic prevention only.
 - Direct messages or broad groups — high safety cost with no benefit to the critical path.
 - Payments, ticketing, reservations, escrow, or crowdfunding transactions — commitments are non-transactional intent signals.
-- Complete YouTube comment ingestion or an audience-scoring system built from YouTube data.
+- Complete YouTube comment ingestion or a general audience-scoring system built from YouTube data. The MVP includes only the bounded, approval-gated Industry Lens analysis defined above.
 - Automated outreach or pitch submission in a creator's name.
 - Claims of guaranteed demand, revenue, acquisition, distribution, or greenlight success.
 - Dedicated mobile applications — the submission is a responsive web product.

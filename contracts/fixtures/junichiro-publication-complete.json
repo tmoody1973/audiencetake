@@ -1,0 +1,19 @@
+{
+  "publicationId": "publication-junichiro-v1",
+  "runId": "run-junichiro-v1",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 1,
+  "attempt": 1,
+  "outcome": "complete",
+  "usefulEvidence": true,
+  "cardVersionId": "card-junichiro-v1",
+  "previousCardVersionId": null,
+  "sourceIds": ["source-youtube-trailer"],
+  "claimIds": ["claim-project-world"],
+  "pathwayIds": ["pathway-series", "pathway-feature", "pathway-creator-direct"],
+  "missingSections": [],
+  "retryEligible": true,
+  "publicMessage": "The Scout Card is published with qualified evidence, three hypotheses, and explicit limitations.",
+  "fallbackUsed": false,
+  "publishedAt": "2026-08-26T12:05:00Z"
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.com/schemas/source-analysis.schema.json",
+  "title": "SourceAnalysis",
+  "description": "The Source Analyst handoff based only on submitted public material and nominator-provided context.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["runId", "projectId", "researchVersion", "sourceIds", "identity", "storyContext", "creatorContext", "observations", "researchQuestions", "limitations"],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "researchVersion": { "type": "integer", "minimum": 1 },
+    "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "projectType", "currentFormat", "medium", "sourcePlatform"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "projectType": { "enum": ["series", "film", "short_film", "documentary", "creator_project"] },
+        "currentFormat": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "medium": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "sourcePlatform": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "storyContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hook", "synopsis", "storyworld", "themes", "audienceHooks"],
+      "properties": {
+        "hook": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "synopsis": { "type": "string", "minLength": 1, "maxLength": 1600 },
+        "storyworld": { "type": "string", "minLength": 1, "maxLength": 1200 },
+        "themes": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 160 } },
+        "audienceHooks": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 240 } }
+      }
+    },
+    "creatorContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["displayName", "claimStatus", "observedContext", "sourceIds"],
+      "properties": {
+        "displayName": { "type": ["string", "null"], "maxLength": 240 },
+        "claimStatus": { "enum": ["unclaimed", "pending", "approved", "rejected"] },
+        "observedContext": { "type": "string", "minLength": 1, "maxLength": 1200 },
+        "sourceIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement", "observationType", "sourceIds", "requiresVerification"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "statement": { "type": "string", "minLength": 1, "maxLength": 1200 },
+          "observationType": { "enum": ["source_observed", "nominator_assertion"] },
+          "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "requiresVerification": { "type": "boolean" }
+        }
+      }
+    },
+    "researchQuestions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 500 } },
+    "limitations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 500 } }
+  }
+}

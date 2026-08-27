@@ -116,3 +116,11 @@
 - Added post-transaction dispatch with durable dispatched/retryable-failure states so queue failure never loses a nomination.
 - Updated the nomination client to send canonical fields plus Firebase ID and App Check tokens while preserving entered text on failure.
 - Verification passed: web lint, TypeScript, 38 unit/route tests, and 10 Firebase emulator tests including concurrent Junichiro submissions that produced one fingerprint, project, nomination, run, and first event.
+
+## 2026-08-26 — Items 5–8 Local Build Gate Ready
+
+- Implemented durable Cloud Tasks dispatch, private Cloud Run task handling, transactional leases/heartbeats, ordered public receipts, replay-safe stage outputs, retry recovery, and Terraform IAM/infrastructure definitions.
+- Implemented the six-stage Google ADK flow, DNS-pinned source reading, the single server-side Parallel Search integration owned only by Web Researcher, provider proof counters, Evidence Editor, three-pathway validation, atomic versioned publication, and complete/partial/failed/fallback policy.
+- Built the responsive live-research gatefold, dynamic Firestore-backed Scout Card, explicit saved-result fallback, and embedded Industry Lens in the approved Impeccable direction. A fresh finish review drove the receipt spine, tear/fold geometry, tighter hierarchy, authored disclosure icon, keyboard filmstrip, and route-aware navigation fixes.
+- Verification passed locally: 61 web tests, 47 Python tests, 20 cross-runtime fixtures, 11 Firebase emulator tests, web/Python lint and strict type checks, production Next.js build, Terraform formatting, and responsive browser review.
+- Items 5–8 remain unchecked and uncommitted until their required deployed gates pass. No Audience Take Firebase/GCP project exists in the authenticated account, the current task has no `PARALLEL_API_KEY`, Firebase App Hosting requires billing, and the repository has no GitHub remote. Existing unrelated Firebase projects were not modified.

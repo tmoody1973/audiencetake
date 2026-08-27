@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.com/schemas/evidence-ledger.schema.json",
+  "title": "EvidenceLedger",
+  "description": "The Evidence Editor handoff. Public-web evidence, external commentary, and inference remain explicitly distinct.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["runId", "projectId", "researchVersion", "claims", "comparables", "externalSignals", "sourceAssessments", "evidenceQuality", "limitations", "unresolvedQuestions"],
+  "properties": {
+    "runId": { "type": "string", "minLength": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "researchVersion": { "type": "integer", "minimum": 1 },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement", "status", "sourceIds", "qualification"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "statement": { "type": "string", "minLength": 1, "maxLength": 1200 },
+          "status": { "enum": ["supported", "qualified", "conflicting", "unsupported", "inference"] },
+          "sourceIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "qualification": { "type": ["string", "null"], "maxLength": 1000 }
+        }
+      }
+    },
+    "comparables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "relevance", "sourceIds", "limitations"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "relevance": { "type": "string", "minLength": 1, "maxLength": 800 },
+          "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "limitations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 500 } }
+        }
+      }
+    },
+    "externalSignals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "analysis", "sourceIds", "limitations", "nativeAudienceCount"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "analysis": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "limitations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 500 } },
+          "nativeAudienceCount": { "const": false }
+        }
+      }
+    },
+    "sourceAssessments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sourceId", "assessment", "claimIds"],
+        "properties": {
+          "sourceId": { "type": "string", "minLength": 1 },
+          "assessment": { "enum": ["primary_submitted", "corroborating", "comparable", "external_commentary", "conflicting", "insufficient"] },
+          "claimIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "evidenceQuality": { "enum": ["limited", "developing", "substantial"] },
+    "limitations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 500 } },
+    "unresolvedQuestions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 500 } }
+  }
+}

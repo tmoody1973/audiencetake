@@ -9,10 +9,11 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --exclude tests/rules/**",
+    "test": "vitest run --exclude '**/tests/rules/**'",
     "test:rules": "vitest run --config vitest.rules.config.ts"
   },
   "dependencies": {
+    "@google-cloud/tasks": "^7.0.0",
     "firebase": "^12.3.0",
     "firebase-admin": "^13.5.0",
     "next": "^16.2.0",

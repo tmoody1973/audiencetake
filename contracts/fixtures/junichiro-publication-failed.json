@@ -1,0 +1,19 @@
+{
+  "publicationId": "publication-junichiro-failed-v1",
+  "runId": "run-junichiro-failed-v1",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 1,
+  "attempt": 3,
+  "outcome": "failed",
+  "usefulEvidence": false,
+  "cardVersionId": null,
+  "previousCardVersionId": null,
+  "sourceIds": [],
+  "claimIds": [],
+  "pathwayIds": [],
+  "missingSections": ["source_analysis", "web_research", "evidence", "pathways", "card"],
+  "retryEligible": true,
+  "publicMessage": "Research did not produce enough useful sourced material to publish a card; the nomination and run history remain available.",
+  "fallbackUsed": false,
+  "publishedAt": "2026-08-26T12:20:00Z"
+}

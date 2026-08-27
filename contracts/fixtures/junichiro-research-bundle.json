@@ -1,0 +1,48 @@
+{
+  "runId": "run-junichiro-v1",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 1,
+  "objective": {
+    "label": "Verify project context and plausible development evidence",
+    "description": "Find current public sources that can verify project or creator identity, structural comparables, and evidence relevant to bounded next-step experiments."
+  },
+  "queryBatches": [
+    {
+      "id": "parallel-batch-identity-v1",
+      "provider": "parallel",
+      "label": "project identity, creator context, and structural comparables",
+      "searchQueries": [
+        "Junichiro Jackson animation",
+        "Junichiro Jackson creator",
+        "independent adult animation comparables"
+      ],
+      "sourceIds": []
+    }
+  ],
+  "sources": [
+    {
+      "id": "source-youtube-trailer",
+      "origin": "submitted",
+      "url": "https://www.youtube.com/watch?v=M2djoKmnOTY",
+      "canonicalUrl": "https://www.youtube.com/watch?v=M2djoKmnOTY",
+      "title": "Junichiro Jackson public project video",
+      "excerpt": "A public source submitted by a fan for research and verification.",
+      "publishedAt": null,
+      "retrievedAt": "2026-08-26T12:00:00Z",
+      "queryProvenance": null
+    }
+  ],
+  "toolReceipts": [
+    {
+      "toolName": "Parallel Search",
+      "queryBatchId": "parallel-batch-identity-v1",
+      "queryLabel": "project identity, creator context, and structural comparables",
+      "resultCount": 0,
+      "sourceIds": []
+    }
+  ],
+  "limitations": [
+    "This representative fixture records a truthful zero-result search receipt and does not fabricate Parallel discoveries.",
+    "A deployed smoke run must replace this fixture evidence with current, cited public results."
+  ]
+}

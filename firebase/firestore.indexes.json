@@ -22,6 +22,7 @@
       "collectionGroup": "events",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "publicVisibility", "order": "ASCENDING" },
         { "fieldPath": "runId", "order": "ASCENDING" },
         { "fieldPath": "sequence", "order": "ASCENDING" }
       ]

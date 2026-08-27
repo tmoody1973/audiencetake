@@ -33,10 +33,12 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
       const projectRef = database.collection("projects").doc();
       const nominationRef = database.collection("nominations").doc();
       const runRef = database.collection("researchRuns").doc();
+      const publicRunRef = database.collection("publicResearchRuns").doc(runRef.id);
       const eventRef = database.collection("events").doc();
       const slug = `project-${projectRef.id.slice(0, 10)}`;
       const cardUrl = `/projects/${slug}`;
       const researchUrl = `/research/${runRef.id}`;
+      const acceptedAt = new Date().toISOString();
 
       return database.runTransaction(async (transaction): Promise<AcceptedNomination> => {
         // The fingerprint document is the single contention point. Keep this
@@ -119,6 +121,22 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
           createdAt: now,
           updatedAt: now,
         });
+        transaction.create(publicRunRef, {
+          runId: runRef.id,
+          projectId: projectRef.id,
+          attempt: 1,
+          researchVersion: 1,
+          status: "queued",
+          currentStage: 1,
+          completedStages: [],
+          missingStages: [],
+          publicFailureMessage: null,
+          projectSlug: slug,
+          cardUrl,
+          retryEligible: false,
+          fallbackUsed: false,
+          updatedAt: acceptedAt,
+        });
         transaction.create(eventRef, {
           runId: runRef.id,
           projectId: projectRef.id,
@@ -129,9 +147,8 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
           publicTitle: "Nomination accepted",
           publicSummary: "The research desk is ready to inspect the submitted public source.",
           attempt: 1,
-          publicVisibility: false,
-          occurredAt: new Date().toISOString(),
-          createdAt: now,
+          publicVisibility: "public",
+          occurredAt: acceptedAt,
         });
 
         return {
@@ -154,14 +171,22 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
     },
 
     async markDispatchFailed(runId, safeReason) {
-      await database.collection("researchRuns").doc(runId).update({
+      const batch = database.batch();
+      const now = FieldValue.serverTimestamp();
+      batch.update(database.collection("researchRuns").doc(runId), {
         "dispatch.state": "retryable_failed",
         "dispatch.failureCode": "queue_dispatch_failed",
         "dispatch.publicMessage": safeReason,
-        "dispatch.failedAt": FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
+        "dispatch.failedAt": now,
+        updatedAt: now,
       });
+      batch.update(database.collection("publicResearchRuns").doc(runId), {
+        status: "queued",
+        publicFailureMessage: safeReason,
+        retryEligible: true,
+        updatedAt: new Date().toISOString(),
+      });
+      await batch.commit();
     },
   };
 }
-

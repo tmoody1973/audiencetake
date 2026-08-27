@@ -1,0 +1,51 @@
+{
+  "runId": "run-junichiro-v1",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 1,
+  "sourceIds": ["source-youtube-trailer"],
+  "identity": {
+    "title": "Junichiro Jackson",
+    "projectType": "series",
+    "currentFormat": "Public concept video submitted for scouting",
+    "medium": "animation",
+    "sourcePlatform": "YouTube"
+  },
+  "storyContext": {
+    "hook": "A grief-haunted fighter and his partner cross a monster-ridden near-future Brooklyn.",
+    "synopsis": "The submitted material presents a genre story centered on a fighter, his partner, and a dangerous near-future Brooklyn setting.",
+    "storyworld": "A near-future Brooklyn where supernatural danger intersects with action, grief, and a hip-hop-influenced visual identity.",
+    "themes": ["grief", "partnership", "survival"],
+    "audienceHooks": ["creator-led animation", "supernatural action", "Brooklyn storyworld"]
+  },
+  "creatorContext": {
+    "displayName": null,
+    "claimStatus": "unclaimed",
+    "observedContext": "The creator has not claimed the fan nomination, and creator identity requires public-web or direct verification.",
+    "sourceIds": ["source-youtube-trailer"]
+  },
+  "observations": [
+    {
+      "id": "observation-project-world",
+      "statement": "The submitted material presents a near-future Brooklyn storyworld with supernatural danger and animation influences.",
+      "observationType": "source_observed",
+      "sourceIds": ["source-youtube-trailer"],
+      "requiresVerification": true
+    },
+    {
+      "id": "observation-nominator-format",
+      "statement": "The fan suggests the project could grow as an adult animated series or independent feature.",
+      "observationType": "nominator_assertion",
+      "sourceIds": ["source-youtube-trailer"],
+      "requiresVerification": true
+    }
+  ],
+  "researchQuestions": [
+    "Who publicly identifies as the creator or project representative?",
+    "What additional public material establishes the intended format and story scope?",
+    "Which structurally relevant comparables have credible public sources?"
+  ],
+  "limitations": [
+    "This pass uses only the submitted public source and nominator-provided context.",
+    "No creator identity, platform interest, private analytics, or complete audience response has been verified."
+  ]
+}

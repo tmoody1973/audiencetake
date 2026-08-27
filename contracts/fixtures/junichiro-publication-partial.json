@@ -1,0 +1,19 @@
+{
+  "publicationId": "publication-junichiro-partial-v1",
+  "runId": "run-junichiro-partial-v1",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 1,
+  "attempt": 3,
+  "outcome": "partial",
+  "usefulEvidence": true,
+  "cardVersionId": "card-junichiro-partial-v1",
+  "previousCardVersionId": null,
+  "sourceIds": ["source-youtube-trailer"],
+  "claimIds": ["claim-project-world"],
+  "pathwayIds": ["pathway-series", "pathway-feature", "pathway-creator-direct"],
+  "missingSections": ["parallel_web_sources", "verified_comparables"],
+  "retryEligible": true,
+  "publicMessage": "A Partial Scout Card was published from useful submitted-source evidence; missing research remains explicit.",
+  "fallbackUsed": false,
+  "publishedAt": "2026-08-26T12:15:00Z"
+}

@@ -11,14 +11,19 @@ const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
 
 let invalid = 0;
+const validators = new Map();
 for (const pair of manifest) {
-  const schema = JSON.parse(
-    await readFile(resolve(root, "contracts/schemas", pair.schema), "utf8"),
-  );
   const fixture = JSON.parse(
     await readFile(resolve(root, "contracts/fixtures", pair.fixture), "utf8"),
   );
-  const validate = ajv.compile(schema);
+  let validate = validators.get(pair.schema);
+  if (!validate) {
+    const schema = JSON.parse(
+      await readFile(resolve(root, "contracts/schemas", pair.schema), "utf8"),
+    );
+    validate = ajv.compile(schema);
+    validators.set(pair.schema, validate);
+  }
   if (!validate(fixture)) {
     invalid += 1;
     console.error(`${pair.fixture} failed ${pair.schema}`);

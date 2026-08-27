@@ -1,19 +1,24 @@
 {
   "id": "pathway-series",
+  "projectId": "junichiro-jackson",
+  "runId": "run-junichiro-v1",
+  "order": 1,
   "label": "Premium adult animated series",
   "format": "Serialized adult animation",
   "audience": "Animation, manga, hip-hop, and psychological-horror audiences",
-  "rationale": "A serialized format can expand the Brooklyn storyworld and its recurring characters.",
+  "rationale": "A serialized format could test whether the Brooklyn storyworld and recurring relationships can sustain episodic development.",
   "supportingClaimIds": ["claim-project-world"],
-  "strengths": ["Distinctive cultural and genre combination"],
-  "risks": ["Requires proof that the concept can sustain an episodic arc"],
-  "openQuestions": ["Which character relationship anchors a first season?"],
+  "comparableSourceIds": [],
+  "strengths": ["The submitted material presents a distinctive cultural and genre combination."],
+  "risks": ["The available public evidence does not yet show that the concept can sustain an episodic arc."],
+  "openQuestions": ["Which character relationship could anchor a first season?"],
   "confidence": "medium",
   "nextExperiment": {
     "title": "Pilot animatic audience test",
-    "hypothesis": "A short serialized proof will create stronger repeat-viewing intent than a standalone trailer.",
-    "method": "Release a labeled animatic chapter and collect voluntary Audience Take commitments.",
-    "signal": "Completion, follow, and next-chapter commitment intent",
+    "hypothesis": "A short serialized proof may create stronger next-chapter intent than a standalone concept trailer.",
+    "method": "Release a clearly labeled animatic chapter and collect voluntary Audience Take responses.",
+    "participantAction": "Watch the chapter and state whether they would return for a second installment.",
+    "signal": "Completion and voluntary next-chapter intent, interpreted as an early signal rather than verified demand.",
     "timebox": "Four weeks"
   }
 }

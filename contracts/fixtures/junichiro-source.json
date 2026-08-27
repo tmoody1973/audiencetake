@@ -1,10 +1,21 @@
 {
   "id": "source-youtube-trailer",
+  "projectId": "junichiro-jackson",
+  "runId": "run-junichiro-v1",
   "origin": "submitted",
   "url": "https://www.youtube.com/watch?v=M2djoKmnOTY",
+  "canonicalUrl": "https://www.youtube.com/watch?v=M2djoKmnOTY",
+  "domain": "youtube.com",
   "title": "Junichiro Jackson public project video",
   "excerpt": "A public source submitted by a fan for research and verification.",
+  "author": null,
   "publishedAt": null,
   "retrievedAt": "2026-08-26T12:00:00Z",
-  "externalCommentary": false
+  "sourceType": "submitted_video",
+  "availability": "available",
+  "verificationStatus": "qualified",
+  "supportsClaimIds": ["claim-project-world"],
+  "conflictsWithClaimIds": [],
+  "externalCommentary": false,
+  "queryProvenance": null
 }

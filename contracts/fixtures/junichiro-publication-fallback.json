@@ -1,0 +1,20 @@
+{
+  "publicationId": "publication-junichiro-refresh-v2-failed",
+  "runId": "run-junichiro-refresh-v2",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 2,
+  "attempt": 3,
+  "outcome": "failed",
+  "usefulEvidence": false,
+  "cardVersionId": null,
+  "previousCardVersionId": "card-junichiro-v1",
+  "sourceIds": [],
+  "claimIds": [],
+  "pathwayIds": [],
+  "missingSections": ["live_refresh"],
+  "retryEligible": true,
+  "publicMessage": "The live refresh failed; the immutable previous card version remains available.",
+  "fallbackUsed": true,
+  "fallbackLabel": "Previously generated — live refresh unavailable.",
+  "publishedAt": "2026-08-26T12:25:00Z"
+}

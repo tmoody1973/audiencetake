@@ -1,0 +1,32 @@
+{
+  "runId": "run-junichiro-v1",
+  "projectId": "junichiro-jackson",
+  "researchVersion": 1,
+  "claims": [
+    {
+      "id": "claim-project-world",
+      "statement": "The submitted material presents a near-future Brooklyn storyworld combining hip-hop, anime-influenced imagery, and supernatural horror.",
+      "status": "qualified",
+      "sourceIds": ["source-youtube-trailer"],
+      "qualification": "This characterization is based on one submitted public video and should not be read as creator-approved positioning."
+    }
+  ],
+  "comparables": [],
+  "externalSignals": [],
+  "sourceAssessments": [
+    {
+      "sourceId": "source-youtube-trailer",
+      "assessment": "primary_submitted",
+      "claimIds": ["claim-project-world"]
+    }
+  ],
+  "evidenceQuality": "limited",
+  "limitations": [
+    "No independently verified creator source or comparable-project citation is included in this contract fixture.",
+    "No external commentary is converted into an Audience Take-native count."
+  ],
+  "unresolvedQuestions": [
+    "Who can publicly verify creator and project status?",
+    "Which structural comparables are supported by direct public citations?"
+  ]
+}

@@ -8,6 +8,13 @@ FIRST VIEWPORT: Masthead above a two-field composition: giant mission on the lef
 FORM: Contact-sheet scouting wall, grounded candidate 3, seed 2ca41c25.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md`;
 
+const researchSurfaceContract = `THESIS: A durable research run becomes a six-frame public scouting gatefold; no dashboard chrome or hidden reasoning.
+OWN-WORLD: The established warm-paper festival program extends into an unbroken black contact strip, public receipt ledger, and acid-yellow Scout Card tear-off.
+STORY: Restore the run, scan all six persisted stages, inspect safe receipts, then explicitly open the complete or Partial Scout Card.
+FIRST VIEWPORT: Full masthead, live-run declaration, six labeled frames, active Parallel stage, and public receipts.
+FORM: Six-frame scouting gatefold, grounded candidate 7, seed b3b1d94a.
+MOTION: One bounded contact-strip advance using transform, clip, and color; reduced motion keeps a static stamp.`;
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://audiencetake.com"),
   title: {
@@ -24,6 +31,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <pre className="direction-contract" data-direction-contract hidden>
           {directionContract}
+        </pre>
+        <pre className="direction-contract" data-surface-contract="research" hidden>
+          {researchSurfaceContract}
         </pre>
         {children}
       </body>
