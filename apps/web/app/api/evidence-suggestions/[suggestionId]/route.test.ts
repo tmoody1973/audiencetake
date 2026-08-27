@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { EvidenceStore } from "@/lib/evidence/store";
 import { AuthorizationError } from "@/lib/trust/authorization";
 
-import { handleEvidenceReviewPatch } from "./route";
+import { handleEvidenceReviewPatch } from "./handler";
 
 const suggestionId = "b".repeat(64);
 const validReview = {

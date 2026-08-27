@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { RateLimitError } from "@/lib/trust/rate-limit";
 
-import { handleUploadPost } from "./route";
+import { handleUploadPost } from "./handler";
 
 const requestId = "5c043f46-e690-4d4e-9f3e-9f38855f4870";
 

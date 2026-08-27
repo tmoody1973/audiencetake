@@ -5,7 +5,7 @@ import { AuthenticationError } from "@/lib/auth/verify-request";
 import type { NominationStore } from "@/lib/nomination/store";
 import { RateLimitError } from "@/lib/trust/rate-limit";
 
-import { handleNominationPost } from "./route";
+import { handleNominationPost } from "./handler";
 
 const validBody = {
   submittedUrl: "https://example.com/project",

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AuthenticationError } from "@/lib/auth/verify-request";
 import type { ReportStore } from "@/lib/reports/store";
 
-import { handleReportPost } from "./route";
+import { handleReportPost } from "./handler";
 
 function request(body: unknown) {
   return new NextRequest("http://localhost/api/reports", {

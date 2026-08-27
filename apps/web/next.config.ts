@@ -1,11 +1,9 @@
 import type { NextConfig } from "next";
 
-import { resolveOutputFileTracingRoot } from "./lib/build/output-tracing";
-
 const appRoot = process.cwd();
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: resolveOutputFileTracingRoot(appRoot),
+  outputFileTracingRoot: appRoot,
   serverExternalPackages: ["@google-cloud/tasks"],
   images: {
     remotePatterns: [

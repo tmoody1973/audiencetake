@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AuthenticationError } from "@/lib/auth/verify-request";
 import type { EvidenceStore } from "@/lib/evidence/store";
 
-import { handleEvidenceSuggestionPost } from "./route";
+import { handleEvidenceSuggestionPost } from "./handler";
 
 const urlPolicy = {
   resolve: async () => ["93.184.216.34"],

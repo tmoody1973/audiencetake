@@ -5,7 +5,7 @@ import { AuthenticationError } from "@/lib/auth/verify-request";
 import type { ReportStore } from "@/lib/reports/store";
 import { AuthorizationError } from "@/lib/trust/authorization";
 
-import { handleReportReviewPatch } from "./route";
+import { handleReportReviewPatch } from "./handler";
 
 const reportId = "a".repeat(64);
 
