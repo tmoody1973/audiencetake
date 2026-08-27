@@ -11,6 +11,7 @@
     "rootDir": "apps/web",
     "ignore": [
       "node_modules",
+      ".git",
       ".next",
       "firebase-debug.log",
       "firebase-debug.*.log"

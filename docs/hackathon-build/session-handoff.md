@@ -23,7 +23,9 @@ Updated: 2026-08-27 (America/Chicago)
 - App Hosting backend: `audience-take`, region `us-central1`, URL
   `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
   exists, but all five source rollouts on 2026-08-27 failed before serving
-  traffic, so the URL must not be described as serving the app.
+  traffic. A sixth approved deploy command failed during source upload before
+  creating any rollout or build, so the URL must not be described as serving
+  the app.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
   `smoke-20260827-publication-attempt-id-v1` and immutable digest
@@ -310,8 +312,27 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   alone into an empty directory starts Next.js immediately, and both `/` and
   `/sign-in` return HTTP `200`. No provider, Gemini, Parallel, or research-queue
   call was made.
-- Do not issue a sixth App Hosting rollout without fresh explicit approval. The
-  fifth rollout approval was consumed by the failed Cloud Run revision above.
+- The explicitly approved sixth deploy command on 2026-08-27 stopped before an
+  App Hosting rollout existed. Firebase CLI `15.28.1`, running on local Node
+  `26.0.0`, created a valid source ZIP and began a single streamed `PUT` to the
+  App Hosting source bucket. After reading `7,995,392` bytes, the fetch failed
+  with `read EADDRNOTAVAIL`; the CLI then reported `Timed out` and the generic
+  `An unexpected error has occurred`. App Hosting still lists only failed
+  rollouts `001`–`005`, and the named source object returns `404`, so this did
+  not start Cloud Build, create a rollout, or incur an application build.
+- Current Firebase guidance confirms source deploys upload an archive to Cloud
+  Storage and recommends excluding `.git`. Installed CLI source confirms that
+  streamed request bodies are non-replayable and are not retried after this
+  network error. It also confirms that supplying an explicit App Hosting
+  `ignore` list replaces the default `.git` exclusion. The exact archive was
+  valid but accidentally contained `.git` and was `61.39 MB`. Adding `.git` to
+  `firebase.json` reduced the exact offline archive to `30.26 MB`; an archive
+  listing proves it contains zero `.git/*` entries. This removes unnecessary
+  upload exposure but does not prove the operating system's transient socket
+  allocation failure cannot recur.
+- Do not issue another App Hosting deploy command without fresh explicit
+  approval. The sixth command approval was consumed by the failed source upload
+  above; no automatic retry was made.
 
 ## Failure research findings
 
@@ -393,7 +414,7 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
 - Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
   at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is pushed through
   `a8a1a08`; item `11` deployment configuration and the researched App Hosting
-  fixes are pushed through `33cc72c`. Public origin
+  fixes and the fifth-failure handoff are pushed through `26f8463`. Public origin
   `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
   tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
@@ -466,8 +487,8 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    mobile emulator walkthrough showed the Trust & Ownership panel, one pending
    evidence lead, one labeled demo creator update, and one correction row.
 7. Continue checklist item `11`: rules/indexes are live and the exact
-   Next.js/Firebase adapter boundary now passes offline, but do not issue the
-   sixth App Hosting rollout without fresh explicit approval. After a
+   Next.js/Firebase adapter boundary now passes offline, but do not issue
+   another App Hosting deploy command without fresh explicit approval. After a
    successful rollout, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
