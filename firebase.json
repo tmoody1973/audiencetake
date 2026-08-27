@@ -6,6 +6,16 @@
   "storage": {
     "rules": "firebase/storage.rules"
   },
+  "apphosting": {
+    "backendId": "audience-take",
+    "rootDir": "apps/web",
+    "ignore": [
+      "node_modules",
+      ".next",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
   "emulators": {
     "auth": { "port": 9099 },
     "firestore": { "port": 8080 },

@@ -1,0 +1,65 @@
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 1
+  concurrency: 40
+
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyBAvzj5-U8wULg1pAa9p1KQXForYI0Tp-s"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "test-app-mkark4.firebaseapp.com"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "test-app-mkark4"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "test-app-mkark4.appspot.com"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "866111144888"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:866111144888:web:02d8c2e8c00a98ed9c854d"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_CHECK_SITE_KEY
+    value: "6LdxL5stAAAAAHpXdxPQUfKIyhHZd4pN0UY6Sjcw"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_CHECK_DEBUG
+    value: "false"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_USE_FIREBASE_EMULATORS
+    value: "false"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_GOOGLE_SIGN_IN_ENABLED
+    value: "false"
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_APP_URL
+    value: "https://audience-take--test-app-mkark4.us-central1.hosted.app"
+    availability: [BUILD, RUNTIME]
+  - variable: GOOGLE_CLOUD_PROJECT
+    value: "test-app-mkark4"
+    availability: [RUNTIME]
+  - variable: APP_CHECK_ENFORCEMENT_ENABLED
+    value: "true"
+    availability: [RUNTIME]
+  - variable: CLOUD_TASKS_LOCATION
+    value: "us-central1"
+    availability: [RUNTIME]
+  - variable: CLOUD_TASKS_QUEUE
+    value: "audience-take-research"
+    availability: [RUNTIME]
+  - variable: AGENT_SERVICE_URL
+    value: "https://audience-take-agents-ckohwv63aq-uc.a.run.app"
+    availability: [RUNTIME]
+  - variable: AGENT_SERVICE_AUDIENCE
+    value: "https://audience-take-agents-ckohwv63aq-uc.a.run.app"
+    availability: [RUNTIME]
+  - variable: CLOUD_TASKS_SERVICE_ACCOUNT
+    value: "audience-take-task-invoker@test-app-mkark4.iam.gserviceaccount.com"
+    availability: [RUNTIME]
+  - variable: DEMO_FALLBACK_ENABLED
+    value: "false"
+    availability: [RUNTIME]
