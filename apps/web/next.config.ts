@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const appRoot = process.cwd();
+const appRoot = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(appRoot, "../..");
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: appRoot,
+  outputFileTracingRoot: repositoryRoot,
   serverExternalPackages: ["@google-cloud/tasks"],
   images: {
     remotePatterns: [

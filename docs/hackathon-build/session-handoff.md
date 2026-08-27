@@ -548,9 +548,18 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    web host. Production deployment `dpl_SmrDq5Mq1jZTY8uU9bmLvYPdXYu6` from
    commit `8a3a919` is Ready at `https://audiencetake.vercel.app`; `/` and
    `/sign-in` returned `200`, but the Firestore-backed
-   `/projects/junichiro-live-project` returned `500`. No further rollout is
-   authorized until that exact runtime failure is captured, researched, and
-   reproduced or otherwise explained under the research-before-retry rule.
+   `/projects/junichiro-live-project` returned `500`. Runtime logs subsequently
+   identified the exact pre-application crash: Vercel's function package had
+   `next/dist/server/node-environment.js` but omitted its required sibling
+   `node-environment-baseline.js`. The cause was reproduced locally with Next's
+   own NFT tracer: `outputFileTracingRoot` was restricted to `apps/web` while
+   the workspace-installed Next package lives at the repository root, so only
+   the entry file was traced. Using the documented monorepo tracing root includes
+   the baseline and all node-environment extensions. The local fix and regression
+   test pass the full gate: 20 contract fixtures, 40 web test files / 159 tests,
+   lint, typecheck, and the production Next build. No further rollout is
+   authorized until the user approves one diagnosed retry under the
+   research-before-retry rule.
    Keyless Vercel OIDC to Google Workload Identity Federation is configured;
    no service-account JSON key is stored. After the production route is fixed, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
