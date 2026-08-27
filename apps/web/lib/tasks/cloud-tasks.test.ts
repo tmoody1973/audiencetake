@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CloudTasksConfigurationError,
   cloudTaskConfigFromEnv,
+  cloudTasksClientOptionsFromEnv,
   createCloudTasksResearchDispatcher,
   deterministicResearchTaskId,
   type CloudTaskDispatcherConfig,
@@ -72,5 +73,23 @@ describe("Cloud Tasks research dispatcher", () => {
       createCloudTasksResearchDispatcher({ ...config, serviceUrl: "http://127.0.0.1:8080" }, client()),
     ).toThrow("HTTPS");
     expect(() => deterministicResearchTaskId("not/a/run", 1)).toThrow();
+  });
+
+  it("passes explicit Vercel credentials to the Google client without changing task identity", () => {
+    const options = cloudTasksClientOptionsFromEnv("audience-take", {
+      GOOGLE_CLOUD_PROJECT: "audience-take",
+      GOOGLE_SERVICE_ACCOUNT_JSON: JSON.stringify({
+        project_id: "audience-take",
+        client_email: "vercel-runtime@audience-take.iam.gserviceaccount.com",
+        private_key: "-----BEGIN PRIVATE KEY-----\\nsecret\\n-----END PRIVATE KEY-----\\n",
+      }),
+    });
+    expect(options).toEqual({
+      projectId: "audience-take",
+      credentials: {
+        client_email: "vercel-runtime@audience-take.iam.gserviceaccount.com",
+        private_key: "-----BEGIN PRIVATE KEY-----\nsecret\n-----END PRIVATE KEY-----\n",
+      },
+    });
   });
 });

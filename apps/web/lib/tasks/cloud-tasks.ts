@@ -1,6 +1,7 @@
 import { CloudTasksClient } from "@google-cloud/tasks";
 
 import type { ResearchDispatcher } from "../nomination/service";
+import { googleServiceAccountFromEnv } from "../google/credentials";
 
 const MAX_TASK_BODY_BYTES = 4_096;
 const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
@@ -37,6 +38,22 @@ export class CloudTasksConfigurationError extends Error {
     super(message);
     this.name = "CloudTasksConfigurationError";
   }
+}
+
+export function cloudTasksClientOptionsFromEnv(
+  project: string,
+  environment: Record<string, string | undefined> = process.env,
+) {
+  const serviceAccount = googleServiceAccountFromEnv(environment);
+  return serviceAccount
+    ? {
+        projectId: project,
+        credentials: {
+          client_email: serviceAccount.clientEmail,
+          private_key: serviceAccount.privateKey,
+        },
+      }
+    : { projectId: project };
 }
 
 export function deterministicResearchTaskId(runId: string, attempt: number): string {
@@ -89,7 +106,9 @@ function isAlreadyExists(error: unknown): boolean {
 
 export function createCloudTasksResearchDispatcher(
   config: CloudTaskDispatcherConfig = cloudTaskConfigFromEnv(),
-  client: CloudTasksClientLike = new CloudTasksClient() as CloudTasksClientLike,
+  client: CloudTasksClientLike = new CloudTasksClient(
+    cloudTasksClientOptionsFromEnv(config.project),
+  ) as CloudTasksClientLike,
 ): ResearchDispatcher {
   const endpoint = researchEndpoint(config.serviceUrl);
   return async ({ runId, projectId, attempt }) => {

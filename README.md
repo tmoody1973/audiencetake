@@ -76,7 +76,7 @@ Stage outputs are versioned in Firestore. A browser can close or refresh without
 ```mermaid
 flowchart LR
     Visitor[Fan / creator / public visitor]
-    Web[Next.js App Router]
+    Web[Next.js App Router on Vercel]
     Auth[Firebase Authentication]
     DB[(Cloud Firestore)]
     Tasks[Cloud Tasks]
@@ -111,6 +111,7 @@ flowchart LR
 | Layer | Technology |
 |---|---|
 | Web | Next.js 16, React 19, TypeScript, App Router |
+| Web hosting | Vercel with GitHub-based production deploys |
 | Authentication and data | Firebase Authentication, Cloud Firestore, Cloud Storage |
 | Durable execution | Google Cloud Tasks and Cloud Run |
 | Agent runtime | Python 3.12, Google ADK, Pydantic |
@@ -206,12 +207,38 @@ The checked-in [.env.example](.env.example) contains names and safe local defaul
 
 - `NEXT_PUBLIC_FIREBASE_*` — public Firebase client configuration.
 - `GOOGLE_CLOUD_*` and `AUDIENCE_TAKE_GEMINI_MODEL` — server-side project, location, and pinned model selection.
+- `GOOGLE_SERVICE_ACCOUNT_JSON` — encrypted server-only credential for hosts
+  without Application Default Credentials; never expose it through a
+  `NEXT_PUBLIC_` variable.
 - `CLOUD_TASKS_*` and `AGENT_SERVICE_*` — queue and private Cloud Run routing.
 - `PARALLEL_API_KEY_SECRET` — Secret Manager reference, never the Parallel key value.
 - `APP_CHECK_ENFORCEMENT_ENABLED` — disabled only for local emulator work; production command routes enforce App Check.
 - `DEMO_FALLBACK_ENABLED` — when enabled, fallback content must retain its visible “Previously generated — live refresh unavailable” label.
 
-Production uses workload identity or Application Default Credentials. Do not add downloaded service-account keys to the repository.
+Google Cloud workloads use workload identity or Application Default
+Credentials. The Vercel web runtime uses a dedicated least-privilege service
+account stored as the encrypted `GOOGLE_SERVICE_ACCOUNT_JSON` project secret.
+Do not add downloaded service-account keys to the repository or local env files.
+
+### Vercel deployment
+
+Import the public GitHub repository as a Next.js project and set its Root
+Directory to `apps/web`. Production keeps Firebase Authentication, Firestore,
+Storage, App Check, Cloud Tasks, and the private Cloud Run research service; only
+the web host changes.
+
+Copy the public and server configuration names from `.env.example` into Vercel.
+Set `NEXT_PUBLIC_APP_URL` to the final production URL, keep
+`APP_CHECK_ENFORCEMENT_ENABLED=true`, and store `GOOGLE_SERVICE_ACCOUNT_JSON` as
+an encrypted server-only value. Add the production domain to Firebase Auth's
+authorized domains and the reCAPTCHA Enterprise/App Check domain allowlist
+before exercising authenticated commands.
+
+Vercel Functions have a 4.5 MB request-body limit. The current trusted
+server-mediated creator upload is capped at 4 MB, including separate multipart
+headroom. A later direct-to-Firebase-Storage flow must use a short-lived grant
+plus server-side finalize validation; a raw public write is not an acceptable
+substitute.
 
 ## Contracts and truth rules
 

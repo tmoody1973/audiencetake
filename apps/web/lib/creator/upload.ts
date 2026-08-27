@@ -5,7 +5,9 @@ import type { Storage } from "firebase-admin/storage";
 
 import { CreatorError } from "./store";
 
-export const MAX_CREATOR_UPLOAD_BYTES = 5 * 1024 * 1024;
+// Vercel Functions cap request bodies at 4.5 MB. Leave room for multipart
+// framing while retaining the server-side magic-byte and checksum boundary.
+export const MAX_CREATOR_UPLOAD_BYTES = 4 * 1024 * 1024;
 export const MAX_MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 export const ALLOWED_RASTER_IMAGES = {

@@ -36,7 +36,7 @@ This specification implements the approved requirements in `prd.md`. When the do
 | Authentication | Firebase Authentication | Google and email-based sign-in; stable Firebase UID |
 | Public/realtime data | Cloud Firestore | Projects, research progress, sources, pathways, social data, claims, and moderation states |
 | Media | Cloud Storage for Firebase | Approved images, avatars, creator update media, and fallback artwork |
-| Hosting | Firebase App Hosting | Public Next.js deployment and server route handlers |
+| Hosting | Vercel | Public Next.js deployment, server route handlers, and GitHub-based production builds |
 | Task queue | Google Cloud Tasks | Durable, retryable invocation of research work |
 | Agent runtime | Private Cloud Run service | Runs the ADK pipeline and writes trusted research results |
 | Agent framework | Google Agent Development Kit for Python | Four-agent orchestration, tools, state, and structured outputs |
@@ -53,7 +53,7 @@ This specification implements the approved requirements in `prd.md`. When the do
 flowchart LR
     Browser[Next.js browser UI] -->|Firebase sign-in| Auth[Firebase Auth]
     Browser -->|public realtime reads| Firestore[(Cloud Firestore)]
-    Browser -->|authenticated command| Web[Next.js server routes\nFirebase App Hosting]
+    Browser -->|authenticated command| Web[Next.js server routes\nVercel]
     Web -->|verify ID token + App Check| Auth
     Web -->|validated transaction| Firestore
     Web -->|enqueue with OIDC target| Tasks[Cloud Tasks]
@@ -693,7 +693,10 @@ Seeded profiles, commitments, Takes, replies, or curated projects display a cons
 
 ### Service identity and secrets
 
-- Firebase App Hosting service identity can write validated application data and create tasks, but cannot invoke unrelated services.
+- The Vercel web runtime uses a dedicated, encrypted Google service-account
+  credential with only the Firebase data, media, and Cloud Tasks permissions
+  required by validated server routes. The credential is never exposed to the
+  browser or committed to Git.
 - The Cloud Tasks service account has only Cloud Run invoker permission on the agent service.
 - The Cloud Run service identity can access Vertex AI, required Firestore documents, Cloud Logging, and the Parallel secret.
 - Secrets are referenced from Secret Manager and never committed or written to Firestore events.
@@ -728,7 +731,9 @@ After the live Parallel workflow is stable, logs/metrics may feed a small Grafan
 The repository includes `.env.example` with names only. Expected configuration groups:
 
 - Public Firebase web configuration.
-- Server Firebase/Google Cloud project configuration using workload identity or application default credentials, not committed key files.
+- Server Firebase/Google Cloud project configuration using workload identity,
+  application default credentials, or an encrypted host secret containing the
+  dedicated service account. No credential file is committed.
 - Vertex AI location and approved Gemini model name.
 - Cloud Tasks project, location, queue, task service account, and Cloud Run target URL/audience.
 - Secret Manager reference for the Parallel API key.
@@ -809,8 +814,8 @@ Before recording/submission, run one controlled deployed research job that calls
 2. Deploy Firestore rules/indexes and Storage rules.
 3. Deploy the private Cloud Run ADK service with its least-privilege service identity and Secret Manager binding.
 4. Create the Cloud Tasks queue and task-invoker service account.
-5. Configure the Firebase App Hosting backend identity to create tasks and use the Admin SDK.
-6. Deploy the Next.js application to a public URL.
+5. Configure the dedicated Vercel runtime identity to create tasks and use the Admin SDK.
+6. Import `apps/web` from the public GitHub repository into Vercel and deploy the Next.js application to a public URL.
 7. Seed clearly labeled demo accounts/activity and the pre-approved creator state.
 8. Execute the deployed Gemini + Parallel smoke run.
 9. Verify the complete judge journey on the public build.

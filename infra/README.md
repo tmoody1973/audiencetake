@@ -8,7 +8,7 @@ Nothing here deploys by itself.
 
 - a private-by-IAM Cloud Run v2 service for `POST /tasks/research`;
 - a Cloud Tasks queue constrained to one total delivery during controlled launch;
-- separate App Hosting enqueue, task-invoker, and runtime identities;
+- separate web-runtime enqueue, task-invoker, and research-runtime identities;
 - only `roles/run.invoker` for the task identity on this Cloud Run service;
 - an Artifact Registry Docker repository and Secret Manager secret metadata;
 - runtime access to Firestore, Vertex AI, logging, and the Parallel secret;
@@ -44,10 +44,12 @@ the deterministic task ID to the request body.
    `terraform validate`, and `terraform plan -var-file=...`.
 5. Review the plan for project, region, identities, secret, image digest, and IAM.
 6. Only an authorized operator may run `terraform apply` in the intended project.
-7. Configure the web backend with the queue output, Cloud Run URI/audience, and
-   task-invoker email. Do not download service-account keys.
+7. Configure the Vercel web backend with the queue output, Cloud Run
+   URI/audience, task-invoker email, and an encrypted credential for the
+   dedicated web-runtime identity. Never commit or persist the downloaded
+   credential in the repository.
 
-The template intentionally does not grant the App Hosting identity Cloud Run
+The template intentionally does not grant the web-runtime identity Cloud Run
 invocation and does not grant the Cloud Tasks identity Firestore, Vertex AI, or
 secret access.
 

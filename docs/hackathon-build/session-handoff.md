@@ -6,9 +6,11 @@ Updated: 2026-08-27 (America/Chicago)
 
 - Continue following `checklist.md` in order. Visual pause `2` was approved on
   2026-08-27; items `9` and `10` are complete. Item `11` is partially deployed:
-  Firestore rules/indexes and Storage rules are live, but App Hosting has no
-  successful rollout yet. Continue item `11` and stop at visual pause `3` after
-  item `11`.
+  Firestore rules/indexes and Storage rules are live. After two local App
+  Hosting source-upload transport failures, Tarik approved moving only the
+  Next.js hosting layer to Vercel; Firebase and Google Cloud remain the backend.
+  The Vercel deployment is not live yet. Continue item `11` and stop at visual
+  pause `3` after item `11`.
 - Preserve the approved film-festival × underground-magazine direction.
 - The user is highly cost-sensitive. Do not resume a provider queue or make an MCP/provider search without explicit approval.
 - Do not respond to a new deployed failure by repeatedly retrying. Pause first,
@@ -26,6 +28,10 @@ Updated: 2026-08-27 (America/Chicago)
   traffic. Two later approved deploy commands failed during source upload
   before creating any rollout or build, so the URL must not be described as
   serving the app.
+- Approved replacement web host: Vercel account `tmoody1973`, using the public
+  GitHub repository with project root `apps/web`. This changes only the Next.js
+  web/runtime host; Firebase Auth, Firestore, Storage, App Check, Cloud Tasks,
+  and the private Cloud Run research service remain in place.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
   `smoke-20260827-publication-attempt-id-v1` and immutable digest
@@ -354,6 +360,17 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   require interactive GitHub OAuth, so obtain explicit approval before doing
   that. After connection, use commit `9ae75d2` rather than another local source
   upload. Do not issue another deploy or rollout command without fresh approval.
+- Tarik subsequently approved replacing App Hosting with normal Vercel Next.js
+  hosting. The web runtime now accepts an encrypted
+  `GOOGLE_SERVICE_ACCOUNT_JSON` when ADC is unavailable and passes the same
+  credential to Firebase Admin and Cloud Tasks. Cross-project, malformed, and
+  incomplete secrets fail closed. App Hosting/Google workloads retain ADC.
+- Vercel Functions cap request bodies at `4.5 MB`; the existing trusted creator
+  upload route is therefore capped at `4 MB` with multipart headroom. The robust
+  follow-up is a short-lived direct-to-Firebase-Storage upload grant plus a
+  server finalize step that rechecks authorization, size, magic bytes,
+  checksum, reservation, and idempotency. Do not enable raw client Storage
+  writes; current Storage Rules correctly deny them.
 
 ## Failure research findings
 
@@ -507,16 +524,15 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    status; and evidence ownership stays server-private. The local desktop and
    mobile emulator walkthrough showed the Trust & Ownership panel, one pending
    evidence lead, one labeled demo creator update, and one correction row.
-7. Continue checklist item `11`: rules/indexes are live and the exact
-   Next.js/Firebase adapter boundary now passes offline, but do not issue
-   another App Hosting deploy or rollout command without fresh explicit
-   approval. Prefer connecting the existing backend to the public GitHub repo
-   through the Firebase Console and rolling out exact commit `9ae75d2`; this
-   avoids the twice-failing local streamed upload path. After a
-   successful rollout, bind the
+7. Continue checklist item `11`: rules/indexes are live; App Hosting is no
+   longer the target web host. Finish the approved Vercel migration, deploy the
+   public GitHub project with root `apps/web`, configure encrypted server
+   credentials and production environment variables, authorize the final domain
+   in Firebase Auth and App Check, and verify the deployed judge path. After a
+   successful Vercel deployment, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
-   counters, verify the trusted App Hosting client-IP header before adding the
+   counters, verify Vercel's trusted client-IP header before adding the
    nomination per-IP limiter (account limiting is already active), and rehearse
    the judge path. Stop at visual pause `3`.
 8. The run-wide next-sequence and trusted-project-slug fixes are local only.
