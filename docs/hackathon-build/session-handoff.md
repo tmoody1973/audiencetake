@@ -22,7 +22,7 @@ Updated: 2026-08-27 (America/Chicago)
 - Research queue: `audience-take-research`; it must remain paused outside an explicitly approved run.
 - App Hosting backend: `audience-take`, region `us-central1`, URL
   `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
-  exists, but both source rollouts on 2026-08-27 failed during the managed
+  exists, but all three source rollouts on 2026-08-27 failed during the managed
   build, so the URL must not be described as serving the app.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
@@ -239,19 +239,34 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   generation. Firebase's Next.js adapter then failed while opening
   `.next/standalone/.next/routes-manifest.json`. This is a separate packaging
   failure, not an application compile failure.
-- The deployed dependency is Next.js `16.3.3`. Firebase's current active App
-  Hosting support table ends at Next.js `15.2.x`; newer releases are preview /
-  best-effort. A local `15.2.9` compatibility experiment was inconclusive:
-  running npm with `--workspaces=false` inside this plain npm workspace left
-  empty `firebase-admin` package directories, so the resulting module-resolution
-  failure was an invalid environment signal rather than proof of a framework
-  incompatibility. The experiment was fully reverted and the root dependency
-  tree was cleanly reinstalled; the worktree and public branch remain at the
-  verified Next.js 16 state in `c3301a1`.
-- Do not issue a third App Hosting rollout without new explicit approval. First
-  choose and verify one bounded compatibility route offline: test Next.js
-  15.2.9 in a genuinely isolated app copy, or validate an upstream App Hosting
-  adapter fix for Next.js 16. No provider/Gemini/Parallel call is involved.
+- Commit `bdc6ba1` made the web app's contract fixtures self-contained and added
+  an initial tracing-root heuristic. Normal builds and an isolated exact-adapter
+  build passed, but the heuristic assumed Next would be present at
+  `apps/web/node_modules`. Firebase installs framework dependencies in a
+  buildpack layer, so that assumption did not match the managed environment.
+- The explicitly approved third rollout build
+  `5e24bf4f-ad8f-442b-b3cf-2da83b12824e` again completed Next.js `16.3.3`
+  compilation, TypeScript, page collection, and all nine static pages. It then
+  failed with the same exact adapter `14.0.21` `ENOENT` for
+  `/workspace/apps/web/.next/standalone/.next/routes-manifest.json`; no retry was
+  made.
+- Adapter source inspection confirmed it sets
+  `NEXT_PRIVATE_STANDALONE=true` before loading the project config and, because
+  Cloud Build did not set `MONOREPO_COMMAND`, expects the flat app-root
+  standalone layout. Commit `ab2a269` now uses that adapter-owned signal: an
+  App Hosting standalone build traces from `apps/web`, while a normal workspace
+  build traces from the repository root so Turbopack can resolve hoisted
+  dependencies.
+- The focused three-case tracing regression passes. The normal Next.js
+  production build passes. An isolated run through the exact public Firebase
+  adapter `14.0.21` with Next.js `16.3.3` passes and emits exactly
+  `.next/standalone/.next/routes-manifest.json`, `.next/standalone/server.js`,
+  and bundle command `node .next/standalone/server.js`, with no nested
+  `apps/web` manifest. Lint, typecheck, and all 38 web test files / 151 tests
+  pass. No provider, Gemini, Parallel, or research-queue call was made.
+- Do not issue a fourth App Hosting rollout without fresh explicit approval.
+  The exact failed boundary is now reproduced and fixed offline; approval would
+  cover one researched rollout only.
 
 ## Failure research findings
 
@@ -332,8 +347,8 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   and verifying them did not invoke a search or other provider-bearing operation.
 - Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
   at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is pushed through
-  `a8a1a08`; item `11` deployment configuration and the researched lockfile fix
-  are pushed through `c3301a1`. Public origin
+  `a8a1a08`; item `11` deployment configuration and the researched App Hosting
+  fixes are pushed through `ab2a269`. Public origin
   `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
   tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
@@ -405,9 +420,10 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    status; and evidence ownership stays server-private. The local desktop and
    mobile emulator walkthrough showed the Trust & Ownership panel, one pending
    evidence lead, one labeled demo creator update, and one correction row.
-7. Continue checklist item `11`: rules/indexes are live, but do not retry App
-   Hosting until the Next.js/Firebase adapter compatibility boundary is fixed
-   offline and a new rollout is explicitly approved. Then bind the
+7. Continue checklist item `11`: rules/indexes are live and the exact
+   Next.js/Firebase adapter boundary now passes offline, but do not issue the
+   fourth App Hosting rollout without fresh explicit approval. After a
+   successful rollout, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
    counters, verify the trusted App Hosting client-IP header before adding the
