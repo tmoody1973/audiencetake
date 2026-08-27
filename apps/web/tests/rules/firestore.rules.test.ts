@@ -40,6 +40,11 @@ beforeAll(async () => {
         moderationState: "hidden",
         title: "Moderated project",
       }),
+      setDoc(doc(database, "projects/published-leaky"), {
+        publicationStatus: "published",
+        moderationState: "clear",
+        title: "Unsafe projection fixture",
+      }),
       setDoc(doc(database, "users/fan-private"), {
         visibility: "public",
         publicActivity: false,
@@ -58,8 +63,33 @@ beforeAll(async () => {
         status: "pending",
       }),
       setDoc(doc(database, "reports/private-report"), {
+        reportId: "private-report",
         reporterUid: "fan-private",
-        details: "Private report details",
+        projectId: "published",
+        targetType: "project",
+        targetId: "published",
+        latestReason: "misleading",
+        reasons: ["misleading"],
+        status: "open",
+        eventCount: 1,
+        createdAt: "2026-08-26T12:00:00Z",
+        lastSubmittedAt: "2026-08-26T12:00:00Z",
+        updatedAt: "2026-08-26T12:00:00Z",
+      }),
+      setDoc(doc(database, "reports/leaky-report"), {
+        reportId: "leaky-report",
+        reporterUid: "fan-private",
+        projectId: "published-leaky",
+        targetType: "project",
+        targetId: "published",
+        latestReason: "misleading",
+        reasons: ["misleading"],
+        status: "open",
+        eventCount: 1,
+        createdAt: "2026-08-26T12:00:00Z",
+        lastSubmittedAt: "2026-08-26T12:00:00Z",
+        updatedAt: "2026-08-26T12:00:00Z",
+        context: "Must remain private",
       }),
       setDoc(doc(database, "researchRuns/private-run"), {
         projectId: "published",
@@ -187,6 +217,78 @@ beforeAll(async () => {
         status: "published",
         active: true,
       }),
+      setDoc(doc(database, "evidenceSuggestions/public-lead"), {
+        projectId: "published",
+        submitterLabel: "Community member",
+        url: "https://example.com/source",
+        canonicalUrl: "https://example.com/source",
+        sourceFingerprint: "fingerprint",
+        note: "A public-safe note.",
+        status: "community_lead",
+        visibility: "public",
+        createdAt: "2026-08-26T12:00:00Z",
+        updatedAt: "2026-08-26T12:00:00Z",
+      }),
+      setDoc(doc(database, "evidenceSuggestions/leaky-lead"), {
+        projectId: "published-leaky",
+        submitterLabel: "Community member",
+        url: "https://example.com/source-2",
+        canonicalUrl: "https://example.com/source-2",
+        sourceFingerprint: "fingerprint-2",
+        status: "rejected",
+        visibility: "public",
+        createdAt: "2026-08-26T12:00:00Z",
+        updatedAt: "2026-08-26T12:00:00Z",
+        reviewerUid: "admin-private",
+      }),
+      setDoc(doc(database, "evidenceSuggestionOwnership/public-lead"), {
+        suggestionId: "public-lead",
+        projectId: "published",
+        submittedByUid: "fan-public",
+        submissionOrigin: "post_card",
+      }),
+      setDoc(doc(database, "creatorUpdates/published-update"), {
+        projectId: "published",
+        title: "Creator note",
+        body: "A public update.",
+        media: [],
+        status: "published",
+        visibility: "public",
+        revision: 1,
+      }),
+      setDoc(doc(database, "creatorUpdates/withdrawn-update"), {
+        projectId: "published",
+        title: "Withdrawn note",
+        body: "Retained for the owner only.",
+        media: [],
+        status: "withdrawn",
+        visibility: "public",
+        revision: 2,
+      }),
+      setDoc(doc(database, "creatorUpdateOwnership/withdrawn-update"), {
+        projectId: "published",
+        creatorUid: "fan-private",
+      }),
+      setDoc(doc(database, "evidenceSuggestionReviews/private-review"), {
+        suggestionId: "public-lead",
+        reviewerUid: "admin-private",
+        reviewReason: "Internal review detail",
+      }),
+      setDoc(doc(database, "projectCorrections/public-correction"), {
+        correctionId: "public-correction",
+        projectId: "published",
+        section: "source",
+        summary: "Corrected the source availability label.",
+        priorBasis: "The earlier label reflected a temporary access failure.",
+        cardVersionId: "published-card-v1",
+        visibility: "public",
+        createdAt: "2026-08-26T12:00:00Z",
+        updatedAt: "2026-08-26T12:00:00Z",
+      }),
+      setDoc(doc(database, "projectCorrectionAudits/private-correction"), {
+        correctionId: "public-correction",
+        actorUid: "admin-private",
+      }),
     ]);
     await uploadBytes(ref(context.storage(), "public/scout-cards/poster.txt"), new Uint8Array([1]));
     await uploadBytes(
@@ -238,8 +340,52 @@ describe("Firestore public/private boundary", () => {
     const other = environment.authenticatedContext("fan-public").firestore();
     await assertSucceeds(getDoc(doc(owner, "claimRequests/private-claim")));
     await assertSucceeds(getDoc(doc(owner, "reports/private-report")));
+    await assertSucceeds(getDocs(query(
+      collection(owner, "reports"),
+      where("reporterUid", "==", "fan-private"),
+      where("projectId", "==", "published"),
+      orderBy("updatedAt", "desc"),
+    )));
+    await assertFails(getDoc(doc(owner, "reports/leaky-report")));
     await assertFails(getDoc(doc(other, "claimRequests/private-claim")));
     await assertFails(getDoc(doc(other, "reports/private-report")));
+  });
+
+  it("exposes only the public-safe evidence projection and keeps reviews private", async () => {
+    const anonymous = environment.unauthenticatedContext().firestore();
+    const submitter = environment.authenticatedContext("fan-public").firestore();
+    await assertSucceeds(getDoc(doc(anonymous, "evidenceSuggestions/public-lead")));
+    await assertFails(getDoc(doc(anonymous, "evidenceSuggestions/leaky-lead")));
+    await assertFails(getDoc(doc(submitter, "evidenceSuggestions/leaky-lead")));
+    await assertFails(getDoc(doc(submitter, "evidenceSuggestionReviews/private-review")));
+    await assertFails(getDoc(doc(submitter, "evidenceSuggestionOwnership/public-lead")));
+    await assertSucceeds(getDocs(query(
+      collection(anonymous, "evidenceSuggestions"),
+      where("projectId", "==", "published"),
+      where("visibility", "==", "public"),
+    )));
+  });
+
+  it("keeps creator ownership private while owners retain withdrawn history", async () => {
+    const anonymous = environment.unauthenticatedContext().firestore();
+    const owner = environment.authenticatedContext("fan-private").firestore();
+    const other = environment.authenticatedContext("fan-public").firestore();
+    await assertSucceeds(getDoc(doc(anonymous, "creatorUpdates/published-update")));
+    await assertFails(getDoc(doc(anonymous, "creatorUpdates/withdrawn-update")));
+    await assertSucceeds(getDoc(doc(owner, "creatorUpdates/withdrawn-update")));
+    await assertFails(getDoc(doc(other, "creatorUpdates/withdrawn-update")));
+    await assertFails(getDoc(doc(owner, "creatorUpdateOwnership/withdrawn-update")));
+  });
+
+  it("publishes correction history without exposing its private actor audit", async () => {
+    const anonymous = environment.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(anonymous, "projectCorrections/public-correction")));
+    await assertFails(getDoc(doc(anonymous, "projectCorrectionAudits/private-correction")));
+    await assertSucceeds(getDocs(query(
+      collection(anonymous, "projectCorrections"),
+      where("projectId", "==", "published"),
+      where("visibility", "==", "public"),
+    )));
   });
 
   it("uses the profile toggle for follows instead of copied action data", async () => {

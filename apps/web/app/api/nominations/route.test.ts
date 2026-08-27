@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AuthenticationError } from "@/lib/auth/verify-request";
 import type { NominationStore } from "@/lib/nomination/store";
+import { RateLimitError } from "@/lib/trust/rate-limit";
 
 import { handleNominationPost } from "./route";
 
@@ -101,5 +102,18 @@ describe("POST /api/nominations", () => {
     });
     expect(body.data.kind).toBeUndefined();
   });
-});
 
+  it("returns a bounded retry signal when the account limit is exhausted", async () => {
+    const response = await handleNominationPost(request(validBody), {
+      verifyRequest: vi.fn().mockResolvedValue({ user: { uid: "creator-1" } }),
+      store: store(),
+      dispatch: vi.fn(),
+      urlPolicy,
+      database: {} as never,
+      consumeLimit: vi.fn().mockRejectedValue(new RateLimitError(120)),
+    });
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("120");
+    await expect(response.json()).resolves.toMatchObject({ error: { code: "rate_limited" } });
+  });
+});

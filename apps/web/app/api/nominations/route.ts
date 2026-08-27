@@ -1,3 +1,4 @@
+import type { Firestore } from "firebase-admin/firestore";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -9,11 +10,14 @@ import { acceptNomination, type ResearchDispatcher } from "@/lib/nomination/serv
 import { createFirestoreNominationStore, type NominationStore } from "@/lib/nomination/store";
 import { UnsafeUrlError, type SafeUrlPolicy } from "@/lib/nomination/url-policy";
 import { createCloudTasksResearchDispatcher } from "@/lib/tasks/cloud-tasks";
+import { consumeRateLimit, RATE_LIMITS, RateLimitError } from "@/lib/trust/rate-limit";
 
 const MAX_BODY_BYTES = 16_384;
 
 type RouteDependencies = {
   verifyRequest?: typeof verifyAuthenticatedRequest;
+  database?: Firestore;
+  consumeLimit?: typeof consumeRateLimit;
   store?: NominationStore;
   dispatch?: ResearchDispatcher;
   urlPolicy?: SafeUrlPolicy;
@@ -59,8 +63,17 @@ export async function handleNominationPost(request: NextRequest, dependencies: R
       );
     }
 
+    const database = dependencies.database ??
+      (!dependencies.store || dependencies.consumeLimit ? getAdminFirestore() : null);
+    if (dependencies.consumeLimit || !dependencies.store) {
+      await (dependencies.consumeLimit ?? consumeRateLimit)(database!, {
+        uid: user.uid,
+        policy: RATE_LIMITS.nomination,
+        idempotencyKey: parsed.data.submittedUrl,
+      });
+    }
     const result = await acceptNomination(parsed.data, user.uid, {
-      store: dependencies.store ?? createFirestoreNominationStore(getAdminFirestore()),
+      store: dependencies.store ?? createFirestoreNominationStore(database!),
       dispatch: dependencies.dispatch ?? ((job) => createCloudTasksResearchDispatcher()(job)),
       urlPolicy: dependencies.urlPolicy ?? { allowedHttpHosts: allowedHttpHosts() },
     });
@@ -71,6 +84,11 @@ export async function handleNominationPost(request: NextRequest, dependencies: R
     }
     if (error instanceof UnsafeUrlError) {
       return fail({ code: error.code, message: error.message }, 400);
+    }
+    if (error instanceof RateLimitError) {
+      const response = fail({ code: error.code, message: error.message }, 429);
+      response.headers.set("Retry-After", String(error.retryAfterSeconds));
+      return response;
     }
     if (error instanceof Error && error.message === "BODY_TOO_LARGE") {
       return fail({ code: "request_too_large", message: "That nomination is too large." }, 413);

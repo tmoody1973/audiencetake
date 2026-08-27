@@ -28,10 +28,15 @@ describe("native social transactions against the Firestore emulator", () => {
         moderationState: "clear",
         latestCardVersionId: "card-v1",
         followerCount: 0,
+        demoFollowerCount: 0,
         takeCount: 0,
+        demoTakeCount: 0,
         replyCount: 0,
+        demoReplyCount: 0,
         commitmentCounts: {},
+        demoCommitmentCounts: {},
         pathwayVoteCounts: {},
+        demoPathwayVoteCounts: {},
       }),
       database.collection("scoutCards").doc("card-v1").set({
         projectId,
@@ -115,5 +120,41 @@ describe("native social transactions against the Firestore emulator", () => {
     project = (await database.collection("projects").doc(projectId).get()).data();
     expect(project?.replyCount).toBe(0);
     expect((await database.collection("takes").doc(takeId).get()).data()?.replyCount).toBe(0);
+  });
+
+  it("labels demo activity and keeps it out of organic counters", async () => {
+    const demoStore = createSocialStore(database, { demoOnly: true });
+    await demoStore.follow(projectId, "demo-creator", true);
+    await demoStore.commitment(projectId, "demo-creator", "would_watch", true);
+    const input = {
+      whyItShouldGrow: "A clearly labeled demonstration Take.",
+      preferredPathwayId: pathwayIds[0],
+    };
+    await demoStore.take(projectId, "demo-creator", input, true);
+    const takeDocumentId = `${projectId}_demo-creator`;
+    await demoStore.reply(takeDocumentId, "demo-creator", "A labeled demo reply.", "create");
+
+    const project = (await database.collection("projects").doc(projectId).get()).data();
+    expect(project).toMatchObject({
+      followerCount: 0,
+      demoFollowerCount: 1,
+      takeCount: 0,
+      demoTakeCount: 1,
+      replyCount: 0,
+      demoReplyCount: 1,
+      commitmentCounts: {},
+      demoCommitmentCounts: { would_watch: 1 },
+      pathwayVoteCounts: {},
+      demoPathwayVoteCounts: { [pathwayIds[0]]: 1 },
+    });
+    expect((await database.collection("takes").doc(takeDocumentId).get()).data()).toMatchObject({
+      demoOnly: true,
+      demoLabel: "Demo activity",
+      demoReplyCount: 1,
+    });
+    expect((await database.collection("replies").doc(`${takeDocumentId}_demo-creator`).get()).data()).toMatchObject({
+      demoOnly: true,
+      demoLabel: "Demo activity",
+    });
   });
 });

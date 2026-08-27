@@ -77,7 +77,7 @@ The core is complete only when a public deployed build can perform the judge jou
   Acceptance: Deterministic IDs and transactions prevent duplicate counts; moving a vote changes both pathway totals correctly; withdrawn actions disappear from eligible public counts; follows/commitments respect Public Activity while My Picks and My Takes remain public; one fresh action updates the card live.
   Verify: Run route, concurrency, counter-reconciliation, uniqueness, privacy, and emulator rule tests. Execute the multi-account social journey and confirm one live Follow/commitment changes the deployed Scout Card without reload.
 
-- [ ] **10. Complete Suggest Evidence, creator claiming, updates, and trust controls**
+- [x] **10. Complete Suggest Evidence, creator claiming, updates, and trust controls**
   Spec ref: `spec.md > Suggest Evidence Workflow`; `spec.md > Creator Claim And Ownership`; `spec.md > Rate Limits And Abuse Controls`; `prd.md > Epics 6, 7, 9`
   What to build: Implement supporting-link intake during nomination, post-card Suggest Evidence, Community Lead provenance, all five review outcomes, real Request to Claim, pending/rejected/approved states, the pre-approved demo creator, project-scoped creator updates/media, report reasons/states, rate limits, demo labels, and audit-preserving corrections.
   Acceptance: Suggested evidence cannot affect confidence before review; incorporated sources retain provenance; claim requests store real pending actions; approved creators can edit only creator-owned fields; reports and source/media changes preserve historical integrity; uploads use server-selected safe paths.

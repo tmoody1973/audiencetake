@@ -284,7 +284,8 @@ All documents include `createdAt` and `updatedAt` server timestamps where applic
 - Status: `submissionType`, `claimStatus`, `publicationStatus`, `cardCompleteness`
 - Presentation: `hook`, `summary`, `posterUrl`, `trailerEmbed`, `creatorDisplay`
 - Research: `latestRunId`, `researchVersion`, `lastResearchedAt`, `missingSections[]`
-- Social counters: `followerCount`, `takeCount`, `replyCount`, `commitmentCounts`, `pathwayVoteCounts`
+- Organic social counters: `followerCount`, `takeCount`, `replyCount`, `commitmentCounts`, `pathwayVoteCounts`
+- Separate demo counters: `demoFollowerCount`, `demoTakeCount`, `demoReplyCount`, `demoCommitmentCounts`, `demoPathwayVoteCounts`
 - Editorial: `isSelected`, `selectionReason`, `demoLabel`
 - Trust: `sourceAvailability`, `correctionNotice`, `moderationState`
 
@@ -352,10 +353,12 @@ Deterministic IDs prevent duplicate actions under retries. Project counters are 
 
 ### `evidenceSuggestions/{suggestionId}`
 
-- `projectId`, `submittedByUid`, `url`, `canonicalUrl`, `note?`
+- Public-safe projection: `projectId`, `submitterLabel`, `url`, `canonicalUrl`, `note?`
 - `status: community_lead | verified_incorporated | relevant_support | conflicts | could_not_verify | rejected`
-- `reviewReason?`, `reviewedByUid?`, `reviewedAt?`
+- `reviewedAt?`
 - `incorporatedSourceId?`
+
+Submitter identity and nomination linkage live in server-private `evidenceSuggestionOwnership`; reviewer identity and reason live in append-only server-private `evidenceSuggestionReviews`.
 
 A Community Lead does not change card confidence or evidence claims until reviewed.
 

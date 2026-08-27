@@ -52,6 +52,34 @@ describe("loadPublishedScoutCard", () => {
     expect(result).not.toHaveProperty("visibility");
   });
 
+  it("overlays the trusted project claim state instead of model-authored card state", async () => {
+    const card = structuredClone(getScoutCardFixture("complete"));
+    card.claimStatus = "approved";
+    card.creatorContext.claimStatus = "approved";
+    card.industryLens.creatorClaimStatus = "approved";
+    const database = fakeDatabase({
+      projects: [{ id: card.projectId, value: publishedProject({ claimStatus: "pending" }) }],
+      cards: [{ id: card.cardVersionId, value: { ...card, visibility: "public" } }],
+    });
+
+    const result = await loadPublishedScoutCard("junichiro-jackson", database);
+    expect(result?.claimStatus).toBe("pending");
+    expect(result?.creatorContext.claimStatus).toBe("pending");
+    expect(result?.industryLens.creatorClaimStatus).toBe("pending");
+  });
+
+  it("defaults an absent or invalid project claim state to unclaimed", async () => {
+    const card = structuredClone(getScoutCardFixture("complete"));
+    card.claimStatus = "approved";
+    const database = fakeDatabase({
+      projects: [{ id: card.projectId, value: publishedProject({ claimStatus: "verification_pending" }) }],
+      cards: [{ id: card.cardVersionId, value: { ...card, visibility: "public" } }],
+    });
+
+    await expect(loadPublishedScoutCard("junichiro-jackson", database))
+      .resolves.toEqual(expect.objectContaining({ claimStatus: "unclaimed" }));
+  });
+
   it("does not render unpublished, moderated, missing, or pointer-mismatched data", async () => {
     const card = structuredClone(getScoutCardFixture("complete"));
     const cases = [

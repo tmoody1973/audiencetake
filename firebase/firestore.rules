@@ -147,9 +147,21 @@ service cloud.firestore {
     }
 
     match /evidenceSuggestions/{suggestionId} {
-      allow read: if isPublishedProject(resource.data.projectId) &&
-        (resource.data.visibility == 'public' ||
-          (signedIn() && resource.data.submittedByUid == request.auth.uid));
+      allow get: if isPublishedProject(resource.data.projectId) &&
+        resource.data.visibility == 'public' &&
+        resource.data.keys().hasAll([
+          'projectId', 'submitterLabel', 'url', 'canonicalUrl',
+          'sourceFingerprint', 'status', 'visibility', 'createdAt', 'updatedAt'
+        ]) &&
+        resource.data.keys().hasOnly([
+          'projectId', 'submitterLabel', 'url', 'canonicalUrl',
+          'sourceFingerprint', 'note', 'status', 'visibility', 'createdAt',
+          'updatedAt', 'reviewedAt', 'incorporatedSourceId'
+        ]);
+      // The collection itself is the public-safe projection; reviewer reasons,
+      // identities, and moderation metadata live in server-only review docs.
+      allow list: if resource.data.visibility == 'public' &&
+        isPublishedProject(resource.data.projectId);
       allow write: if false;
     }
 
@@ -161,12 +173,46 @@ service cloud.firestore {
     match /creatorUpdates/{updateId} {
       allow read: if isPublishedProject(resource.data.projectId) &&
         (resource.data.status == 'published' ||
-          (signedIn() && resource.data.creatorUid == request.auth.uid));
+          (signedIn() &&
+            exists(/databases/$(database)/documents/creatorUpdateOwnership/$(updateId)) &&
+            get(/databases/$(database)/documents/creatorUpdateOwnership/$(updateId)).data.creatorUid == request.auth.uid));
+      allow write: if false;
+    }
+
+    match /projectCorrections/{correctionId} {
+      allow get: if isPublishedProject(resource.data.projectId) &&
+        resource.data.visibility == 'public' &&
+        resource.data.correctionId == correctionId &&
+        resource.data.keys().hasAll([
+          'correctionId', 'projectId', 'section', 'summary', 'priorBasis',
+          'cardVersionId', 'visibility', 'createdAt', 'updatedAt'
+        ]) &&
+        resource.data.keys().hasOnly([
+          'correctionId', 'projectId', 'section', 'summary', 'priorBasis',
+          'cardVersionId', 'visibility', 'createdAt', 'updatedAt'
+        ]);
+      // Public correction rows are a dedicated projection; actor identity and
+      // operational details remain in projectCorrectionAudits.
+      allow list: if resource.data.visibility == 'public' &&
+        isPublishedProject(resource.data.projectId);
       allow write: if false;
     }
 
     match /reports/{reportId} {
-      allow read: if signedIn() && resource.data.reporterUid == request.auth.uid;
+      allow get: if signedIn() && resource.data.reporterUid == request.auth.uid &&
+        resource.data.keys().hasAll([
+          'reportId', 'reporterUid', 'projectId', 'targetType', 'targetId',
+          'latestReason', 'reasons', 'status', 'eventCount', 'createdAt',
+          'lastSubmittedAt', 'updatedAt'
+        ]) &&
+        resource.data.keys().hasOnly([
+          'reportId', 'reporterUid', 'projectId', 'targetType', 'targetId',
+          'latestReason', 'reasons', 'status', 'eventCount', 'createdAt',
+          'lastSubmittedAt', 'updatedAt'
+        ]);
+      // Report rows are a reporter-safe projection. Raw context and reviewer
+      // notes are written only to server-private report event/review documents.
+      allow list: if signedIn() && resource.data.reporterUid == request.auth.uid;
       allow write: if false;
     }
 

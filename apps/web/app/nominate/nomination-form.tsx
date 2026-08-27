@@ -39,7 +39,7 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const statusLabel = mode === "creator" ? "Creator-submitted — verification pending" : "Fan nomination — unclaimed by creator";
+  const statusLabel = mode === "creator" ? "Creator-submitted — claim not yet verified" : "Fan nomination — unclaimed by creator";
   const completedSupportingLinks = useMemo(() => values.supportingLinks.filter((link) => link.trim()), [values.supportingLinks]);
 
   function update<K extends keyof FormState>(field: K, value: FormState[K]) {
@@ -157,7 +157,7 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
           {errors.supportingLinks ? <p className="field-error" role="alert">{errors.supportingLinks}</p> : null}
           {values.supportingLinks.length < 5 ? <button className="add-link" type="button" onClick={() => update("supportingLinks", [...values.supportingLinks, ""])}>+ Add another public link</button> : <p className="link-limit">Five-link limit reached.</p>}
         </fieldset>
-        {mode === "creator" ? <div className="creator-declaration"><input id="creator-connection" type="checkbox" checked={values.creatorConnection} onChange={(event) => update("creatorConnection", event.target.checked)} aria-invalid={Boolean(errors.creatorConnection)} aria-describedby={errors.creatorConnection ? "creator-error" : "creator-help"} /><label htmlFor="creator-connection">I confirm I am the creator or authorized project representative.<span id="creator-help">This starts a claim request. Pending status cannot edit agent evidence or suppress fan activity.</span></label>{errors.creatorConnection ? <p id="creator-error" className="field-error">{errors.creatorConnection}</p> : null}</div> : null}
+        {mode === "creator" ? <div className="creator-declaration"><input id="creator-connection" type="checkbox" checked={values.creatorConnection} onChange={(event) => update("creatorConnection", event.target.checked)} aria-invalid={Boolean(errors.creatorConnection)} aria-describedby={errors.creatorConnection ? "creator-error" : "creator-help"} /><label htmlFor="creator-connection">I confirm I am the creator or authorized project representative.<span id="creator-help">This labels nomination provenance only. After the Scout Card publishes, use Request to Claim for a real pending review. Unapproved status cannot edit agent evidence or suppress fan activity.</span></label>{errors.creatorConnection ? <p id="creator-error" className="field-error">{errors.creatorConnection}</p> : null}</div> : null}
         <div className="form-submit"><div><strong>Nothing publishes yet.</strong><p>You’ll review every field before the research run can start.</p></div><button className="button-primary" type="submit">Review nomination <ArrowIcon /></button></div>
       </form>
     </section>

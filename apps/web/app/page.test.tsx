@@ -50,7 +50,7 @@ describe("NominationForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /review nomination/i }));
 
     expect(screen.getByText(/Confirm your connection/i)).toBeInTheDocument();
-    expect(screen.getByText(/Creator-submitted — verification pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/Creator-submitted — claim not yet verified/i)).toBeInTheDocument();
   });
 
   it("supports five links and preserves the nomination when submission fails", async () => {

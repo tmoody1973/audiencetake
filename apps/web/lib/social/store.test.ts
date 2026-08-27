@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { commitmentId, followId, moveVoteCounts, replyId, takeId, voteId } from "./store";
+import { commitmentId, followId, moveVoteCounts, replyId, socialCounterFields, takeId, voteId } from "./store";
 import { validTakeBody } from "./route";
 
 describe("native social contracts", () => {
@@ -30,5 +30,21 @@ describe("native social contracts", () => {
     replies = Math.max(0, replies - 2); // parent withdrawal hides active replies
     replies += 2; // republish restores them without deleting documents
     expect(replies).toBe(2);
+  });
+  it("routes demo activity into separate counters", () => {
+    expect(socialCounterFields(false)).toEqual({
+      follower: "followerCount",
+      commitments: "commitmentCounts",
+      votes: "pathwayVoteCounts",
+      takes: "takeCount",
+      replies: "replyCount",
+    });
+    expect(socialCounterFields(true)).toEqual({
+      follower: "demoFollowerCount",
+      commitments: "demoCommitmentCounts",
+      votes: "demoPathwayVoteCounts",
+      takes: "demoTakeCount",
+      replies: "demoReplyCount",
+    });
   });
 });

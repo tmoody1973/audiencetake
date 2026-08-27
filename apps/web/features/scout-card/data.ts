@@ -102,7 +102,20 @@ async function readPublishedScoutCard(slug: string, database: ScoutCardFirestore
 
   const cardSnapshot = await database.collection("scoutCards").doc(projectData.latestCardVersionId).get();
   if (!cardSnapshot.exists) return null;
-  return parsePublishedCard(cardSnapshot.data(), { cardVersionId: projectData.latestCardVersionId, projectId: projectSnapshot.id, slug });
+  const card = parsePublishedCard(cardSnapshot.data(), { cardVersionId: projectData.latestCardVersionId, projectId: projectSnapshot.id, slug });
+  if (!card) return null;
+
+  // Claim status is a mutable authorization fact owned by trusted project and
+  // role records. Model-authored card text must never grant or imply access.
+  const trustedClaimStatus = claimStatus.safeParse(projectData.claimStatus).success
+    ? claimStatus.parse(projectData.claimStatus)
+    : "unclaimed";
+  return {
+    ...card,
+    claimStatus: trustedClaimStatus,
+    creatorContext: { ...card.creatorContext, claimStatus: trustedClaimStatus },
+    industryLens: { ...card.industryLens, creatorClaimStatus: trustedClaimStatus },
+  };
 }
 
 export async function loadPublishedScoutCard(slug: string, database?: ScoutCardFirestore): Promise<ScoutCard | null> {

@@ -1,5 +1,7 @@
 import { FieldValue, type Firestore } from "firebase-admin/firestore";
 
+import { evidenceFingerprint } from "../evidence/store";
+
 import type { NominationInput } from "./contract";
 
 export type PreparedNomination = NominationInput & {
@@ -71,17 +73,25 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
           sourceFingerprint: nomination.fingerprint,
           projectType: "unknown",
           submissionType: nomination.submissionType,
-          claimStatus: nomination.submissionType === "creator" ? "verification_pending" : "unclaimed",
+          // A creator-mode nomination is provenance, not authorization. A real
+          // pending claim begins only when the signed-in user submits the
+          // separate post-publication Request to Claim workflow.
+          claimStatus: "unclaimed",
           publicationStatus: "pending",
           cardCompleteness: "pending",
           latestRunId: runRef.id,
           researchVersion: 1,
           missingSections: [],
           followerCount: 0,
+          demoFollowerCount: 0,
           takeCount: 0,
+          demoTakeCount: 0,
           replyCount: 0,
+          demoReplyCount: 0,
           commitmentCounts: {},
+          demoCommitmentCounts: {},
           pathwayVoteCounts: {},
+          demoPathwayVoteCounts: {},
           isSelected: false,
           sourceAvailability: "available",
           moderationState: "clear",
@@ -103,6 +113,30 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
           createdAt: now,
           updatedAt: now,
         });
+        for (const supportingUrl of nomination.canonicalSupportingUrls) {
+          const fingerprint = evidenceFingerprint(projectRef.id, supportingUrl);
+          transaction.create(database.collection("evidenceSuggestions").doc(fingerprint), {
+            projectId: projectRef.id,
+            submitterLabel: "Community member",
+            url: supportingUrl,
+            canonicalUrl: supportingUrl,
+            sourceFingerprint: fingerprint,
+            note: "Submitted as a supporting link with the original nomination.",
+            status: "community_lead",
+            visibility: "public",
+            createdAt: now,
+            updatedAt: now,
+          });
+          transaction.create(database.collection("evidenceSuggestionOwnership").doc(fingerprint), {
+            suggestionId: fingerprint,
+            projectId: projectRef.id,
+            submittedByUid: nomination.nominatorUid,
+            nominationId: nominationRef.id,
+            submissionOrigin: "nomination_supporting_link",
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
         transaction.create(runRef, {
           projectId: projectRef.id,
           nominationId: nominationRef.id,
