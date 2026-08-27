@@ -22,8 +22,8 @@ Updated: 2026-08-27 (America/Chicago)
 - Research queue: `audience-take-research`; it must remain paused outside an explicitly approved run.
 - App Hosting backend: `audience-take`, region `us-central1`, URL
   `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
-  exists, but all four source rollouts on 2026-08-27 failed during the managed
-  build, so the URL must not be described as serving the app.
+  exists, but all five source rollouts on 2026-08-27 failed before serving
+  traffic, so the URL must not be described as serving the app.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
   `smoke-20260827-publication-attempt-id-v1` and immutable digest
@@ -287,8 +287,31 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   typecheck, six affected route suites / 18 tests, and the bounded full suite of
   37 files / 148 tests pass. No provider, Gemini, Parallel, or research-queue
   call was made.
-- Do not issue a fifth App Hosting rollout without fresh explicit approval. The
-  fourth rollout approval was consumed by the failed build above.
+- The explicitly approved fifth rollout used Cloud Build
+  `0cdacbbd-bc3c-4c71-abf0-3f255c1b148a`. The full Webpack framework build and
+  Firebase publisher both succeeded. App Hosting then marked build/rollout
+  `build-2026-08-27-005` failed when Cloud Run revision
+  `audience-take-build-2026-08-27-005` exited before listening on port `8080`.
+  Revision logs contain the exact exception `Cannot find module 'next'` from
+  `.next/standalone/server.js`; no retry was made.
+- The failure is a runtime-closure boundary, not an application compile or
+  adapter-manifest failure. Firebase's buildpack keeps installed packages in an
+  external layer, while the app-root standalone trace copied no `node_modules`.
+  Removing the developer dependency tree from the local standalone artifact
+  reproduced the same `Cannot find module 'next'` exception exactly.
+- Commit `33cc72c` adds a lockfile-driven post-build materializer. For standalone
+  builds only, it resolves Firebase's external dependency root, copies the 242
+  installed production packages represented by the app-local lockfile into
+  `.next/standalone/node_modules`, and fails the build if any direct runtime
+  dependency remains absent. Normal non-standalone builds are unchanged.
+- The focused materializer tests pass. Lint, typecheck, the normal Webpack build,
+  and the bounded full suite of 38 files / 150 tests pass. The external-layout
+  standalone build produces a `571M` uncompressed artifact; copying that artifact
+  alone into an empty directory starts Next.js immediately, and both `/` and
+  `/sign-in` return HTTP `200`. No provider, Gemini, Parallel, or research-queue
+  call was made.
+- Do not issue a sixth App Hosting rollout without fresh explicit approval. The
+  fifth rollout approval was consumed by the failed Cloud Run revision above.
 
 ## Failure research findings
 
@@ -370,7 +393,7 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
 - Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
   at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is pushed through
   `a8a1a08`; item `11` deployment configuration and the researched App Hosting
-  fixes are pushed through `6087703`. Public origin
+  fixes are pushed through `33cc72c`. Public origin
   `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
   tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
@@ -444,7 +467,7 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    evidence lead, one labeled demo creator update, and one correction row.
 7. Continue checklist item `11`: rules/indexes are live and the exact
    Next.js/Firebase adapter boundary now passes offline, but do not issue the
-   fifth App Hosting rollout without fresh explicit approval. After a
+   sixth App Hosting rollout without fresh explicit approval. After a
    successful rollout, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
