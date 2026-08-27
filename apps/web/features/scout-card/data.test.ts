@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import canonicalCompleteFixture from "../../../../contracts/fixtures/junichiro-card.json";
 import canonicalFallbackFixture from "../../../../contracts/fixtures/junichiro-card-fallback.json";
@@ -13,12 +13,12 @@ import {
 
 type StoredDocument = { id: string; value: unknown; exists?: boolean };
 
-function fakeDatabase({ projects = [], cards = [], fail = false }: { projects?: StoredDocument[]; cards?: StoredDocument[]; fail?: boolean }): ScoutCardFirestore {
+function fakeDatabase({ projects = [], cards = [], fail = false }: { projects?: StoredDocument[]; cards?: StoredDocument[]; fail?: boolean | Error }): ScoutCardFirestore {
   function collection(name: string) {
     let slugFilter: unknown;
     const api = {
       where(field: string, _operator: "==", value: unknown) {
-        if (fail) throw new Error("Firestore unavailable");
+        if (fail) throw fail instanceof Error ? fail : new Error("Firestore unavailable");
         if (field === "slug") slugFilter = value;
         return api;
       },
@@ -103,10 +103,35 @@ describe("loadPublishedScoutCard", () => {
   });
 
   it("uses only the exact labeled Junichiro fallback when the provider is unavailable", async () => {
-    const unavailable = fakeDatabase({ fail: true });
-    const fallback = await loadPublishedScoutCard("junichiro-jackson", unavailable);
-    expect(fallback?.fallbackUsed).toBe(true);
-    expect(fallback?.fallbackLabel).toBe(LIVE_REFRESH_FALLBACK_LABEL);
-    expect(await loadPublishedScoutCard("another-project", unavailable)).toBeNull();
+    const diagnosticError = Object.assign(
+      new Error("Firestore rejected Bearer secret-token and eyJabcdefgh.ijklmnop.qrstuvwx?access_token=also-secret"),
+      { code: "invalid_grant", status: 401 },
+    );
+    const unavailable = fakeDatabase({ fail: diagnosticError });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    try {
+      const fallback = await loadPublishedScoutCard("junichiro-jackson", unavailable);
+      expect(fallback?.fallbackUsed).toBe(true);
+      expect(fallback?.fallbackLabel).toBe(LIVE_REFRESH_FALLBACK_LABEL);
+      expect(await loadPublishedScoutCard("another-project", unavailable)).toBeNull();
+
+      expect(consoleError).toHaveBeenCalledTimes(2);
+      const diagnostic = JSON.parse(String(consoleError.mock.calls[0][0])) as Record<string, unknown>;
+      expect(diagnostic).toEqual(expect.objectContaining({
+        level: "error",
+        event: "published_scout_card_load_failed",
+        slug: "junichiro-jackson",
+        errorName: "Error",
+        errorCode: "invalid_grant",
+        errorStatus: 401,
+      }));
+      expect(diagnostic.errorMessage).toContain("Bearer [REDACTED]");
+      expect(diagnostic.errorMessage).not.toContain("secret-token");
+      expect(diagnostic.errorMessage).not.toContain("also-secret");
+      expect(diagnostic.errorMessage).not.toContain("eyJabcdefgh");
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });

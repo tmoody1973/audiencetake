@@ -62,6 +62,40 @@ const fixtures = {
 
 export type ScoutCardFixtureState = keyof typeof fixtures;
 
+const MAX_ERROR_MESSAGE_LENGTH = 500;
+
+function redactDiagnosticMessage(message: string): string {
+  return message
+    .replace(/\b(Bearer|Basic)\s+[^\s"',]+/gi, "$1 [REDACTED]")
+    .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g, "[REDACTED_JWT]")
+    .replace(/([?&](?:access_token|id_token|token|key)=)[^&\s]+/gi, "$1[REDACTED]")
+    .slice(0, MAX_ERROR_MESSAGE_LENGTH);
+}
+
+function boundedDiagnosticScalar(value: unknown, maxLength: number): string | number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string" || value.length === 0) return undefined;
+  return redactDiagnosticMessage(value).slice(0, maxLength);
+}
+
+function logPublishedCardLoadFailure(slug: string, error: unknown): void {
+  const details = error && typeof error === "object" ? error as Record<string, unknown> : {};
+  const errorName = error instanceof Error ? error.name : boundedDiagnosticScalar(details.name, 80);
+  const errorMessage = error instanceof Error
+    ? redactDiagnosticMessage(error.message)
+    : boundedDiagnosticScalar(details.message, MAX_ERROR_MESSAGE_LENGTH);
+
+  console.error(JSON.stringify({
+    level: "error",
+    event: "published_scout_card_load_failed",
+    slug,
+    errorName,
+    errorCode: boundedDiagnosticScalar(details.code, 120),
+    errorStatus: boundedDiagnosticScalar(details.status, 40),
+    errorMessage,
+  }));
+}
+
 type DocumentSnapshotLike = { id: string; exists: boolean; data(): unknown };
 type QuerySnapshotLike = { docs: DocumentSnapshotLike[] };
 type QueryLike = { where(field: string, operator: "==", value: unknown): QueryLike; limit(count: number): QueryLike; get(): Promise<QuerySnapshotLike> };
@@ -121,7 +155,8 @@ async function readPublishedScoutCard(slug: string, database: ScoutCardFirestore
 export async function loadPublishedScoutCard(slug: string, database?: ScoutCardFirestore): Promise<ScoutCard | null> {
   try {
     return await readPublishedScoutCard(slug, database ?? getAdminFirestore() as unknown as ScoutCardFirestore);
-  } catch {
+  } catch (error) {
+    logPublishedCardLoadFailure(slug, error);
     return slug === JUNICHIO_SLUG ? fixtures.fallback : null;
   }
 }

@@ -576,8 +576,21 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    expected production-only attribute-condition rejection for the local
    development token. The wrapper and regression test pass the full local gate:
    20 contract fixtures, 40 web test files / 160 tests, lint, typecheck, and the
-   production Next build. They are local only; require explicit approval for
-   another rollout. After the production route is fixed, bind the
+   production Next build. The approved rollout
+   `dpl_EqXqUdJcTEM1aFvwVBxHvUixp5BK` from `70475e0` reached `READY`, and the
+   primary alias was confirmed to resolve to that exact deployment. `/`,
+   `/sign-in`, and `/nominate` return `200`; `/projects/junichiro-live-project`
+   returns `404`; and `/projects/junichiro-jackson` returns `200` but still
+   displays the explicit saved fallback. Firestore, STS, and IAM Credentials
+   APIs are enabled and the runtime service account has `roles/datastore.user`,
+   but the bounded post-request audit-log queries returned no STS, IAM
+   Credentials, or Firestore entries. The existing fallback catch hid the exact
+   provider-stage error, so a structured, redacted diagnostic was added at that
+   boundary without changing fallback behavior. Tarik explicitly approved its
+   single diagnostic rollout after the full local gate passed; if it still
+   falls back, capture the exact log, research that cause, and stop before any
+   retry.
+   After the production route is fixed, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
    counters, verify Vercel's trusted client-IP header before adding the
