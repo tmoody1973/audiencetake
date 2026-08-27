@@ -19,6 +19,32 @@ describe("ScoutCard", () => {
     expect(screen.getByText(/No native audience count is claimed\./)).toBeInTheDocument();
   });
 
+  it("turns additional available YouTube sources into a bounded, accessible carousel", () => {
+    const card = structuredClone(getScoutCardFixture("complete"));
+    card.sourceLedger.push({
+      id: "source-youtube-community-video",
+      origin: "community_lead",
+      title: "Additional Junichiro Jackson video",
+      url: "https://www.youtube.com/watch?v=s8G7425lfKs&list=RDs8G7425lfKs",
+      publishedAt: null,
+      retrievedAt: "2026-08-27T12:00:00Z",
+      availability: "available",
+      verificationStatus: "observed",
+      supportsClaimIds: [],
+      externalCommentary: false,
+    });
+
+    render(<ScoutCard card={card} />);
+
+    expect(screen.getByLabelText("Source video carousel, 2 videos")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous source video" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Show source video 2: Additional Junichiro Jackson video" }));
+    expect(screen.getByTitle("Additional Junichiro Jackson video")).toHaveAttribute("src", "https://www.youtube-nocookie.com/embed/s8G7425lfKs");
+    expect(screen.getByText("community lead / observed")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next source video" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Open source video" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=s8G7425lfKs&list=RDs8G7425lfKs");
+  });
+
   it("keeps the comparative Industry Lens collapsed until a reader expands it", () => {
     const { container } = render(<ScoutCard card={getScoutCardFixture("complete")} />);
     const disclosure = container.querySelector(".industry-lens details");

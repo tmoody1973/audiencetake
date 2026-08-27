@@ -665,7 +665,7 @@ Seeded profiles, commitments, Takes, replies, or curated projects display a cons
 - Accept only public `https://` or explicitly allowed `http://` URLs; reject local, private-network, file, data, and credential-bearing URLs.
 - Server-side fetches enforce DNS/IP safety, redirect limits, response-size limits, MIME allowlists, and timeouts to reduce SSRF risk.
 - Canonicalization removes known tracking parameters but preserves content IDs and meaningful campaign/video parameters.
-- Prefer authorized YouTube/Vimeo embeds or outbound links over copying third-party media.
+- Prefer authorized YouTube/Vimeo embeds or outbound links over copying third-party media. A Scout Card may surface one primary video plus up to four available supporting videos from its source ledger in a no-autoplay carousel; every item retains its own provenance and verification state.
 - Do not redistribute third-party artwork, campaign assets, or comments beyond authorized embeds, links, permitted excerpts, and fair product thumbnails.
 - If original media becomes unavailable, preserve the historical Scout Card, disable playback, show an availability banner, and reduce claims that can no longer be verified.
 

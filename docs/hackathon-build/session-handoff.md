@@ -544,12 +544,15 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    status; and evidence ownership stays server-private. The local desktop and
    mobile emulator walkthrough showed the Trust & Ownership panel, one pending
    evidence lead, one labeled demo creator update, and one correction row.
-7. Continue checklist item `11`: rules/indexes are live; App Hosting is no
-   longer the target web host. Finish the approved Vercel migration, deploy the
-   public GitHub project with root `apps/web`, configure encrypted server
-   credentials and production environment variables, authorize the final domain
-   in Firebase Auth and App Check, and verify the deployed judge path. After a
-   successful Vercel deployment, bind the
+7. Continue checklist item `11`: rules/indexes are live and Vercel is now the
+   web host. Production deployment `dpl_SmrDq5Mq1jZTY8uU9bmLvYPdXYu6` from
+   commit `8a3a919` is Ready at `https://audiencetake.vercel.app`; `/` and
+   `/sign-in` returned `200`, but the Firestore-backed
+   `/projects/junichiro-live-project` returned `500`. No further rollout is
+   authorized until that exact runtime failure is captured, researched, and
+   reproduced or otherwise explained under the research-before-retry rule.
+   Keyless Vercel OIDC to Google Workload Identity Federation is configured;
+   no service-account JSON key is stored. After the production route is fixed, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
    counters, verify Vercel's trusted client-IP header before adding the
@@ -557,6 +560,26 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    the judge path. Stop at visual pause `3`.
 8. The run-wide next-sequence and trusted-project-slug fixes are local only.
    Require explicit deployment approval before replacing revision `00019-z6v`.
+
+## Local multi-video Source Card enhancement
+
+- The Scout Card now derives a no-autoplay carousel from its existing source
+  ledger: one primary authorized embed plus up to four additional available
+  YouTube sources. Each selection keeps its own title, outbound source URL,
+  origin, and verification status; duplicate video IDs are suppressed.
+- The controls expose previous/next actions, direct source selection, a live
+  screen-reader announcement, responsive mobile layout, and an outbound
+  fallback link. One-video and unavailable-media cards retain their prior
+  behavior.
+- The user-provided Junichiro URL
+  `https://www.youtube.com/watch?v=s8G7425lfKs` is covered by the component test
+  as an observed Community Lead. It has not been silently inserted into the
+  immutable published card; incorporation requires the normal reviewed source
+  path and a new card version.
+- Local verification: `npm run check` passed 20 contract fixtures and 39 web
+  test files / 158 tests; `npm run build` passed. These edits are intentionally
+  not synced to GitHub yet because a push would trigger another Vercel rollout
+  before the existing production `500` is diagnosed.
 
 ## Recorded final MVP enhancement
 

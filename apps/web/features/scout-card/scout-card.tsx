@@ -3,6 +3,7 @@ import { citationText, createCitationLabels } from "./citation-labels";
 import type { ScoutCard as ScoutCardModel } from "./types";
 import { ScoutSocialPanel } from "../social/scout-social-panel";
 import { ScoutTrustPanel } from "../trust/scout-trust-panel";
+import { SourceVideoCarousel } from "./source-video-carousel";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(value));
@@ -15,19 +16,7 @@ function SourceMarks({ sourceIds, labels }: { sourceIds: string[]; labels: Map<s
 function ScoutMedia({ card }: { card: ScoutCardModel }) {
   const { media } = card;
   if (media.state === "authorized_embed" && media.embedUrl) {
-    return (
-      <div className="scout-media-frame">
-        <iframe
-          src={media.embedUrl}
-          title={media.title}
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-        <p>{media.attribution}</p>
-      </div>
-    );
+    return <SourceVideoCarousel card={card} />;
   }
   if (media.state === "authorized_image" && media.imageUrl) {
     return <figure className="scout-media-frame">{/* The authorized source URL is contract data and cannot be constrained to Next Image remote patterns. */}<img // eslint-disable-line @next/next/no-img-element
