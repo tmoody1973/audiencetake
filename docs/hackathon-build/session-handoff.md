@@ -606,9 +606,21 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    absence of the former Firestore initialization rejection; emulator access
    remains credential-free. The full local gate passes 20 contract fixtures and
    42 web test files / 163 tests, plus lint, typecheck, and the production build.
-   The fix is local only; require explicit approval for one diagnosed rollout.
-   If that rollout fails, capture the new exact error, research it, and stop
-   before any retry.
+   Tarik approved one diagnosed rollout. Deployment
+   `dpl_BCRghFmp1ANrfnXtCaPS3k38uVu2` from `41426ef` reached `READY`, and
+   `https://audiencetake.vercel.app` resolves to that exact artifact. `/`,
+   `/sign-in`, and `/nominate` return `200`. The live Firestore-backed route
+   `/projects/junichiro-live-project` returns `200`, renders immutable version
+   `card-junichiro-live-20260826-1918-v1`, and contains no saved-fallback
+   markers. A clean isolated browser rendered the complete Scout Card, all
+   three pathways, Audience Pulse, Trust & Ownership, correction history, and
+   evidence ledger. The deployment-scoped error scan is clean. This proves the
+   Vercel OIDC -> Google WIF -> Firebase ADC -> Firestore read path is working.
+   `/projects/junichiro-jackson` now returns a clean `404` rather than the saved
+   fallback because the published Firestore project's stored slug is
+   `junichiro-live-project`; treat canonical-slug reconciliation as a separate
+   data/URL task, not an authentication retry. Do not trigger another rollout
+   merely to sync this handoff entry.
    After the production route is fixed, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
