@@ -1,6 +1,7 @@
 import { IndustryLens } from "../industry-lens/industry-lens";
 import { citationText, createCitationLabels } from "./citation-labels";
 import type { ScoutCard as ScoutCardModel } from "./types";
+import { ScoutSocialPanel } from "../social/scout-social-panel";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(value));
@@ -118,6 +119,7 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
       </article>
 
       <IndustryLens card={card} />
+      <ScoutSocialPanel card={card} />
 
       <section className="evidence-section" aria-labelledby="evidence-title">
         <div className="section-heading-line"><h2 id="evidence-title">Evidence &amp; citations</h2><span>Claims stay qualified</span></div>

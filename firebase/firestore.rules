@@ -113,37 +113,36 @@ service cloud.firestore {
     }
 
     match /follows/{followId} {
-      allow read: if isPublishedProject(resource.data.projectId) &&
-        (profilePublishesActivity(resource.data.uid) ||
-          (signedIn() && resource.data.uid == request.auth.uid));
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) ||
+        (resource.data.active == true && isPublishedProject(resource.data.projectId) && profilePublishesActivity(resource.data.uid));
       allow write: if false;
     }
 
     match /commitments/{commitmentId} {
-      allow read: if isPublishedProject(resource.data.projectId) &&
-        (profilePublishesActivity(resource.data.uid) ||
-          (signedIn() && resource.data.uid == request.auth.uid));
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) ||
+        (resource.data.active == true && isPublishedProject(resource.data.projectId) && profilePublishesActivity(resource.data.uid));
       allow write: if false;
     }
 
     match /pathwayVotes/{voteId} {
-      allow read: if isPublishedProject(resource.data.projectId) &&
-        (resource.data.visibility == 'public' ||
-          (signedIn() && resource.data.uid == request.auth.uid));
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) ||
+        (resource.data.active == true && resource.data.visibility == 'public' && isPublishedProject(resource.data.projectId));
       allow write: if false;
     }
 
     match /takes/{takeId} {
       allow read: if isPublishedProject(resource.data.projectId) &&
-        (resource.data.status == 'published' ||
-          (signedIn() && resource.data.uid == request.auth.uid));
+        (resource.data.status == 'published' || (signedIn() && resource.data.uid == request.auth.uid));
       allow write: if false;
     }
 
     match /replies/{replyId} {
-      allow read: if isPublishedProject(resource.data.projectId) &&
-        (resource.data.status == 'published' ||
-          (signedIn() && resource.data.uid == request.auth.uid));
+      allow read: if (signedIn() && resource.data.uid == request.auth.uid) ||
+        (resource.data.status == 'published' &&
+          exists(/databases/$(database)/documents/takes/$(resource.data.takeId)) &&
+          get(/databases/$(database)/documents/takes/$(resource.data.takeId)).data.status == 'published' &&
+          get(/databases/$(database)/documents/takes/$(resource.data.takeId)).data.active == true &&
+          isPublishedProject(resource.data.projectId));
       allow write: if false;
     }
 

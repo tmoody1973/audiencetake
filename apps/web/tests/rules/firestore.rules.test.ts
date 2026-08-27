@@ -137,6 +137,23 @@ beforeAll(async () => {
         publicActivity: false,
         active: true,
       }),
+      setDoc(doc(database, "follows/inactive-follow"), {
+        uid: "fan-public",
+        projectId: "published",
+        active: false,
+      }),
+      setDoc(doc(database, "commitments/private-commitment"), {
+        uid: "fan-private",
+        projectId: "published",
+        active: false,
+        type: "would_watch",
+      }),
+      setDoc(doc(database, "pathwayVotes/inactive-vote"), {
+        uid: "fan-public",
+        projectId: "published",
+        active: false,
+        visibility: "public",
+      }),
       setDoc(doc(database, "nominations/public-nomination"), {
         nominatorUid: "fan-private",
         visibility: "public",
@@ -155,6 +172,20 @@ beforeAll(async () => {
         uid: "fan-private",
         projectId: "published",
         status: "published",
+        active: true,
+      }),
+      setDoc(doc(database, "takes/withdrawn-take"), {
+        uid: "fan-public",
+        projectId: "published",
+        status: "published",
+        active: false,
+      }),
+      setDoc(doc(database, "replies/withdrawn-reply"), {
+        uid: "fan-private",
+        projectId: "published",
+        takeId: "withdrawn-take",
+        status: "published",
+        active: true,
       }),
     ]);
     await uploadBytes(ref(context.storage(), "public/scout-cards/poster.txt"), new Uint8Array([1]));
@@ -213,10 +244,24 @@ describe("Firestore public/private boundary", () => {
 
   it("uses the profile toggle for follows instead of copied action data", async () => {
     const anonymous = environment.unauthenticatedContext().firestore();
-    const owner = environment.authenticatedContext("fan-private").firestore();
+    const privateOwner = environment.authenticatedContext("fan-private").firestore();
+    const publicOwner = environment.authenticatedContext("fan-public").firestore();
     await assertFails(getDoc(doc(anonymous, "follows/private-follow")));
-    await assertSucceeds(getDoc(doc(owner, "follows/private-follow")));
+    await assertSucceeds(getDoc(doc(privateOwner, "follows/private-follow")));
     await assertSucceeds(getDoc(doc(anonymous, "follows/public-follow")));
+    await assertFails(getDoc(doc(anonymous, "follows/inactive-follow")));
+    await assertSucceeds(getDoc(doc(publicOwner, "follows/inactive-follow")));
+    await assertSucceeds(getDoc(doc(privateOwner, "commitments/private-commitment")));
+  });
+
+  it("requires active public votes and hides replies to withdrawn Takes", async () => {
+    const anonymous = environment.unauthenticatedContext().firestore();
+    const voteOwner = environment.authenticatedContext("fan-public").firestore();
+    const replyOwner = environment.authenticatedContext("fan-private").firestore();
+    await assertFails(getDoc(doc(anonymous, "pathwayVotes/inactive-vote")));
+    await assertSucceeds(getDoc(doc(voteOwner, "pathwayVotes/inactive-vote")));
+    await assertFails(getDoc(doc(anonymous, "replies/withdrawn-reply")));
+    await assertSucceeds(getDoc(doc(replyOwner, "replies/withdrawn-reply")));
   });
 
   it("keeps nominations and published Takes public when activity is private", async () => {

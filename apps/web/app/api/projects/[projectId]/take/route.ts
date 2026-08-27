@@ -1,0 +1,5 @@
+import { run, body, takeSchema } from "@/lib/social/route";
+import { SocialError } from "@/lib/social/store";
+export async function PUT(request: Request, { params }: { params: Promise<{ projectId: string }> }) { const { projectId } = await params; return run(request, async (uid, store) => { const parsed = takeSchema.safeParse(await body(request)); if (!parsed.success) throw new SocialError("invalid_take", "Check the Take fields."); return store.take(projectId, uid, parsed.data, true); }); }
+export async function PATCH(request: Request, { params }: { params: Promise<{ projectId: string }> }) { const { projectId } = await params; return run(request, async (uid, store) => { const parsed = takeSchema.safeParse(await body(request)); if (!parsed.success) throw new SocialError("invalid_take", "Check the Take fields."); return store.take(projectId, uid, parsed.data, true, true); }); }
+export async function DELETE(request: Request, { params }: { params: Promise<{ projectId: string }> }) { const { projectId } = await params; return run(request, async (uid, store) => store.take(projectId, uid, { whyItShouldGrow: "", preferredPathwayId: "" }, false)); }

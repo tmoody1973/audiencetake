@@ -5,7 +5,8 @@ Updated: 2026-08-27 (America/Chicago)
 ## Required restart context
 
 - Continue following `checklist.md` in order. Visual pause `2` was approved on
-  2026-08-27; proceed with item `9` and stop at visual pause `3` after item `11`.
+  2026-08-27; item `9` is complete, so proceed with item `10` and stop at visual
+  pause `3` after item `11`.
 - Preserve the approved film-festival × underground-magazine direction.
 - The user is highly cost-sensitive. Do not resume a provider queue or make an MCP/provider search without explicit approval.
 - Do not respond to a new deployed failure by repeatedly retrying. Pause first,
@@ -193,11 +194,13 @@ Updated: 2026-08-27 (America/Chicago)
     are local and are not deployed on revision `00019-z6v`.
 
 The current local verification passed: 73 Python tests, Python Ruff, strict
-mypy across 29 source files, web ESLint/TypeScript, 61 web tests, 20
-cross-runtime contract fixtures, and Terraform formatting. Emulator tests were
-environment-blocked by missing Java, and the current sandbox could not launch
-the installed Terraform provider binaries; the prior Terraform validation pass
-still stands and no Terraform files changed during resumption. The installed
+mypy across 29 source files, web ESLint/TypeScript, 73 web tests, 15 Firebase
+rules/emulator integration tests, the Next.js production build, 20 cross-runtime
+contract fixtures, and Terraform formatting. The Firebase emulator suite uses
+the existing Homebrew OpenJDK 21 binary because `/usr/bin/java` is only Apple's
+missing-runtime stub. The current sandbox could not launch the installed
+Terraform provider binaries; the prior Terraform validation pass still stands
+and no Terraform files changed during resumption. The installed
 Google Gen AI SDK's exact schema converter also accepts both `EvidenceDraft`
 and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
 2.13.4).
@@ -279,10 +282,10 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   has active stored OAuth credentials. Eleven official Parallel agent skills are
   installed globally in Codex; they become available on the next turn. Installing
   and verifying them did not invoke a search or other provider-bearing operation.
-- Git is on `codex/build-mvp` at `b06a10f`. Items 5–8 remain a large uncommitted
-  worktree. Public origin `https://github.com/tmoody1973/audiencetake.git` is
-  configured, and the branch tracks `origin/codex/build-mvp`. Only the committed
-  foundation through item `4` plus the expanded README has been pushed.
+- Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
+  at `f1b9383`; item `9` is the next verified checkpoint. Public origin
+  `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
+  tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
   `audience-take-agents-00019-z6v`. The revision reports `Ready`, `Active`,
   `ContainerReady`, and `ContainerHealthy`; there were no revision error logs
@@ -332,10 +335,17 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    `attempt-15-scout-card-desktop-full.png`,
    `attempt-15-scout-card-mobile.png`, and
    `attempt-15-scout-card-mobile-full.png`. Items `5`–`8` are checked.
-5. Continue with checklist item `9`: activate the native social layer and Scout
-   Profiles. No provider queue or new research attempt is required for this
-   work.
-6. The run-wide next-sequence and trusted-project-slug fixes are local only.
+5. Checklist item `9` is complete locally: transactional Follow, four
+   commitments, one current pathway vote, one structured Take, flat replies,
+   realtime Audience Pulse, safe sign-in return, and public Scout Profiles are
+   implemented. Concurrent/idempotent social transitions and privacy rules pass
+   the Firebase emulator suite. The signed-out live-data browser path was
+   verified on desktop and mobile; repeat one fresh authenticated action after
+   item `11` deploys the web/rules surface.
+6. Continue with checklist item `10`: Suggest Evidence, creator claiming,
+   creator updates, and trust controls. This work does not require a provider
+   queue or a new research attempt.
+7. The run-wide next-sequence and trusted-project-slug fixes are local only.
    Require explicit deployment approval before replacing revision `00019-z6v`.
 
 ## Recorded final MVP enhancement

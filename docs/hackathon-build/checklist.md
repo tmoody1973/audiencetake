@@ -71,7 +71,7 @@ The core is complete only when a public deployed build can perform the judge jou
   Acceptance: Someone can understand the project and why it matters from the collapsed card, then inspect professional evidence without leaving the card; citations are reachable; partial/missing/unavailable states are explicit; the interface never merges external commentary into native counts.
   Verify: Run complete/partial/unavailable/fallback rendering tests, metadata/share checks, accessibility checks, and mobile/desktop visual review using the deployed Junichiro run. **Visual pause 2: Tarik approves the live agent-to-Scout-Card reveal and Industry Lens before autonomous work continues.**
 
-- [ ] **9. Activate the native social layer and Scout Profiles**
+- [x] **9. Activate the native social layer and Scout Profiles**
   Spec ref: `spec.md > Native Social Behavior`; `spec.md > /scouts/[handle] — Scout Profile`; `prd.md > Epic 5`; `prd.md > Epic 8`
   What to build: Add transactional Follow Project, four commitments, one pathway vote, one structured Take per user, edit/withdraw, one non-nested reply per user per Take, realtime counters, sign-in return behavior, and public Scout Profiles with the Public Activity toggle. Organize profiles into **My Picks** for projects the fan nominated, **Following** for projects they champion, and **My Takes** for their published opinions. Keep seeded activity visibly labeled and third-party commentary separate.
   Acceptance: Deterministic IDs and transactions prevent duplicate counts; moving a vote changes both pathway totals correctly; withdrawn actions disappear from eligible public counts; follows/commitments respect Public Activity while My Picks and My Takes remain public; one fresh action updates the card live.

@@ -1,0 +1,6 @@
+import { run, body } from "@/lib/social/route";
+import { z } from "zod";
+import { COMMITMENT_TYPES, type CommitmentType, SocialError } from "@/lib/social/store";
+const commitmentBodySchema = z.object({ city: z.string().trim().min(1).max(120).optional() }).strict();
+export async function PUT(request: Request, { params }: { params: Promise<{ projectId: string; type: string }> }) { const { projectId, type } = await params; return run(request, async (uid, store) => { if (!COMMITMENT_TYPES.includes(type as CommitmentType)) throw new SocialError("invalid_commitment", "Unsupported commitment."); const parsed = commitmentBodySchema.safeParse(await body(request)); if (!parsed.success) throw new SocialError("invalid_commitment", "Check the commitment fields."); return store.commitment(projectId, uid, type as CommitmentType, true, parsed.data.city); }); }
+export async function DELETE(request: Request, { params }: { params: Promise<{ projectId: string; type: string }> }) { const { projectId, type } = await params; return run(request, async (uid, store) => { if (!COMMITMENT_TYPES.includes(type as CommitmentType)) throw new SocialError("invalid_commitment", "Unsupported commitment."); return store.commitment(projectId, uid, type as CommitmentType, false); }); }
