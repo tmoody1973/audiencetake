@@ -693,10 +693,11 @@ Seeded profiles, commitments, Takes, replies, or curated projects display a cons
 
 ### Service identity and secrets
 
-- The Vercel web runtime uses a dedicated, encrypted Google service-account
-  credential with only the Firebase data, media, and Cloud Tasks permissions
-  required by validated server routes. The credential is never exposed to the
-  browser or committed to Git.
+- The Vercel web runtime exchanges its short-lived OIDC token through Google
+  Workload Identity Federation and impersonates a dedicated service account
+  with only the Firebase data, media, and Cloud Tasks permissions required by
+  validated server routes. No private key is stored, exposed to the browser, or
+  committed to Git.
 - The Cloud Tasks service account has only Cloud Run invoker permission on the agent service.
 - The Cloud Run service identity can access Vertex AI, required Firestore documents, Cloud Logging, and the Parallel secret.
 - Secrets are referenced from Secret Manager and never committed or written to Firestore events.
@@ -731,9 +732,10 @@ After the live Parallel workflow is stable, logs/metrics may feed a small Grafan
 The repository includes `.env.example` with names only. Expected configuration groups:
 
 - Public Firebase web configuration.
-- Server Firebase/Google Cloud project configuration using workload identity,
-  application default credentials, or an encrypted host secret containing the
-  dedicated service account. No credential file is committed.
+- Server Firebase/Google Cloud project configuration using Vercel OIDC workload
+  identity federation or application default credentials. An encrypted
+  service-account JSON is a fail-closed compatibility fallback only; no
+  credential file is committed.
 - Vertex AI location and approved Gemini model name.
 - Cloud Tasks project, location, queue, task service account, and Cloud Run target URL/audience.
 - Secret Manager reference for the Parallel API key.

@@ -361,16 +361,36 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   that. After connection, use commit `9ae75d2` rather than another local source
   upload. Do not issue another deploy or rollout command without fresh approval.
 - Tarik subsequently approved replacing App Hosting with normal Vercel Next.js
-  hosting. The web runtime now accepts an encrypted
-  `GOOGLE_SERVICE_ACCOUNT_JSON` when ADC is unavailable and passes the same
-  credential to Firebase Admin and Cloud Tasks. Cross-project, malformed, and
-  incomplete secrets fail closed. App Hosting/Google workloads retain ADC.
+  hosting. The web runtime now prefers Vercel OIDC through Google Workload
+  Identity Federation and passes the resulting short-lived authenticated client
+  to Firebase Admin and Cloud Tasks. ADC and a strict encrypted JSON secret
+  remain compatibility fallbacks. Cross-project, malformed, and incomplete
+  configuration fails closed.
 - Vercel Functions cap request bodies at `4.5 MB`; the existing trusted creator
   upload route is therefore capped at `4 MB` with multipart headroom. The robust
   follow-up is a short-lived direct-to-Firebase-Storage upload grant plus a
   server finalize step that rechecks authorization, size, magic bytes,
   checksum, reservation, and idempotency. Do not enable raw client Storage
   writes; current Storage Rules correctly deny them.
+- Vercel project `tmoody1973s-projects/audiencetake`
+  (`prj_plS1X3irS2tQrvi2sRA8CJj6ajMX`) is created, connected to the public
+  `tmoody1973/audiencetake` repository, configured as Next.js with root
+  `apps/web`, and has the 23 required production environment values. No
+  `GOOGLE_SERVICE_ACCOUNT_JSON` was stored.
+- Google workload identity pool `audience-take-vercel` and OIDC provider
+  `audiencetake` are active. The provider issuer is the team-specific Vercel
+  issuer, its allowed audience is the team-specific Vercel audience, and its
+  condition requires both the exact Vercel project ID and
+  `environment == 'production'`. Only the exact production subject may
+  impersonate `firebase-app-hosting-compute@test-app-mkark4.iam.gserviceaccount.com`.
+  The identity has zero user-managed keys; a temporary unused key was revoked
+  and deleted before it left the local machine.
+- `audiencetake.vercel.app` is present in both Firebase Auth authorized domains
+  and the reCAPTCHA Enterprise/App Check key's allowed domains. The research
+  queue remains paused. The keyless implementation passes the complete local
+  gate: lint, typecheck, 20 contract fixtures, 39 web test files / 157 tests,
+  and the normal Webpack production build. Production deployment is still
+  pending the Git checkpoint containing the keyless code.
 
 ## Failure research findings
 

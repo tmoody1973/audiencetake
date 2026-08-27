@@ -1,7 +1,10 @@
 import { CloudTasksClient } from "@google-cloud/tasks";
 
 import type { ResearchDispatcher } from "../nomination/service";
-import { googleServiceAccountFromEnv } from "../google/credentials";
+import {
+  googleAuthClientFromEnv,
+  googleServiceAccountFromEnv,
+} from "../google/credentials";
 
 const MAX_TASK_BODY_BYTES = 4_096;
 const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
@@ -44,6 +47,8 @@ export function cloudTasksClientOptionsFromEnv(
   project: string,
   environment: Record<string, string | undefined> = process.env,
 ) {
+  const authClient = googleAuthClientFromEnv(environment);
+  if (authClient) return { projectId: project, authClient };
   const serviceAccount = googleServiceAccountFromEnv(environment);
   return serviceAccount
     ? {

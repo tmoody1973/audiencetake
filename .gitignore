@@ -3,6 +3,7 @@ node_modules/
 out/
 coverage/
 .firebase/
+.vercel/
 firebase-debug.log*
 firepit-log.txt
 firestore-debug.log*

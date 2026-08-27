@@ -92,4 +92,17 @@ describe("Cloud Tasks research dispatcher", () => {
       },
     });
   });
+
+  it("prefers keyless Vercel workload identity when it is configured", () => {
+    const options = cloudTasksClientOptionsFromEnv("audience-take", {
+      GCP_PROJECT_NUMBER: "866111144888",
+      GCP_SERVICE_ACCOUNT_EMAIL:
+        "firebase-app-hosting-compute@audience-take.iam.gserviceaccount.com",
+      GCP_WORKLOAD_IDENTITY_POOL_ID: "audience-take-vercel",
+      GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID: "audiencetake",
+    });
+    expect(options.projectId).toBe("audience-take");
+    expect(options).toHaveProperty("authClient");
+    expect(options).not.toHaveProperty("credentials");
+  });
 });

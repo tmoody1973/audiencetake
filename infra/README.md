@@ -45,9 +45,9 @@ the deterministic task ID to the request body.
 5. Review the plan for project, region, identities, secret, image digest, and IAM.
 6. Only an authorized operator may run `terraform apply` in the intended project.
 7. Configure the Vercel web backend with the queue output, Cloud Run
-   URI/audience, task-invoker email, and an encrypted credential for the
-   dedicated web-runtime identity. Never commit or persist the downloaded
-   credential in the repository.
+   URI/audience, task-invoker email, and Google Workload Identity Federation
+   values. Restrict the provider to the exact Vercel project ID and production
+   environment; do not create or store a service-account key.
 
 The template intentionally does not grant the web-runtime identity Cloud Run
 invocation and does not grant the Cloud Tasks identity Firestore, Vertex AI, or

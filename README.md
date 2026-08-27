@@ -207,8 +207,11 @@ The checked-in [.env.example](.env.example) contains names and safe local defaul
 
 - `NEXT_PUBLIC_FIREBASE_*` — public Firebase client configuration.
 - `GOOGLE_CLOUD_*` and `AUDIENCE_TAKE_GEMINI_MODEL` — server-side project, location, and pinned model selection.
-- `GOOGLE_SERVICE_ACCOUNT_JSON` — encrypted server-only credential for hosts
-  without Application Default Credentials; never expose it through a
+- `GCP_PROJECT_NUMBER`, `GCP_SERVICE_ACCOUNT_EMAIL`, and
+  `GCP_WORKLOAD_IDENTITY_*` — keyless Vercel OIDC federation into the dedicated
+  Google web-runtime identity.
+- `GOOGLE_SERVICE_ACCOUNT_JSON` — optional encrypted fallback for hosts without
+  OIDC or Application Default Credentials; never expose it through a
   `NEXT_PUBLIC_` variable.
 - `CLOUD_TASKS_*` and `AGENT_SERVICE_*` — queue and private Cloud Run routing.
 - `PARALLEL_API_KEY_SECRET` — Secret Manager reference, never the Parallel key value.
@@ -216,8 +219,9 @@ The checked-in [.env.example](.env.example) contains names and safe local defaul
 - `DEMO_FALLBACK_ENABLED` — when enabled, fallback content must retain its visible “Previously generated — live refresh unavailable” label.
 
 Google Cloud workloads use workload identity or Application Default
-Credentials. The Vercel web runtime uses a dedicated least-privilege service
-account stored as the encrypted `GOOGLE_SERVICE_ACCOUNT_JSON` project secret.
+Credentials. The Vercel web runtime exchanges Vercel's short-lived OIDC token
+through Google Workload Identity Federation and impersonates the dedicated
+least-privilege web identity. Production stores no service-account private key.
 Do not add downloaded service-account keys to the repository or local env files.
 
 ### Vercel deployment
@@ -229,8 +233,9 @@ the web host changes.
 
 Copy the public and server configuration names from `.env.example` into Vercel.
 Set `NEXT_PUBLIC_APP_URL` to the final production URL, keep
-`APP_CHECK_ENFORCEMENT_ENABLED=true`, and store `GOOGLE_SERVICE_ACCOUNT_JSON` as
-an encrypted server-only value. Add the production domain to Firebase Auth's
+`APP_CHECK_ENFORCEMENT_ENABLED=true`, and configure the four `GCP_*` workload
+identity values. The Google provider must restrict both Vercel `project_id` and
+`environment=production`. Add the production domain to Firebase Auth's
 authorized domains and the reCAPTCHA Enterprise/App Check domain allowlist
 before exercising authenticated commands.
 
