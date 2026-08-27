@@ -5,8 +5,10 @@ Updated: 2026-08-27 (America/Chicago)
 ## Required restart context
 
 - Continue following `checklist.md` in order. Visual pause `2` was approved on
-  2026-08-27; items `9` and `10` are complete, so proceed with item `11` and stop at visual
-  pause `3` after item `11`.
+  2026-08-27; items `9` and `10` are complete. Item `11` is partially deployed:
+  Firestore rules/indexes and Storage rules are live, but App Hosting has no
+  successful rollout yet. Continue item `11` and stop at visual pause `3` after
+  item `11`.
 - Preserve the approved film-festival × underground-magazine direction.
 - The user is highly cost-sensitive. Do not resume a provider queue or make an MCP/provider search without explicit approval.
 - Do not respond to a new deployed failure by repeatedly retrying. Pause first,
@@ -18,6 +20,10 @@ Updated: 2026-08-27 (America/Chicago)
   curated guidance, not a substitute for version-specific docs or source.
 - Firebase/GCP project: `test-app-mkark4` (display name: Audience Take), region `us-central1`.
 - Research queue: `audience-take-research`; it must remain paused outside an explicitly approved run.
+- App Hosting backend: `audience-take`, region `us-central1`, URL
+  `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
+  exists, but both source rollouts on 2026-08-27 failed during the managed
+  build, so the URL must not be described as serving the app.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
   `smoke-20260827-publication-attempt-id-v1` and immutable digest
@@ -205,6 +211,46 @@ Google Gen AI SDK's exact schema converter also accepts both `EvidenceDraft`
 and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
 2.13.4).
 
+## Item 11 deployment state
+
+- The Firebase App Hosting backend and dedicated runtime identity were created.
+  The runtime has only the required narrow project roles plus
+  `roles/iam.serviceAccountUser` on the dedicated task-invoker service account;
+  the briefly attempted broad SDK-admin role was removed.
+- Firebase Authentication is initialized with email/password enabled and the
+  hosted App Hosting domain authorized. Google sign-in is intentionally hidden
+  in production because no Google OAuth client ID/secret is configured.
+- reCAPTCHA Enterprise App Check is registered for the exact hosted domain,
+  debug mode is disabled, and the public browser API key is referrer-restricted
+  to the hosted domain plus local development origins.
+- Commit `a3830e8` added App Hosting configuration, production security headers,
+  and the production Google-sign-in feature flag. Commit `c3301a1` added the
+  app-local npm lockfile required by the App Hosting build root. Both are pushed
+  to `origin/codex/build-mvp`.
+- The approved Firebase deployment released Firestore rules/indexes and Storage
+  rules successfully. Their dry-run and live compilation both passed.
+- App Hosting rollout build `1046dd02-c4d6-4753-9846-edbc55c13e05` failed because
+  `/workspace/apps/web` lacked a dependency lockfile. Current Firebase docs and
+  the Cloud Build output agreed on that exact cause. An app-local lockfile was
+  generated, a clean app-root install and production build passed, and exactly
+  one researched rollout retry was made.
+- The retry build `00d4b1d8-051c-4011-9e57-5964f7a9fa1a` got through dependency
+  installation, Next.js compilation, TypeScript, page collection, and static
+  generation. Firebase's Next.js adapter then failed while opening
+  `.next/standalone/.next/routes-manifest.json`. This is a separate packaging
+  failure, not an application compile failure.
+- The deployed dependency is Next.js `16.3.3`. Firebase's current active App
+  Hosting support table ends at Next.js `15.2.x`; newer releases are preview /
+  best-effort. A local `15.2.9` compatibility experiment then failed before
+  deployment because its webpack build could not resolve the current
+  `firebase-admin/app` and `firebase-admin/firestore` subpath imports. The
+  experiment was fully reverted; the worktree and public branch remain at the
+  verified Next.js 16 state in `c3301a1`.
+- Do not issue a third App Hosting rollout without new explicit approval. First
+  choose and verify one bounded compatibility route offline: adapt the Firebase
+  Admin imports and test Next.js 15.2.9, or validate an upstream App Hosting
+  adapter fix for Next.js 16. No provider/Gemini/Parallel call is involved.
+
 ## Failure research findings
 
 - Attempts `6` and `7` were output-design failures: the Evidence stage could
@@ -283,8 +329,9 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   installed globally in Codex; they become available on the next turn. Installing
   and verifying them did not invoke a search or other provider-bearing operation.
 - Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
-  at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is committed at
-  `f732262` and is the next GitHub sync checkpoint. Public origin
+  at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is pushed through
+  `a8a1a08`; item `11` deployment configuration and the researched lockfile fix
+  are pushed through `c3301a1`. Public origin
   `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
   tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
@@ -356,13 +403,14 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    status; and evidence ownership stays server-private. The local desktop and
    mobile emulator walkthrough showed the Trust & Ownership panel, one pending
    evidence lead, one labeled demo creator update, and one correction row.
-7. Begin checklist item `11`: deploy and harden the web/rules surface, bind the
+7. Continue checklist item `11`: rules/indexes are live, but do not retry App
+   Hosting until the Next.js/Firebase adapter compatibility boundary is fixed
+   offline and a new rollout is explicitly approved. Then bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
    counters, verify the trusted App Hosting client-IP header before adding the
    nomination per-IP limiter (account limiting is already active), and rehearse
-   the judge path. Deployment still requires explicit
-   approval; stop at visual pause `3`.
+   the judge path. Stop at visual pause `3`.
 8. The run-wide next-sequence and trusted-project-slug fixes are local only.
    Require explicit deployment approval before replacing revision `00019-z6v`.
 
