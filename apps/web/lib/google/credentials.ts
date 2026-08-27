@@ -15,6 +15,18 @@ export type VercelGoogleIdentity = {
   audience: string;
 };
 
+export type GoogleExternalAccountFileConfig = {
+  type: "external_account";
+  audience: string;
+  subject_token_type: "urn:ietf:params:oauth:token-type:jwt";
+  token_url: "https://sts.googleapis.com/v1/token";
+  service_account_impersonation_url: string;
+  credential_source: {
+    file: string;
+    format: { type: "text" };
+  };
+};
+
 export class GoogleCredentialsConfigurationError extends Error {
   constructor(message: string) {
     super(message);
@@ -112,6 +124,33 @@ export function vercelGoogleIdentityFromEnv(
     audience:
       `//iam.googleapis.com/projects/${values.projectNumber}/locations/global/` +
       `workloadIdentityPools/${values.poolId}/providers/${values.providerId}`,
+  };
+}
+
+export function googleExternalAccountFileConfigFromEnv(
+  subjectTokenFile: string,
+  environment: Record<string, string | undefined> = process.env,
+): GoogleExternalAccountFileConfig | null {
+  const identity = vercelGoogleIdentityFromEnv(environment);
+  if (!identity) return null;
+  if (!subjectTokenFile.startsWith("/") || subjectTokenFile.includes("\0")) {
+    throw new GoogleCredentialsConfigurationError(
+      "The workload identity subject-token file path must be absolute.",
+    );
+  }
+
+  return {
+    type: "external_account",
+    audience: identity.audience,
+    subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
+    token_url: "https://sts.googleapis.com/v1/token",
+    service_account_impersonation_url:
+      `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/` +
+      `${identity.serviceAccountEmail}:generateAccessToken`,
+    credential_source: {
+      file: subjectTokenFile,
+      format: { type: "text" },
+    },
   };
 }
 

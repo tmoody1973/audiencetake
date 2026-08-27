@@ -5,34 +5,26 @@ import {
   getApps,
   initializeApp,
 } from "firebase-admin/app";
-import type { AuthClient } from "google-auth-library";
+import { getVercelOidcTokenSync } from "@vercel/oidc";
 import { getAppCheck } from "firebase-admin/app-check";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
 import {
-  googleAuthClientFromEnv,
   googleServiceAccountFromEnv,
+  vercelGoogleIdentityFromEnv,
 } from "../google/credentials";
+import { prepareVercelGoogleApplicationDefault } from "../google/adc-files";
 
-function firebaseCredentialFromGoogleAuth(client: AuthClient): Credential {
-  return {
-    async getAccessToken() {
-      const result = await client.getAccessToken();
-      if (!result.token) throw new Error("Google workload identity returned no access token.");
-      const expiryDate = client.credentials.expiry_date;
-      const expiresIn = expiryDate
-        ? Math.max(1, Math.floor((expiryDate - Date.now()) / 1_000))
-        : 3_000;
-      return { access_token: result.token, expires_in: expiresIn };
-    },
-  };
+function refreshVercelApplicationDefault(): boolean {
+  if (!vercelGoogleIdentityFromEnv()) return false;
+  prepareVercelGoogleApplicationDefault(getVercelOidcTokenSync());
+  return true;
 }
 
-function serverCredential(): Credential {
-  const authClient = googleAuthClientFromEnv();
-  if (authClient) return firebaseCredentialFromGoogleAuth(authClient);
+function serverCredential(vercelApplicationDefaultReady: boolean): Credential {
+  if (vercelApplicationDefaultReady) return applicationDefault();
 
   const serviceAccount = googleServiceAccountFromEnv();
   if (serviceAccount) {
@@ -46,17 +38,22 @@ function serverCredential(): Credential {
 }
 
 function getAdminApp() {
+  const isEmulated = Boolean(
+    process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST,
+  );
+  // Refresh the file-sourced token even when the Admin app is already warm;
+  // Google's external-account client rereads this file for later exchanges.
+  const vercelApplicationDefaultReady = isEmulated
+    ? false
+    : refreshVercelApplicationDefault();
   if (getApps().length > 0) {
     return getApps()[0];
   }
 
   const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const isEmulated = Boolean(
-    process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST,
-  );
 
   return initializeApp({
-    ...(isEmulated ? {} : { credential: serverCredential() }),
+    ...(isEmulated ? {} : { credential: serverCredential(vercelApplicationDefaultReady) }),
     projectId,
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   });

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   GoogleCredentialsConfigurationError,
   googleAuthClientFromEnv,
+  googleExternalAccountFileConfigFromEnv,
   googleServiceAccountFromEnv,
   vercelGoogleIdentityFromEnv,
 } from "./credentials";
@@ -65,6 +66,21 @@ describe("Google server credentials", () => {
         "workloadIdentityPools/audience-take-vercel/providers/audiencetake",
     });
     expect(googleAuthClientFromEnv(environment, async () => "signed-oidc-token")).not.toBeNull();
+    expect(googleExternalAccountFileConfigFromEnv("/tmp/vercel-oidc-token", environment)).toEqual({
+      type: "external_account",
+      audience:
+        "//iam.googleapis.com/projects/866111144888/locations/global/" +
+        "workloadIdentityPools/audience-take-vercel/providers/audiencetake",
+      subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
+      token_url: "https://sts.googleapis.com/v1/token",
+      service_account_impersonation_url:
+        "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/" +
+        "firebase-app-hosting-compute@test-app-mkark4.iam.gserviceaccount.com:generateAccessToken",
+      credential_source: {
+        file: "/tmp/vercel-oidc-token",
+        format: { type: "text" },
+      },
+    });
   });
 
   it("does not forward Google's supplier context as Vercel token options", async () => {
@@ -90,5 +106,14 @@ describe("Google server credentials", () => {
     expect(() =>
       vercelGoogleIdentityFromEnv({ GCP_PROJECT_NUMBER: "866111144888" }),
     ).toThrow("incomplete");
+    expect(() =>
+      googleExternalAccountFileConfigFromEnv("relative-token", {
+        GCP_PROJECT_NUMBER: "866111144888",
+        GCP_SERVICE_ACCOUNT_EMAIL:
+          "firebase-app-hosting-compute@test-app-mkark4.iam.gserviceaccount.com",
+        GCP_WORKLOAD_IDENTITY_POOL_ID: "audience-take-vercel",
+        GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID: "audiencetake",
+      }),
+    ).toThrow("must be absolute");
   });
 });

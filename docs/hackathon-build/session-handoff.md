@@ -587,9 +587,28 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    Credentials, or Firestore entries. The existing fallback catch hid the exact
    provider-stage error, so a structured, redacted diagnostic was added at that
    boundary without changing fallback behavior. Tarik explicitly approved its
-   single diagnostic rollout after the full local gate passed; if it still
-   falls back, capture the exact log, research that cause, and stop before any
-   retry.
+   single diagnostic rollout after the full local gate passed. Deployment
+   `dpl_6mtH6xeysqKxyYMkQr1MRuRZatAo` from `de7580f` reached `READY`, the public
+   alias was confirmed to resolve to it, and the canonical card request still
+   served the explicit fallback. Its redacted event captured the exact error:
+   `firestore/invalid-credential` — Firebase Admin's Firestore adapter requires
+   a certificate credential or its own application-default credential. The
+   installed Firebase Admin source and a bounded no-network local reproduction
+   confirmed that the custom `getAccessToken` wrapper is rejected before STS,
+   while `applicationDefault()` is accepted before network access. Current
+   Firebase Admin and Google Auth documentation confirm the supported keyless
+   bridge: an external-account ADC config with a file-sourced subject token.
+   The local fix atomically refreshes the current Vercel OIDC token in a private
+   `/tmp` file, writes a non-secret external-account config, and initializes
+   Firebase Admin with `applicationDefault()`; Google's client rereads the token
+   file for later exchanges. Focused tests prove `0700`/`0600` permissions,
+   token/config separation, warm-token refresh, ADC-class selection, and the
+   absence of the former Firestore initialization rejection; emulator access
+   remains credential-free. The full local gate passes 20 contract fixtures and
+   42 web test files / 163 tests, plus lint, typecheck, and the production build.
+   The fix is local only; require explicit approval for one diagnosed rollout.
+   If that rollout fails, capture the new exact error, research it, and stop
+   before any retry.
    After the production route is fixed, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
