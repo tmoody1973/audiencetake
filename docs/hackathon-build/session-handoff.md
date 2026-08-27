@@ -22,7 +22,7 @@ Updated: 2026-08-27 (America/Chicago)
 - Research queue: `audience-take-research`; it must remain paused outside an explicitly approved run.
 - App Hosting backend: `audience-take`, region `us-central1`, URL
   `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
-  exists, but all three source rollouts on 2026-08-27 failed during the managed
+  exists, but all four source rollouts on 2026-08-27 failed during the managed
   build, so the URL must not be described as serving the app.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
@@ -264,9 +264,31 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   and bundle command `node .next/standalone/server.js`, with no nested
   `apps/web` manifest. Lint, typecheck, and all 38 web test files / 151 tests
   pass. No provider, Gemini, Parallel, or research-queue call was made.
-- Do not issue a fourth App Hosting rollout without fresh explicit approval.
-  The exact failed boundary is now reproduced and fixed offline; approval would
-  cover one researched rollout only.
+- The explicitly approved fourth rollout build
+  `9b52debb-28e0-4906-9f60-6dbe292b0c7e` proved the adapter-owned flag reached
+  Next.js: Turbopack used `/workspace/apps/web` as its filesystem root. The
+  build then failed earlier because Next itself is installed in Firebase's
+  external buildpack layer, outside that root, so Turbopack could not resolve
+  `next/package.json`. No retry was made.
+- Current Next.js documentation and source confirm that `turbopack.root` and
+  `outputFileTracingRoot` cannot differ; the config loader synchronizes them.
+  Next.js officially supports `next build --webpack` as the production fallback.
+  Its Webpack route validator also correctly rejects helper exports from
+  `route.ts`; only HTTP methods and documented route configuration are allowed.
+- Commit `6087703` switches only the production build to Webpack, fixes the
+  tracing root at `apps/web`, and moves the ten testable API implementations to
+  sibling `handler.ts` modules. Each `route.ts` is now a thin module exporting
+  only its supported HTTP methods.
+- The normal Webpack production build passes through trace collection. The
+  exact public Firebase adapter `14.0.21` with Next.js `16.3.3` also passes and
+  emits `.next/standalone/.next/routes-manifest.json`,
+  `.next/standalone/server.js`, and bundle command
+  `node .next/standalone/server.js`, with no nested `apps/web` manifest. Lint,
+  typecheck, six affected route suites / 18 tests, and the bounded full suite of
+  37 files / 148 tests pass. No provider, Gemini, Parallel, or research-queue
+  call was made.
+- Do not issue a fifth App Hosting rollout without fresh explicit approval. The
+  fourth rollout approval was consumed by the failed build above.
 
 ## Failure research findings
 
@@ -348,7 +370,7 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
 - Git is on `codex/build-mvp`. The approved items `5`–`8` checkpoint is pushed
   at `f1b9383`; item `9` is pushed at `7c12850`; item `10` is pushed through
   `a8a1a08`; item `11` deployment configuration and the researched App Hosting
-  fixes are pushed through `ab2a269`. Public origin
+  fixes are pushed through `6087703`. Public origin
   `https://github.com/tmoody1973/audiencetake.git` is configured, and the branch
   tracks `origin/codex/build-mvp`.
 - Cloud Run is ready and routes 100% of traffic to
@@ -422,7 +444,7 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    evidence lead, one labeled demo creator update, and one correction row.
 7. Continue checklist item `11`: rules/indexes are live and the exact
    Next.js/Firebase adapter boundary now passes offline, but do not issue the
-   fourth App Hosting rollout without fresh explicit approval. After a
+   fifth App Hosting rollout without fresh explicit approval. After a
    successful rollout, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
