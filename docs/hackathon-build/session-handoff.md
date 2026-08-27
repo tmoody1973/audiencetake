@@ -241,14 +241,16 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   failure, not an application compile failure.
 - The deployed dependency is Next.js `16.3.3`. Firebase's current active App
   Hosting support table ends at Next.js `15.2.x`; newer releases are preview /
-  best-effort. A local `15.2.9` compatibility experiment then failed before
-  deployment because its webpack build could not resolve the current
-  `firebase-admin/app` and `firebase-admin/firestore` subpath imports. The
-  experiment was fully reverted; the worktree and public branch remain at the
+  best-effort. A local `15.2.9` compatibility experiment was inconclusive:
+  running npm with `--workspaces=false` inside this plain npm workspace left
+  empty `firebase-admin` package directories, so the resulting module-resolution
+  failure was an invalid environment signal rather than proof of a framework
+  incompatibility. The experiment was fully reverted and the root dependency
+  tree was cleanly reinstalled; the worktree and public branch remain at the
   verified Next.js 16 state in `c3301a1`.
 - Do not issue a third App Hosting rollout without new explicit approval. First
-  choose and verify one bounded compatibility route offline: adapt the Firebase
-  Admin imports and test Next.js 15.2.9, or validate an upstream App Hosting
+  choose and verify one bounded compatibility route offline: test Next.js
+  15.2.9 in a genuinely isolated app copy, or validate an upstream App Hosting
   adapter fix for Next.js 16. No provider/Gemini/Parallel call is involved.
 
 ## Failure research findings
