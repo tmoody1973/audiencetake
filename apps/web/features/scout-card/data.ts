@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-import completeFixture from "../../../../contracts/fixtures/junichiro-card.json";
-import fallbackFixture from "../../../../contracts/fixtures/junichiro-card-fallback.json";
-import partialFixture from "../../../../contracts/fixtures/junichiro-card-partial.json";
-import unavailableMediaFixture from "../../../../contracts/fixtures/junichiro-card-unavailable-media.json";
+import completeFixture from "./fixtures/junichiro-card.json";
+import fallbackFixture from "./fixtures/junichiro-card-fallback.json";
+import partialFixture from "./fixtures/junichiro-card-partial.json";
+import unavailableMediaFixture from "./fixtures/junichiro-card-unavailable-media.json";
 import { getAdminFirestore } from "../../lib/firebase/admin";
 import type { ScoutCard } from "./types";
 

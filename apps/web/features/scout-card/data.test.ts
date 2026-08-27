@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import canonicalCompleteFixture from "../../../../contracts/fixtures/junichiro-card.json";
+import canonicalFallbackFixture from "../../../../contracts/fixtures/junichiro-card-fallback.json";
+import canonicalPartialFixture from "../../../../contracts/fixtures/junichiro-card-partial.json";
+import canonicalUnavailableFixture from "../../../../contracts/fixtures/junichiro-card-unavailable-media.json";
 import {
   getScoutCardFixture,
   LIVE_REFRESH_FALLBACK_LABEL,
@@ -41,6 +45,13 @@ function publishedProject(overrides: Record<string, unknown> = {}) {
 }
 
 describe("loadPublishedScoutCard", () => {
+  it("keeps the web-local build fixtures identical to the canonical contracts", () => {
+    expect(getScoutCardFixture("complete")).toEqual(canonicalCompleteFixture);
+    expect(getScoutCardFixture("fallback")).toEqual(canonicalFallbackFixture);
+    expect(getScoutCardFixture("partial")).toEqual(canonicalPartialFixture);
+    expect(getScoutCardFixture("unavailable")).toEqual(canonicalUnavailableFixture);
+  });
+
   it("selects the project pointer, validates the public card, and strips the visibility marker", async () => {
     const card = structuredClone(getScoutCardFixture("complete"));
     const database = fakeDatabase({
