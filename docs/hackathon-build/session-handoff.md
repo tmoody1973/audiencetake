@@ -23,9 +23,9 @@ Updated: 2026-08-27 (America/Chicago)
 - App Hosting backend: `audience-take`, region `us-central1`, URL
   `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
   exists, but all five source rollouts on 2026-08-27 failed before serving
-  traffic. A sixth approved deploy command failed during source upload before
-  creating any rollout or build, so the URL must not be described as serving
-  the app.
+  traffic. Two later approved deploy commands failed during source upload
+  before creating any rollout or build, so the URL must not be described as
+  serving the app.
 - Cloud Run service: `audience-take-agents`.
 - Current deployed revision: `audience-take-agents-00019-z6v` using image tag
   `smoke-20260827-publication-attempt-id-v1` and immutable digest
@@ -330,9 +330,30 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   listing proves it contains zero `.git/*` entries. This removes unnecessary
   upload exposure but does not prove the operating system's transient socket
   allocation failure cannot recur.
-- Do not issue another App Hosting deploy command without fresh explicit
-  approval. The sixth command approval was consumed by the failed source upload
-  above; no automatic retry was made.
+- The sixth command approval was consumed by that failed source upload; no
+  automatic retry was made, and a fresh approval was required for the next
+  command.
+- A separately approved seventh deploy command from clean, public commit
+  `9ae75d2` used the corrected `30.26 MB` source archive. It again failed during
+  the Cloud Storage upload, this time surfacing only `Failed to make request to
+  https://storage.googleapis.com/...zip`. The CLI did not leave a
+  `firebase-debug.log`, so do not claim the second command's underlying socket
+  code was proven. The named object returns `404`, App Hosting still lists only
+  failed rollouts `001`–`005`, and no Cloud Build was created. The queue remains
+  `PAUSED` and empty. No retry was made.
+- The repeated failure with the archive reduced by half rules out archive size
+  as a sufficient fix. Current npm metadata shows Firebase CLI `15.28.2` is the
+  latest patch while the workspace has `15.28.1`; the official source diff has
+  no upload-path change, so upgrading alone is not an evidence-backed remedy.
+  Both versions use the same non-replayable streamed source-upload boundary.
+- Firebase's documented alternative is a GitHub-connected App Hosting backend
+  followed by `apphosting:rollouts:create` for an exact commit. Installed CLI
+  source confirms the current backend has no connected `codebase.repository`
+  and directs operators to connect one through the Firebase Console. Connecting
+  the public repository changes backend/Developer Connect configuration and may
+  require interactive GitHub OAuth, so obtain explicit approval before doing
+  that. After connection, use commit `9ae75d2` rather than another local source
+  upload. Do not issue another deploy or rollout command without fresh approval.
 
 ## Failure research findings
 
@@ -488,7 +509,10 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    evidence lead, one labeled demo creator update, and one correction row.
 7. Continue checklist item `11`: rules/indexes are live and the exact
    Next.js/Firebase adapter boundary now passes offline, but do not issue
-   another App Hosting deploy command without fresh explicit approval. After a
+   another App Hosting deploy or rollout command without fresh explicit
+   approval. Prefer connecting the existing backend to the public GitHub repo
+   through the Firebase Console and rolling out exact commit `9ae75d2`; this
+   avoids the twice-failing local streamed upload path. After a
    successful rollout, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
