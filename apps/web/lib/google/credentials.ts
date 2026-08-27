@@ -130,7 +130,10 @@ export function googleAuthClientFromEnv(
     service_account_impersonation_url:
       `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/` +
       `${identity.serviceAccountEmail}:generateAccessToken`,
-    subject_token_supplier: { getSubjectToken: subjectTokenSupplier },
+    // Google supplies its own audience context to getSubjectToken. Do not pass
+    // that object into Vercel's token helper, where it would be interpreted as
+    // a request to mint a custom-audience token that our provider rejects.
+    subject_token_supplier: { getSubjectToken: async () => subjectTokenSupplier() },
   });
   if (!client) {
     throw new GoogleCredentialsConfigurationError(

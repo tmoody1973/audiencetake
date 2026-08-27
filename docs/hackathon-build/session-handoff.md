@@ -561,7 +561,23 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    authorized until the user approves one diagnosed retry under the
    research-before-retry rule.
    Keyless Vercel OIDC to Google Workload Identity Federation is configured;
-   no service-account JSON key is stored. After the production route is fixed, bind the
+   no service-account JSON key is stored. The authorized follow-up rollout
+   `dpl_4XLSbajRUTvTFzzmQLep8Dy2NukG` from `8c23ddc` reached `READY` and fixed
+   the Next launcher crash: `/`, `/sign-in`, and `/nominate` return `200`.
+   `/projects/junichiro-live-project` now cleanly returns `404`, while the
+   canonical `/projects/junichiro-jackson` returns the explicit saved fallback,
+   proving the remaining break is server authentication rather than packaging.
+   A bounded local token exchange found the exact cause: Google's identity-pool
+   client calls `getSubjectToken` with its supplier context, and the direct
+   `getVercelOidcToken` callback interpreted Google's provider audience as
+   Vercel custom-audience options. Google rejected that token with
+   `invalid_grant` audience mismatch. A zero-argument wrapper keeps Vercel's
+   expected team audience; the same local exchange then advanced to the
+   expected production-only attribute-condition rejection for the local
+   development token. The wrapper and regression test pass the full local gate:
+   20 contract fixtures, 40 web test files / 160 tests, lint, typecheck, and the
+   production Next build. They are local only; require explicit approval for
+   another rollout. After the production route is fixed, bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
    counters, verify Vercel's trusted client-IP header before adding the
