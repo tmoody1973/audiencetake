@@ -37,18 +37,18 @@ export async function acceptNomination(
   },
 ): Promise<NominationResult> {
   const canonicalUrl = await intakePublicUrl(input.submittedUrl, dependencies.urlPolicy);
-  const checkedMediaUrl = input.mediaUrl
-    ? await intakePublicUrl(input.mediaUrl, dependencies.urlPolicy)
-    : undefined;
-  const mediaVideoId = checkedMediaUrl ? youtubeVideoId(checkedMediaUrl) : null;
-  if (checkedMediaUrl && mediaVideoId === null) {
+  const submittedMediaVideoId = input.mediaUrl ? youtubeVideoId(input.mediaUrl) : null;
+  if (input.mediaUrl && submittedMediaVideoId === null) {
     throw new UnsafeUrlError(
       "Use a supported public YouTube video URL for the Scout Card player.",
       "unsupported_media",
     );
   }
-  const canonicalMediaUrl = mediaVideoId
-    ? `https://www.youtube.com/watch?v=${mediaVideoId}`
+  const canonicalMediaUrl = submittedMediaVideoId
+    ? await intakePublicUrl(
+        `https://www.youtube.com/watch?v=${submittedMediaVideoId}`,
+        dependencies.urlPolicy,
+      )
     : undefined;
   const canonicalSupportingUrls = await Promise.all(
     input.supportingUrls.map((url) => intakePublicUrl(url, dependencies.urlPolicy)),
@@ -57,7 +57,7 @@ export async function acceptNomination(
     (url) =>
       url !== canonicalUrl
       && url !== canonicalMediaUrl
-      && (!mediaVideoId || youtubeVideoId(url) !== mediaVideoId),
+      && (!submittedMediaVideoId || youtubeVideoId(url) !== submittedMediaVideoId),
   );
   const accepted = await dependencies.store.accept({
     ...input,

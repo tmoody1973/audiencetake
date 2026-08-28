@@ -26,6 +26,8 @@ const NON_PUBLIC_SUFFIXES = [
   ".test",
 ];
 
+const DEFAULT_MAX_REDIRECTS = 8;
+
 export type AddressResolver = (hostname: string) => Promise<string[]>;
 
 export type ProbeResult = {
@@ -121,7 +123,7 @@ function assertPublicHostname(hostname: string) {
   }
 }
 
-export function canonicalizeUrl(input: string): string {
+function normalizeUrl(input: string, stripTrailingSlash: boolean): string {
   let url: URL;
   try {
     url = new URL(input.trim());
@@ -132,7 +134,9 @@ export function canonicalizeUrl(input: string): string {
   url.protocol = url.protocol.toLowerCase();
   url.hostname = url.hostname.toLowerCase();
   url.hash = "";
-  if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, "");
+  if (stripTrailingSlash && url.pathname.length > 1) {
+    url.pathname = url.pathname.replace(/\/+$/, "");
+  }
 
   for (const key of [...url.searchParams.keys()]) {
     const lower = key.toLowerCase();
@@ -142,6 +146,14 @@ export function canonicalizeUrl(input: string): string {
   }
   url.searchParams.sort();
   return url.toString();
+}
+
+export function canonicalizeUrl(input: string): string {
+  return normalizeUrl(input, true);
+}
+
+function normalizeProbeUrl(input: string): string {
+  return normalizeUrl(input, false);
 }
 
 async function defaultResolve(hostname: string): Promise<string[]> {
@@ -226,11 +238,13 @@ export async function intakePublicUrl(input: string, policy: SafeUrlPolicy = {})
   const allowedHttpHosts = policy.allowedHttpHosts ?? new Set<string>();
   const resolve = policy.resolve ?? defaultResolve;
   const probe = policy.probe ?? defaultProbe;
-  const maxRedirects = policy.maxRedirects ?? 3;
+  const maxRedirects = policy.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
   const maxResponseBytes = policy.maxResponseBytes ?? 5_000_000;
-  let current = new URL(canonicalizeUrl(input));
+  let current = new URL(normalizeProbeUrl(input));
+  const visited = new Set<string>();
 
   for (let hop = 0; hop <= maxRedirects; hop += 1) {
+    visited.add(current.toString());
     assertProtocol(current, allowedHttpHosts);
     assertPublicHostname(current.hostname);
     let addresses: string[];
@@ -254,7 +268,11 @@ export async function intakePublicUrl(input: string, policy: SafeUrlPolicy = {})
       throw new UnsafeUrlError("The source redirected too many times.", "too_many_redirects");
     }
     try {
-      current = new URL(canonicalizeUrl(new URL(result.location, current).toString()));
+      const next = new URL(normalizeProbeUrl(new URL(result.location, current).toString()));
+      if (visited.has(next.toString())) {
+        throw new UnsafeUrlError("The source redirected in a loop.", "too_many_redirects");
+      }
+      current = next;
     } catch (error) {
       if (error instanceof UnsafeUrlError) throw error;
       throw new UnsafeUrlError("The source returned an unsafe redirect.", "unsafe_redirect");

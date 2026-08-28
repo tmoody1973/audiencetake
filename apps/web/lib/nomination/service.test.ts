@@ -84,7 +84,7 @@ describe("acceptNomination", () => {
     const mediaInput: NominationInput = {
       ...input,
       submittedUrl: "https://www.kickstarter.com/projects/teamto/junichiro-live",
-      mediaUrl: "https://youtu.be/s8G7425lfKs?si=tracking",
+      mediaUrl: "http://youtu.be/s8G7425lfKs?si=tracking",
       supportingUrls: [
         "https://youtu.be/s8G7425lfKs?si=tracking",
         "https://example.com/about",

@@ -48,6 +48,53 @@ describe("nomination URL policy", () => {
     expect(probe).toHaveBeenCalledTimes(1);
   });
 
+  it("accepts a finite public redirect chain longer than three hops", async () => {
+    const redirects = new Map([
+      ["/source", "/hop-1"],
+      ["/hop-1", "/hop-2"],
+      ["/hop-2", "/hop-3"],
+      ["/hop-3", "/hop-4"],
+    ]);
+    const probe = vi.fn(async (url: URL) => {
+      const location = redirects.get(url.pathname);
+      return location
+        ? { status: 302, location }
+        : { status: 200, contentType: "text/html" };
+    });
+
+    await expect(intakePublicUrl("https://public.example/source", {
+      resolve: async () => [PUBLIC_IP],
+      probe,
+    })).resolves.toBe("https://public.example/hop-4");
+    expect(probe).toHaveBeenCalledTimes(5);
+  });
+
+  it("preserves a required trailing slash while probing and canonicalizes only the accepted result", async () => {
+    const probe = vi.fn(async (url: URL) => url.pathname.endsWith("/")
+      ? { status: 200, contentType: "text/html" }
+      : { status: 308, location: `${url.pathname}/` });
+
+    await expect(intakePublicUrl("https://public.example/article/", {
+      resolve: async () => [PUBLIC_IP],
+      probe,
+    })).resolves.toBe("https://public.example/article");
+    expect(probe).toHaveBeenCalledOnce();
+    expect(probe.mock.calls[0]?.[0].pathname).toBe("/article/");
+  });
+
+  it("stops a redirect loop before exhausting the bounded hop allowance", async () => {
+    const probe = vi.fn(async (url: URL) => ({
+      status: 302,
+      location: url.pathname === "/source" ? "/again" : "/source",
+    }));
+
+    await expect(intakePublicUrl("https://public.example/source", {
+      resolve: async () => [PUBLIC_IP],
+      probe,
+    })).rejects.toMatchObject({ code: "too_many_redirects", message: "The source redirected in a loop." });
+    expect(probe).toHaveBeenCalledTimes(2);
+  });
+
   it("rejects credentials, HTTP by default, large responses, and too many redirects", async () => {
     const safe = { resolve: async () => [PUBLIC_IP], probe: async () => ({ status: 200 }) };
     await expect(intakePublicUrl("https://user:pass@example.com", safe)).rejects.toMatchObject({ code: "credentials_not_allowed" });
@@ -67,4 +114,3 @@ describe("nomination URL policy", () => {
     expect(sourceFingerprint(url)).toBe(sourceFingerprint(url));
   });
 });
-
