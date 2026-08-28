@@ -964,3 +964,46 @@ the integration must remain disabled rather than operating without permission.
   The user should make one fresh signed-in click; a normal account should show
   organic `1`, while a demo account should show `+ 1 demo` and keep the organic
   total at `0`.
+
+## Deployed expandable Trailer Critic UX and American Pachuco artifact
+
+- Hallmark-guided Trailer Critic UX commit `4cf6f4b` is pushed to
+  `origin/codex/build-mvp`. Git-triggered production deployment
+  `dpl_76EEGQ9ERmr1sJDz5FMioNVoKWRN` is Ready and owns
+  `https://audiencetake.vercel.app`. The critic is collapsed by default into a
+  fan-first Genre / Form / Why it may connect scan, then expands through the
+  full beats, craft, marketing, matrix, citations, and limitations. Production
+  browser checks passed at mobile and desktop widths with no horizontal
+  overflow or framework error overlay; the deployment-scoped error scan is
+  empty.
+- Tarik explicitly approved exactly one American Pachuco Trailer Critic
+  provider run on 2026-08-28. Before dispatch, project
+  `vSU2DLAPidOArl8MbA5E` was published and clear, immutable card
+  `card-vSU2DLAPidOArl8MbA5E-v1-correction-b8983b06ad45` was current and
+  public, submitted source `source-submitted-53b215464a33f0c6` matched YouTube
+  video `MXESsS8Uskc`, no analysis pointer/artifact/job existed, and the shared
+  queue was Running and empty with one concurrent dispatch, one dispatch per
+  second, and `maxAttempts: 1`.
+- Exactly one deterministic Cloud Task,
+  `trailer-vSU2DLAPidOArl8MbA5E-MXESsS8Uskc-v1`, was created at
+  `2026-08-28T12:20:30Z`. Cloud Run revision
+  `audience-take-agents-00022-bg8` handled one POST with status `200` in
+  `29.916235388s`; the queue returned to empty and no retry was dispatched.
+- The private job completed with no failure code and published immutable
+  artifact `video-analysis-3066eb22fd27fb3a262032d2-v1` using pinned
+  `gemini-3.7-flash`, analysis version `1`, and the exact current card/source
+  identity. The project pointer contains the artifact. Strict public-schema
+  validation passes with five ordered beats, all six required matrix
+  categories, four allowed source IDs, and five limitations.
+- The live American Pachuco card returns `200` and renders one expandable
+  Trailer Critic whose compact summary identifies it as an arts and historical
+  documentary and a biographical retrospective / festival-acclaim trailer.
+  Expanded mobile verification showed structural analysis, critic matrix,
+  analysis limits, the pinned model/version/date, no horizontal overflow, and
+  no error overlay.
+- This provider run did not execute the six-stage Scout Agent, did not call
+  Parallel, and did not change the research/card version, claims, pathways, or
+  source ledger. The one-call American Pachuco approval is consumed; any new
+  provider request still requires fresh explicit approval. This handoff-only
+  update should not be pushed by itself because that would trigger an
+  unnecessary Vercel production rollout.
