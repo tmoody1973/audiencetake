@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audiencetake.example/contracts/video-analysis.schema.json",
+  "title": "Public immutable Trailer Critic artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifactId", "projectId", "sourceId", "youtubeUrl", "youtubeVideoId",
+    "modelId", "analysisVersion", "cardVersionId", "structuralNarrative",
+    "technicalCraft", "marketingPersuasion", "emotionalRhetorical", "matrix",
+    "sourceIds", "limitations", "analyzedAt", "visibility"
+  ],
+  "properties": {
+    "artifactId": { "type": "string", "minLength": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "sourceId": { "type": "string", "minLength": 1 },
+    "youtubeUrl": { "type": "string", "pattern": "^https://www\\.youtube\\.com/watch\\?v=[A-Za-z0-9_-]{11}$" },
+    "youtubeVideoId": { "type": "string", "pattern": "^[A-Za-z0-9_-]{11}$" },
+    "modelId": { "type": "string", "pattern": "^gemini-[A-Za-z0-9.-]+$" },
+    "analysisVersion": { "type": "integer", "minimum": 1 },
+    "cardVersionId": { "type": "string", "minLength": 1 },
+    "structuralNarrative": {
+      "type": "object", "additionalProperties": false,
+      "required": ["genreSignaling", "narrativeDelivery", "trailerType", "beats"],
+      "properties": {
+        "genreSignaling": { "$ref": "#/$defs/text" },
+        "narrativeDelivery": { "$ref": "#/$defs/text" },
+        "trailerType": { "$ref": "#/$defs/text" },
+        "beats": { "type": "array", "minItems": 2, "maxItems": 6, "items": { "$ref": "#/$defs/beat" } }
+      }
+    },
+    "technicalCraft": {
+      "type": "object", "additionalProperties": false,
+      "required": ["editingAndPace", "cinematographyAndFraming", "soundAndScore", "graphicsAndTitles"],
+      "properties": {
+        "editingAndPace": { "$ref": "#/$defs/text" },
+        "cinematographyAndFraming": { "$ref": "#/$defs/text" },
+        "soundAndScore": { "$ref": "#/$defs/text" },
+        "graphicsAndTitles": { "$ref": "#/$defs/text" }
+      }
+    },
+    "marketingPersuasion": {
+      "type": "object", "additionalProperties": false,
+      "required": ["uniqueSellingProposition", "targetAudienceHypothesis", "conceptVsStarEmphasis", "representationCaveat"],
+      "properties": {
+        "uniqueSellingProposition": { "$ref": "#/$defs/text" },
+        "targetAudienceHypothesis": { "$ref": "#/$defs/text" },
+        "conceptVsStarEmphasis": { "$ref": "#/$defs/text" },
+        "representationCaveat": { "$ref": "#/$defs/text" }
+      }
+    },
+    "emotionalRhetorical": {
+      "type": "object", "additionalProperties": false,
+      "required": ["emotionalHook", "toneAndMoodBalance", "persuasiveArgument"],
+      "properties": {
+        "emotionalHook": { "$ref": "#/$defs/text" },
+        "toneAndMoodBalance": { "$ref": "#/$defs/text" },
+        "persuasiveArgument": { "$ref": "#/$defs/text" }
+      }
+    },
+    "matrix": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "prefixItems": [
+        { "$ref": "#/$defs/matrixGenre" }, { "$ref": "#/$defs/matrixNarrative" },
+        { "$ref": "#/$defs/matrixUsp" }, { "$ref": "#/$defs/matrixAudience" },
+        { "$ref": "#/$defs/matrixSound" }, { "$ref": "#/$defs/matrixCamera" }
+      ],
+      "items": false
+    },
+    "sourceIds": { "type": "array", "maxItems": 12, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "limitations": { "type": "array", "minItems": 3, "maxItems": 6, "uniqueItems": true, "items": { "$ref": "#/$defs/text" } },
+    "analyzedAt": { "type": "string", "format": "date-time" },
+    "visibility": { "const": "public" }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 800 },
+    "timestamp": { "type": "string", "pattern": "^[0-9]{2}:[0-5][0-9]$" },
+    "beat": {
+      "type": "object", "additionalProperties": false,
+      "required": ["label", "start", "end", "observation", "modality"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "start": { "$ref": "#/$defs/timestamp" }, "end": { "$ref": "#/$defs/timestamp" },
+        "observation": { "$ref": "#/$defs/text" },
+        "modality": { "enum": ["visual", "audio", "audiovisual"] }
+      }
+    },
+    "matrixBase": {
+      "type": "object", "additionalProperties": false,
+      "required": ["category", "analysis"],
+      "properties": {
+        "category": { "enum": ["genre", "narrative_stance", "usp", "target_audience", "sound_music", "camera_editing"] },
+        "analysis": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
+    "matrixGenre": { "allOf": [{ "$ref": "#/$defs/matrixBase" }, { "type": "object", "properties": { "category": { "const": "genre" } } }] },
+    "matrixNarrative": { "allOf": [{ "$ref": "#/$defs/matrixBase" }, { "type": "object", "properties": { "category": { "const": "narrative_stance" } } }] },
+    "matrixUsp": { "allOf": [{ "$ref": "#/$defs/matrixBase" }, { "type": "object", "properties": { "category": { "const": "usp" } } }] },
+    "matrixAudience": { "allOf": [{ "$ref": "#/$defs/matrixBase" }, { "type": "object", "properties": { "category": { "const": "target_audience" } } }] },
+    "matrixSound": { "allOf": [{ "$ref": "#/$defs/matrixBase" }, { "type": "object", "properties": { "category": { "const": "sound_music" } } }] },
+    "matrixCamera": { "allOf": [{ "$ref": "#/$defs/matrixBase" }, { "type": "object", "properties": { "category": { "const": "camera_editing" } } }] }
+  }
+}

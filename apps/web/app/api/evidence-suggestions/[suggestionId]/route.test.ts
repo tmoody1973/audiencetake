@@ -108,12 +108,14 @@ describe("PATCH evidence review", () => {
       cardVersionId: "card-v2",
       changed: true,
     });
+    const dispatchTrailerCritic = vi.fn().mockResolvedValue(undefined);
 
     const response = await handleEvidenceReviewPatch(request(validReview), suggestionId, {
       verifyRequest: vi.fn().mockResolvedValue({ user: { uid: "admin-1" } }),
       authorizeAdmin: vi.fn().mockResolvedValue(undefined),
       store: evidenceStore,
       promoteMedia,
+      dispatchTrailerCritic,
     });
 
     expect(response.status).toBe(200);
@@ -123,8 +125,17 @@ describe("PATCH evidence review", () => {
       incorporatedSourceId: `community-${suggestionId}`,
       canonicalUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
     });
+    expect(dispatchTrailerCritic).toHaveBeenCalledWith({
+      projectId: "project-1",
+      sourceId: `community-${suggestionId}`,
+      youtubeVideoId: "s8G7425lfKs",
+      analysisVersion: 1,
+    });
     await expect(response.json()).resolves.toMatchObject({
-      data: { mediaPromotion: { cardVersionId: "card-v2", changed: true } },
+      data: {
+        mediaPromotion: { cardVersionId: "card-v2", changed: true },
+        trailerCriticQueued: true,
+      },
     });
   });
 });

@@ -52,6 +52,33 @@ def make_client() -> TestClient:
     return TestClient(create_app(lambda: runtime))
 
 
+TRAILER_PAYLOAD = {
+    "projectId": "project_01",
+    "sourceId": "source-video",
+    "youtubeVideoId": "s8G7425lfKs",
+    "youtubeUrl": "https://www.youtube.com/watch?v=s8G7425lfKs",
+    "analysisVersion": 1,
+    "taskName": "trailer-project_01-s8G7425lfKs-v1",
+}
+TRAILER_HEADERS = {
+    **HEADERS,
+    "X-CloudTasks-TaskName": (
+        "projects/example/locations/us-central1/queues/research/tasks/"
+        "trailer-project_01-s8G7425lfKs-v1"
+    ),
+}
+
+
+class TrailerRuntime:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def handle(self, task: object, worker_id: str) -> tuple[str, str]:
+        del task, worker_id
+        self.calls += 1
+        return "acquired", "video-analysis-abc-v1"
+
+
 def test_health_check_is_public_and_non_secret() -> None:
     response = make_client().get("/healthz")
 
@@ -111,6 +138,39 @@ def test_task_endpoint_acknowledges_retry_without_executor_call() -> None:
         "disposition": "retry_suppressed",
         "run_id": "run_01",
     }
+
+
+def test_trailer_endpoint_binds_deterministic_cloud_task_identity() -> None:
+    trailer = TrailerRuntime()
+    client = TestClient(create_app(lambda: make_client(), lambda: trailer))  # type: ignore[arg-type]
+
+    response = client.post(
+        "/tasks/trailer-critic", json=TRAILER_PAYLOAD, headers=TRAILER_HEADERS
+    )
+    mismatch = client.post(
+        "/tasks/trailer-critic",
+        json=TRAILER_PAYLOAD,
+        headers={**TRAILER_HEADERS, "X-CloudTasks-TaskName": "tasks/wrong"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": True,
+        "disposition": "acquired",
+        "artifact_id": "video-analysis-abc-v1",
+    }
+    assert trailer.calls == 1
+    assert mismatch.status_code == 400
+
+
+def test_trailer_endpoint_rejects_url_and_video_identity_mismatch() -> None:
+    response = make_client().post(
+        "/tasks/trailer-critic",
+        json={**TRAILER_PAYLOAD, "youtubeUrl": "https://www.youtube.com/watch?v=aaaaaaaaaaa"},
+        headers=TRAILER_HEADERS,
+    )
+
+    assert response.status_code == 422
 
 
 def test_safe_error_chain_records_only_bounded_class_names() -> None:

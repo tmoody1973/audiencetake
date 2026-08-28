@@ -110,6 +110,73 @@ function CardStatus({ card }: { card: ScoutCardModel }) {
   return null;
 }
 
+function TrailerCritic({ card, sourceLabels }: { card: ScoutCardModel; sourceLabels: Map<string, string> }) {
+  const analyses = card.trailerCritiques ?? [];
+  if (!analyses.length) return null;
+  return (
+    <section className="trailer-critic" aria-labelledby="trailer-critic-title">
+      <div className="section-heading-line trailer-critic-heading">
+        <div><span>Gemini video reading / sampled audiovisual analysis</span><h2 id="trailer-critic-title">Trailer critic</h2></div>
+        <strong>{analyses.length} {analyses.length === 1 ? "video" : "videos"} analyzed</strong>
+      </div>
+      {analyses.map((analysis, analysisIndex) => (
+        <article key={analysis.artifactId} className="trailer-critic-artifact">
+          <header>
+            <span>{String(analysisIndex + 1).padStart(2, "0")} / source video</span>
+            <a href={analysis.youtubeUrl} target="_blank" rel="noreferrer">Open analyzed video</a>
+            <small>Model {analysis.modelId} / version {analysis.analysisVersion} / {formatDate(analysis.analyzedAt)}</small>
+          </header>
+          <div className="trailer-critic-grid">
+            <section>
+              <h3>Structural &amp; narrative</h3>
+              <dl>
+                <div><dt>Genre signaling</dt><dd>{analysis.structuralNarrative.genreSignaling}</dd></div>
+                <div><dt>Narrative delivery</dt><dd>{analysis.structuralNarrative.narrativeDelivery}</dd></div>
+                <div><dt>Trailer type</dt><dd>{analysis.structuralNarrative.trailerType}</dd></div>
+              </dl>
+              <ol className="trailer-beats">{analysis.structuralNarrative.beats.map((beat) => <li key={`${beat.start}-${beat.end}-${beat.label}`}><span>{beat.start}–{beat.end}</span><div><strong>{beat.label}</strong><p>{beat.observation}</p><small>{beat.modality}</small></div></li>)}</ol>
+            </section>
+            <section>
+              <h3>Technical craft</h3>
+              <dl>
+                <div><dt>Editing &amp; pace</dt><dd>{analysis.technicalCraft.editingAndPace}</dd></div>
+                <div><dt>Cinematography</dt><dd>{analysis.technicalCraft.cinematographyAndFraming}</dd></div>
+                <div><dt>Sound &amp; score</dt><dd>{analysis.technicalCraft.soundAndScore}</dd></div>
+                <div><dt>Graphics &amp; titles</dt><dd>{analysis.technicalCraft.graphicsAndTitles}</dd></div>
+              </dl>
+            </section>
+            <section>
+              <h3>Marketing &amp; persuasion</h3>
+              <dl>
+                <div><dt>USP</dt><dd>{analysis.marketingPersuasion.uniqueSellingProposition}</dd></div>
+                <div><dt>Audience hypothesis</dt><dd>{analysis.marketingPersuasion.targetAudienceHypothesis}</dd></div>
+                <div><dt>Concept vs. star</dt><dd>{analysis.marketingPersuasion.conceptVsStarEmphasis}</dd></div>
+                <div><dt>Representation caveat</dt><dd>{analysis.marketingPersuasion.representationCaveat}</dd></div>
+              </dl>
+            </section>
+            <section>
+              <h3>Emotional &amp; rhetorical</h3>
+              <dl>
+                <div><dt>Emotional hook</dt><dd>{analysis.emotionalRhetorical.emotionalHook}</dd></div>
+                <div><dt>Tone &amp; mood</dt><dd>{analysis.emotionalRhetorical.toneAndMoodBalance}</dd></div>
+                <div><dt>Argument</dt><dd>{analysis.emotionalRhetorical.persuasiveArgument}</dd></div>
+              </dl>
+            </section>
+          </div>
+          <div className="critic-matrix">
+            <h3>Critic&apos;s breakdown matrix</h3>
+            <dl>{analysis.matrix.map((row) => <div key={row.category}><dt>{row.category.replaceAll("_", " / ")}</dt><dd>{row.analysis}</dd></div>)}</dl>
+          </div>
+          <footer>
+            <div><strong>Analysis limits</strong><ul>{analysis.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></div>
+            {analysis.sourceIds.length ? <p>Public context citations <SourceMarks sourceIds={analysis.sourceIds} labels={sourceLabels} /></p> : <p>Audiovisual observations are grounded by timestamps; no additional card facts were imported.</p>}
+          </footer>
+        </article>
+      ))}
+    </section>
+  );
+}
+
 export function ScoutCard({ card }: { card: ScoutCardModel }) {
   if (card.pathways.length !== 3) throw new Error("A Scout Card requires exactly three pathways.");
   const sourceLabels = createCitationLabels(card.sourceLedger);
@@ -174,9 +241,11 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
         </aside>
       </article>
 
+      <TrailerCritic card={card} sourceLabels={sourceLabels} />
+
       <DecisionBrief card={card} />
-      <IndustryLens card={card} />
       <ScoutSocialPanel card={card} />
+      <IndustryLens card={card} />
       <ScoutTrustPanel card={card} />
 
       <section className="evidence-section" aria-labelledby="evidence-title">

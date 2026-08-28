@@ -5,7 +5,9 @@ import {
   cloudTaskConfigFromEnv,
   cloudTasksClientOptionsFromEnv,
   createCloudTasksResearchDispatcher,
+  createCloudTasksTrailerCriticDispatcher,
   deterministicResearchTaskId,
+  deterministicTrailerCriticTaskId,
   type CloudTaskDispatcherConfig,
 } from "./cloud-tasks";
 
@@ -67,12 +69,37 @@ describe("Cloud Tasks research dispatcher", () => {
     ).resolves.toBeUndefined();
   });
 
+  it("creates a deterministic isolated Trailer Critic task without research inputs", async () => {
+    const fake = client();
+    await createCloudTasksTrailerCriticDispatcher(config, fake)({
+      projectId: "project-3",
+      sourceId: "source-video",
+      youtubeVideoId: "s8G7425lfKs",
+    });
+
+    const request = fake.createTask.mock.calls[0][0];
+    expect(request.task.name.endsWith("/tasks/trailer-project-3-s8G7425lfKs-v1")).toBe(true);
+    expect(request.task.httpRequest.url).toBe("https://agents.example.run.app/tasks/trailer-critic");
+    const payload = JSON.parse(Buffer.from(request.task.httpRequest.body, "base64").toString("utf8"));
+    expect(payload).toEqual({
+      projectId: "project-3",
+      sourceId: "source-video",
+      youtubeVideoId: "s8G7425lfKs",
+      youtubeUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+      analysisVersion: 1,
+      taskName: "trailer-project-3-s8G7425lfKs-v1",
+    });
+    expect(JSON.stringify(payload)).not.toContain("Parallel");
+    expect(JSON.stringify(payload)).not.toContain("nomination");
+  });
+
   it("fails closed when local configuration is missing or insecure", () => {
     expect(() => cloudTaskConfigFromEnv({})).toThrow(CloudTasksConfigurationError);
     expect(() =>
       createCloudTasksResearchDispatcher({ ...config, serviceUrl: "http://127.0.0.1:8080" }, client()),
     ).toThrow("HTTPS");
     expect(() => deterministicResearchTaskId("not/a/run", 1)).toThrow();
+    expect(() => deterministicTrailerCriticTaskId("project-1", "bad", 1)).toThrow();
   });
 
   it("passes explicit Vercel credentials to the Google client without changing task identity", () => {

@@ -14,7 +14,7 @@ import {
 
 type StoredDocument = { id: string; value: unknown; exists?: boolean };
 
-function fakeDatabase({ projects = [], cards = [], fail = false }: { projects?: StoredDocument[]; cards?: StoredDocument[]; fail?: boolean | Error }): ScoutCardFirestore {
+function fakeDatabase({ projects = [], cards = [], analyses = [], fail = false }: { projects?: StoredDocument[]; cards?: StoredDocument[]; analyses?: StoredDocument[]; fail?: boolean | Error }): ScoutCardFirestore {
   function collection(name: string) {
     let slugFilter: unknown;
     const api = {
@@ -29,7 +29,8 @@ function fakeDatabase({ projects = [], cards = [], fail = false }: { projects?: 
         return { docs: source.map(snapshot) };
       },
       doc(id: string) {
-        return { async get() { return snapshot(cards.find((document) => document.id === id) ?? { id, value: undefined, exists: false }); } };
+        const documents = name === "videoAnalyses" ? analyses : cards;
+        return { async get() { return snapshot(documents.find((document) => document.id === id) ?? { id, value: undefined, exists: false }); } };
       },
     };
     return api;
@@ -78,6 +79,35 @@ describe("loadPublishedScoutCard", () => {
     expect(result?.claimStatus).toBe("pending");
     expect(result?.creatorContext.claimStatus).toBe("pending");
     expect(result?.industryLens.creatorClaimStatus).toBe("pending");
+  });
+
+  it("loads only a public pointed video analysis that matches the card source", async () => {
+    const card = structuredClone(getScoutCardFixture("complete"));
+    const artifactId = "video-analysis-1";
+    const analysis = {
+      artifactId, projectId: card.projectId, sourceId: "source-youtube-trailer",
+      youtubeUrl: "https://www.youtube.com/watch?v=M2djoKmnOTY", youtubeVideoId: "M2djoKmnOTY",
+      modelId: "gemini-3.7-flash", analysisVersion: 1, cardVersionId: card.cardVersionId,
+      structuralNarrative: { genreSignaling: "Genre.", narrativeDelivery: "Delivery.", trailerType: "Proof of concept.", beats: [
+        { label: "Hook", start: "00:00", end: "00:10", observation: "Opening.", modality: "audiovisual" },
+        { label: "Turn", start: "00:11", end: "00:20", observation: "Turn.", modality: "visual" },
+      ] },
+      technicalCraft: { editingAndPace: "Pace.", cinematographyAndFraming: "Framing.", soundAndScore: "Sound.", graphicsAndTitles: "Titles." },
+      marketingPersuasion: { uniqueSellingProposition: "USP.", targetAudienceHypothesis: "Hypothesis.", conceptVsStarEmphasis: "Concept.", representationCaveat: "Caveat." },
+      emotionalRhetorical: { emotionalHook: "Hook.", toneAndMoodBalance: "Tone.", persuasiveArgument: "Argument." },
+      matrix: ["genre", "narrative_stance", "usp", "target_audience", "sound_music", "camera_editing"].map((category) => ({ category, analysis: "Analysis." })),
+      sourceIds: ["source-youtube-trailer"], limitations: ["Sampled analysis."],
+      analyzedAt: "2026-08-28T12:00:00Z", visibility: "public",
+    };
+    const database = fakeDatabase({
+      projects: [{ id: card.projectId, value: publishedProject({ latestVideoAnalysisIds: [artifactId] }) }],
+      cards: [{ id: card.cardVersionId, value: { ...card, visibility: "public" } }],
+      analyses: [{ id: artifactId, value: analysis }],
+    });
+
+    const result = await loadPublishedScoutCard("junichiro-jackson", database);
+    expect(result?.trailerCritiques).toHaveLength(1);
+    expect(result?.trailerCritiques?.[0].modelId).toBe("gemini-3.7-flash");
   });
 
   it("defaults an absent or invalid project claim state to unclaimed", async () => {

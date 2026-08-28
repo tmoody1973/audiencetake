@@ -39,6 +39,7 @@ from audience_take_agents.tools.source_reader import (
     SourceReadError,
     UnsafeSourceError,
 )
+from audience_take_agents.trailer_critic import TrailerCriticService
 
 
 class ResearchInputError(RuntimeError):
@@ -156,6 +157,7 @@ class AudienceTakeOrchestrator:
         web_researcher: WebResearcher,
         publisher: ScoutCardPublisher,
         adk_graph: SequentialAgent | None = None,
+        trailer_critic: TrailerCriticService | None = None,
         clock: Any = lambda: datetime.now(UTC),
     ) -> None:
         self._input_loader = input_loader
@@ -164,6 +166,7 @@ class AudienceTakeOrchestrator:
         self._web_researcher = web_researcher
         self._publisher = publisher
         self.adk_graph = adk_graph
+        self._trailer_critic = trailer_critic
         self._clock = clock
 
     async def execute(self, context: Any) -> None:
@@ -326,14 +329,10 @@ class AudienceTakeOrchestrator:
                 sources=sources,
                 claims=draft_claims,
                 comparables=cast(list[dict[str, Any]], draft_payload["comparables"]),
-                external_signals=cast(
-                    list[dict[str, Any]], draft_payload["externalSignals"]
-                ),
+                external_signals=cast(list[dict[str, Any]], draft_payload["externalSignals"]),
                 project_profile=project_profile,
                 limitations=cast(list[str], draft_payload["limitations"]),
-                unresolved_questions=cast(
-                    list[str], draft_payload["unresolvedQuestions"]
-                ),
+                unresolved_questions=cast(list[str], draft_payload["unresolvedQuestions"]),
             )
             context.persist_stage(
                 sequence=4,
@@ -405,9 +404,7 @@ class AudienceTakeOrchestrator:
             attempt=context.task.attempt,
             published_at=published_at,
             missing_sections=(
-                ("parallel_web_sources",)
-                if bundle.tool_receipts[0].result_count == 0
-                else ()
+                ("parallel_web_sources",) if bundle.tool_receipts[0].result_count == 0 else ()
             ),
         )
         status = RunStatus(str(decision["outcome"]))
@@ -421,6 +418,30 @@ class AudienceTakeOrchestrator:
             ),
             summary=str(decision["publicMessage"]),
         )
+        if (
+            self._trailer_critic is not None
+            and status in {RunStatus.COMPLETE, RunStatus.PARTIAL}
+            and card.get("primaryWorkSourceId")
+            and youtube_video_id(str(card["media"]["sourceUrl"])) is not None
+        ):
+            try:
+                await self._trailer_critic.analyze_and_publish(
+                    project_id=bundle.project_id,
+                    source_id=str(card["primaryWorkSourceId"]),
+                    youtube_url=str(card["media"]["sourceUrl"]),
+                )
+            except Exception as error:  # noqa: BLE001 -- optional artifact cannot fail the card
+                # Trailer Critic is an optional independent artifact. Its failure
+                # must never roll back or misreport the completed Scout Card.
+                print(
+                    {
+                        "severity": "WARNING",
+                        "message": "optional trailer critic artifact was not published",
+                        "projectId": bundle.project_id,
+                        "errorType": type(error).__name__,
+                    },
+                    flush=True,
+                )
 
 
 def submitted_source_id(canonical_url: str) -> str:
@@ -491,10 +512,7 @@ def assemble_scout_card(
         limit=500,
     )
     comparables = [
-        {
-            key: comparable[key]
-            for key in ("title", "relevance", "sourceIds", "limitations")
-        }
+        {key: comparable[key] for key in ("title", "relevance", "sourceIds", "limitations")}
         for comparable in cast(list[dict[str, Any]], evidence_ledger.get("comparables", []))
     ]
     confidence_rank = {"low": 0, "medium": 1, "high": 2}
@@ -509,11 +527,7 @@ def assemble_scout_card(
     submitted_url = str(nomination.canonical_url)
     media_url = str(nomination.media_url or nomination.canonical_url)
     primary_work_source_id = next(
-        (
-            str(source["id"])
-            for source in sources
-            if str(source.get("canonicalUrl")) == media_url
-        ),
+        (str(source["id"]) for source in sources if str(source.get("canonicalUrl")) == media_url),
         submitted_source_id(media_url),
     )
     title = analysis.identity.title
@@ -614,8 +628,6 @@ def _bounded_unique(values: list[object], *, limit: int) -> list[str]:
     return result
 
 
-
-
 def validate_analysis_scope(analysis: SourceAnalysis, submitted_source_id: str) -> None:
     allowed = {submitted_source_id}
     if set(analysis.source_ids) != allowed:
@@ -712,9 +724,7 @@ def normalize_publication_sources(
     return sources
 
 
-def link_source_claims(
-    sources: list[dict[str, Any]], claims: list[dict[str, object]]
-) -> None:
+def link_source_claims(sources: list[dict[str, Any]], claims: list[dict[str, object]]) -> None:
     by_id = {str(source["id"]): source for source in sources}
     for claim in claims:
         claim_id = str(claim.get("id", ""))

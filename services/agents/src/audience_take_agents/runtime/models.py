@@ -74,6 +74,47 @@ def deterministic_task_id(run_id: str, attempt: int) -> str:
     return f"research-{run_id}-attempt-{attempt}"
 
 
+class TrailerCriticTaskRequest(BaseModel):
+    """Trusted payload for one independently idempotent video-analysis job."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    project_id: str = Field(
+        alias="projectId", min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$"
+    )
+    source_id: str = Field(
+        alias="sourceId", min_length=1, max_length=200, pattern=r"^[A-Za-z0-9_-]+$"
+    )
+    youtube_video_id: str = Field(alias="youtubeVideoId", pattern=r"^[A-Za-z0-9_-]{11}$")
+    youtube_url: str = Field(
+        alias="youtubeUrl",
+        max_length=80,
+        pattern=r"^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}$",
+    )
+    analysis_version: int = Field(alias="analysisVersion", ge=1, le=100)
+    task_name: str = Field(
+        alias="taskName", min_length=1, max_length=500, pattern=r"^[A-Za-z0-9_-]+$"
+    )
+
+    @model_validator(mode="after")
+    def identity_is_deterministic(self) -> TrailerCriticTaskRequest:
+        expected_url = f"https://www.youtube.com/watch?v={self.youtube_video_id}"
+        if self.youtube_url != expected_url:
+            raise ValueError("youtubeUrl must match youtubeVideoId")
+        expected_task = deterministic_trailer_task_id(
+            self.project_id, self.youtube_video_id, self.analysis_version
+        )
+        if self.task_name != expected_task:
+            raise ValueError(f"taskName must equal {expected_task}")
+        return self
+
+
+def deterministic_trailer_task_id(
+    project_id: str, youtube_video_id: str, analysis_version: int
+) -> str:
+    return f"trailer-{project_id}-{youtube_video_id}-v{analysis_version}"
+
+
 class TaskDelivery(BaseModel):
     """Cloud Tasks transport metadata that is safe to log."""
 
@@ -117,9 +158,7 @@ class PublicEvent(BaseModel):
     attempt: int = Field(ge=1)
     occurred_at: datetime = Field(alias="occurredAt")
     tool_name: str | None = Field(default=None, alias="toolName", min_length=1, max_length=120)
-    query_label: str | None = Field(
-        default=None, alias="queryLabel", min_length=1, max_length=160
-    )
+    query_label: str | None = Field(default=None, alias="queryLabel", min_length=1, max_length=160)
     result_count: int | None = Field(default=None, alias="resultCount", ge=0)
     source_ids: tuple[str, ...] = Field(default=(), alias="sourceIds")
 
@@ -165,15 +204,9 @@ class PublicRunProjection(BaseModel):
     current_stage: int = Field(alias="currentStage", ge=1, le=6)
     completed_stages: tuple[int, ...] = Field(alias="completedStages")
     missing_stages: tuple[int, ...] = Field(alias="missingStages")
-    public_failure_message: str | None = Field(
-        alias="publicFailureMessage", max_length=500
-    )
-    project_slug: str | None = Field(
-        alias="projectSlug", pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
-    )
-    card_url: str | None = Field(
-        alias="cardUrl", pattern=r"^/projects/[a-z0-9]+(?:-[a-z0-9]+)*$"
-    )
+    public_failure_message: str | None = Field(alias="publicFailureMessage", max_length=500)
+    project_slug: str | None = Field(alias="projectSlug", pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    card_url: str | None = Field(alias="cardUrl", pattern=r"^/projects/[a-z0-9]+(?:-[a-z0-9]+)*$")
     retry_eligible: bool = Field(alias="retryEligible")
     fallback_used: bool = Field(alias="fallbackUsed")
     fallback_label: str | None = Field(default=None, alias="fallbackLabel")
@@ -203,9 +236,7 @@ class PublicRunProjection(BaseModel):
             not missing or self.project_slug is None or self.card_url is None
         ):
             raise ValueError("partial runs require missing stages and a card URL")
-        if self.status is RunStatus.FAILED and (
-            not self.public_failure_message or not missing
-        ):
+        if self.status is RunStatus.FAILED and (not self.public_failure_message or not missing):
             raise ValueError("failed runs require a safe failure message and missing stages")
         expected_fallback = "Previously generated — live refresh unavailable."
         if self.fallback_used and self.fallback_label != expected_fallback:

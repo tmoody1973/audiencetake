@@ -391,6 +391,33 @@ svg { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-wi
 
 /* Scout Card tear-off — approved continuation of the research gatefold. */
 .scout-card-page { min-height: calc(100vh - 76px); overflow: hidden; background: var(--paper); }
+.trailer-critic { margin: 28px 24px; border: var(--rule); background: #f7f1df; box-shadow: var(--shadow); }
+.trailer-critic-heading { padding: 18px 22px; background: var(--yellow); }
+.trailer-critic-heading > div > span { font-family: var(--meta); font-size: .65rem; font-weight: 900; text-transform: uppercase; }
+.trailer-critic-heading h2 { margin: 5px 0 0; font-family: var(--display); font-size: clamp(4rem, 7vw, 7rem); font-weight: 400; line-height: .72; text-transform: uppercase; }
+.trailer-critic-heading > strong { font-family: var(--meta); font-size: .7rem; text-transform: uppercase; }
+.trailer-critic-artifact + .trailer-critic-artifact { border-top: 8px solid var(--ink); }
+.trailer-critic-artifact > header { display: grid; grid-template-columns: 1fr auto auto; gap: 18px; align-items: center; padding: 12px 18px; border-bottom: var(--rule); background: var(--ink); color: #fff; font-family: var(--meta); font-size: .65rem; text-transform: uppercase; }
+.trailer-critic-artifact > header a { color: var(--yellow); }
+.trailer-critic-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.trailer-critic-grid > section { min-width: 0; padding: 18px; border-right: var(--rule); }
+.trailer-critic-grid > section:last-child { border-right: 0; }
+.trailer-critic h3 { margin: 0 0 14px; font-family: var(--display); font-size: 2.4rem; font-weight: 400; line-height: .85; text-transform: uppercase; }
+.trailer-critic dl { margin: 0; }
+.trailer-critic dl > div { padding: 10px 0; border-top: 1px dashed var(--ink); }
+.trailer-critic dt { margin-bottom: 4px; font-family: var(--meta); font-size: .6rem; font-weight: 900; text-transform: uppercase; }
+.trailer-critic dd { margin: 0; font-size: .82rem; line-height: 1.45; }
+.trailer-beats { margin: 18px 0 0; padding: 0; list-style: none; }
+.trailer-beats li { display: grid; grid-template-columns: 76px 1fr; gap: 10px; padding: 10px 0; border-top: 1px solid var(--ink); }
+.trailer-beats li > span, .trailer-beats small { font-family: var(--meta); font-size: .58rem; font-weight: 900; text-transform: uppercase; }
+.trailer-beats p { margin: 4px 0; }
+.critic-matrix { padding: 18px; border-top: var(--rule); }
+.critic-matrix dl { display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid var(--ink); }
+.critic-matrix dl > div { display: grid; grid-template-columns: 120px 1fr; gap: 10px; padding: 12px; border: 0; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.trailer-critic-artifact > footer { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 16px 18px; border-top: var(--rule); background: #e8e2d3; font-size: .72rem; }
+.trailer-critic-artifact > footer ul { margin: 6px 0 0; }
+@media (max-width: 1100px) { .trailer-critic-grid { grid-template-columns: repeat(2, 1fr); }.trailer-critic-grid > section:nth-child(2) { border-right: 0; }.trailer-critic-grid > section:nth-child(-n+2) { border-bottom: var(--rule); }.critic-matrix dl { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 760px) { .trailer-critic { margin: 18px 12px; }.trailer-critic-grid, .critic-matrix dl, .trailer-critic-artifact > footer { grid-template-columns: 1fr; }.trailer-critic-grid > section { border-right: 0; border-bottom: var(--rule); }.trailer-critic-artifact > header { grid-template-columns: 1fr; }.critic-matrix dl > div { grid-template-columns: 100px 1fr; } }
 .scout-release-strip { min-height: 46px; display: grid; grid-template-columns: minmax(300px, 1.2fr) minmax(280px, .8fr) auto; align-items: stretch; background: var(--ink); color: var(--yellow); border-bottom: var(--rule); font-family: var(--meta); font-size: .67rem; font-weight: 900; text-transform: uppercase; overflow: hidden; }
 .scout-release-strip > * { display: flex; align-items: center; padding: 9px 20px; }
 .scout-release-strip > strong::before { content: ""; width: 9px; height: 9px; margin-right: 14px; background: var(--yellow); transform: rotate(45deg); }

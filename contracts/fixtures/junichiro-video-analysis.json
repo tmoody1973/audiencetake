@@ -1,0 +1,52 @@
+{
+  "artifactId": "video-analysis-junichiro-v1",
+  "projectId": "junichiro-jackson-demo",
+  "sourceId": "source-youtube-trailer",
+  "youtubeUrl": "https://www.youtube.com/watch?v=s8G7425lfKs",
+  "youtubeVideoId": "s8G7425lfKs",
+  "modelId": "gemini-3.7-flash",
+  "analysisVersion": 1,
+  "cardVersionId": "card-junichiro-v1",
+  "structuralNarrative": {
+    "genreSignaling": "The trailer signals urban supernatural action through noir lighting, stylized combat, and comic timing.",
+    "narrativeDelivery": "A compact vignette prioritizes character chemistry and tonal identity over a complete plot summary.",
+    "trailerType": "A proof-of-concept style-and-tone pitch.",
+    "beats": [
+      { "label": "Reflective hook", "start": "00:00", "end": "00:30", "observation": "A measured audiovisual opening establishes interiority and atmosphere.", "modality": "audiovisual" },
+      { "label": "Kinetic turn", "start": "00:31", "end": "01:00", "observation": "The edit pivots into action staging and faster rhythmic contrast.", "modality": "visual" }
+    ]
+  },
+  "technicalCraft": {
+    "editingAndPace": "Measured passages contrast with compressed action montage.",
+    "cinematographyAndFraming": "Low angles, close framing, and stark lighting emphasize tension.",
+    "soundAndScore": "Music and impact cues organize the trailer's escalation.",
+    "graphicsAndTitles": "The closing title functions as a compact brand signature."
+  },
+  "marketingPersuasion": {
+    "uniqueSellingProposition": "The critic hypothesis is a distinctive blend of urban folklore and stylized action.",
+    "targetAudienceHypothesis": "The presentation may appeal to adult animation and urban fantasy viewers.",
+    "conceptVsStarEmphasis": "The pitch emphasizes concept, character dynamic, and craft rather than cast recognition.",
+    "representationCaveat": "A short proof of concept cannot establish the consistency of a full production."
+  },
+  "emotionalRhetorical": {
+    "emotionalHook": "Reflective curiosity gives way to kinetic excitement.",
+    "toneAndMoodBalance": "Dark action is offset by grounded comic rhythm.",
+    "persuasiveArgument": "The trailer argues for further development through execution and world chemistry."
+  },
+  "matrix": [
+    { "category": "genre", "analysis": "Urban supernatural action." },
+    { "category": "narrative_stance", "analysis": "A tonal micro-vignette." },
+    { "category": "usp", "analysis": "A hybrid cultural and visual vocabulary." },
+    { "category": "target_audience", "analysis": "A critic hypothesis, not a measured audience." },
+    { "category": "sound_music", "analysis": "Rhythmic contrast drives escalation." },
+    { "category": "camera_editing", "analysis": "Close framing transitions into kinetic montage." }
+  ],
+  "sourceIds": ["source-youtube-trailer"],
+  "limitations": [
+    "Gemini samples the video's audio and visual streams; this is not frame-perfect inspection.",
+    "Rapid cuts or brief details may be missed by the sampled video analysis.",
+    "Audience and marketing descriptions are critic hypotheses, not measured audience facts."
+  ],
+  "analyzedAt": "2026-08-28T12:00:00Z",
+  "visibility": "public"
+}

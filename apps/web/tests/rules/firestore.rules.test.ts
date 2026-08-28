@@ -198,6 +198,45 @@ beforeAll(async () => {
         visibility: "public",
         cardVersionId: "pending-card-v1",
       }),
+      setDoc(doc(database, "videoAnalyses/video-analysis-public"), {
+        artifactId: "video-analysis-public",
+        projectId: "published",
+        sourceId: "source-video",
+        youtubeUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+        youtubeVideoId: "s8G7425lfKs",
+        modelId: "gemini-3.7-flash",
+        analysisVersion: 1,
+        cardVersionId: "published-card-v1",
+        structuralNarrative: {},
+        technicalCraft: {},
+        marketingPersuasion: {},
+        emotionalRhetorical: {},
+        matrix: [],
+        sourceIds: ["source-video"],
+        limitations: ["Sampled video analysis."],
+        analyzedAt: "2026-08-28T12:00:00Z",
+        visibility: "public",
+      }),
+      setDoc(doc(database, "videoAnalyses/video-analysis-leaky"), {
+        artifactId: "video-analysis-leaky",
+        projectId: "published",
+        sourceId: "source-video",
+        youtubeUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+        youtubeVideoId: "s8G7425lfKs",
+        modelId: "gemini-3.7-flash",
+        analysisVersion: 1,
+        cardVersionId: "published-card-v1",
+        structuralNarrative: {}, technicalCraft: {}, marketingPersuasion: {},
+        emotionalRhetorical: {}, matrix: [], sourceIds: [], limitations: ["Limit."],
+        analyzedAt: "2026-08-28T12:00:00Z", visibility: "public",
+        rawModelResponse: "must remain private",
+      }),
+      setDoc(doc(database, "videoAnalysisJobs/private-job"), {
+        projectId: "published",
+        sourceId: "source-video",
+        status: "running",
+        leaseOwner: "private-worker",
+      }),
       setDoc(doc(database, "takes/public-take"), {
         uid: "fan-private",
         projectId: "published",
@@ -336,6 +375,9 @@ describe("Firestore public/private boundary", () => {
     await assertFails(getDoc(doc(database, "publicResearchRuns/leaky-run")));
     await assertSucceeds(getDoc(doc(database, "scoutCards/published-card-v1")));
     await assertFails(getDoc(doc(database, "scoutCards/pending-card-v1")));
+    await assertSucceeds(getDoc(doc(database, "videoAnalyses/video-analysis-public")));
+    await assertFails(getDoc(doc(database, "videoAnalyses/video-analysis-leaky")));
+    await assertFails(getDoc(doc(database, "videoAnalysisJobs/private-job")));
     await assertSucceeds(
       getDocs(
         query(

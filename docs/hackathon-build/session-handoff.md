@@ -1,6 +1,6 @@
 # Audience Take session handoff
 
-Updated: 2026-08-27 (America/Chicago)
+Updated: 2026-08-28 (America/Chicago)
 
 ## Required restart context
 
@@ -9,8 +9,8 @@ Updated: 2026-08-27 (America/Chicago)
   Firestore rules/indexes and Storage rules are live. After two local App
   Hosting source-upload transport failures, Tarik approved moving only the
   Next.js hosting layer to Vercel; Firebase and Google Cloud remain the backend.
-  The Vercel deployment is not live yet. Continue item `11` and stop at visual
-  pause `3` after item `11`.
+  The production web app is live at `https://audiencetake.vercel.app`.
+  Continue item `11` and stop at visual pause `3` after item `11`.
 - Preserve the approved film-festival × underground-magazine direction.
 - The user is highly cost-sensitive. Do not resume a provider queue or make an MCP/provider search without explicit approval.
 - Do not respond to a new deployed failure by repeatedly retrying. Pause first,
@@ -21,7 +21,9 @@ Updated: 2026-08-27 (America/Chicago)
   after the cause, fix, and verification evidence are recorded. Treat skills as
   curated guidance, not a substitute for version-specific docs or source.
 - Firebase/GCP project: `test-app-mkark4` (display name: Audience Take), region `us-central1`.
-- Research queue: `audience-take-research`; it must remain paused outside an explicitly approved run.
+- Research queue: `audience-take-research`; it is running and empty with one
+  concurrent dispatch, one dispatch per second, and one attempt. Any real
+  Gemini, Parallel, or Trailer Critic job still requires explicit approval.
 - App Hosting backend: `audience-take`, region `us-central1`, URL
   `https://audience-take--test-app-mkark4.us-central1.hosted.app`. The backend
   exists, but all five source rollouts on 2026-08-27 failed before serving
@@ -33,10 +35,11 @@ Updated: 2026-08-27 (America/Chicago)
   web/runtime host; Firebase Auth, Firestore, Storage, App Check, Cloud Tasks,
   and the private Cloud Run research service remain in place.
 - Cloud Run service: `audience-take-agents`.
-- Current deployed revision: `audience-take-agents-00019-z6v` using image tag
-  `smoke-20260827-publication-attempt-id-v1` and immutable digest
-  `sha256:82b3a9f14a2ace50e467dc8aca659128fda381a7d20b140b7bbebd7d061674f3`.
-- Deployed Gemini model pin: `gemini-3.5-flash`.
+- Current deployed revision: `audience-take-agents-00022-bg8` using image tag
+  `trailer-critic-20260828-v1` and immutable digest
+  `sha256:e07b372f7e73207bfe8a96b30f21f6a088e98c1c30fe764e53f0f06b46a1669b`.
+- Deployed Gemini model pins: existing research `gemini-3.5-flash`; independent
+  Trailer Critic `gemini-3.7-flash` through the Vertex global endpoint.
 - Application suppresses Cloud Tasks deliveries with `retry_count > 0` before constructing provider clients.
 - Cloud Run min instances `0`, max instances `1`, concurrency `1`.
 - Queue concurrency/rate are `1`; Parallel client production default is one internal attempt.
@@ -836,6 +839,74 @@ the integration must remain disabled rather than operating without permission.
   verified `RUNNING` with zero tasks. It retains one concurrent dispatch, one
   dispatch per second, `maxAttempts: 1`, and the application-level retry-count
   suppression. Resuming the empty queue did not start a task or provider call.
-- The approved future phase is a separately specified Gemini YouTube Trailer
-  Critic. It has not been implemented or deployed yet and must begin with its
-  own behavior-evaluation contract.
+- The approved next phase is the independently versioned Gemini YouTube
+  Trailer Critic described below. It remains undeployed and has made no real
+  model request.
+
+## Deployed Gemini Trailer Critic (provider run pending)
+
+- Tarik explicitly approved one Trailer Critic rollout on 2026-08-28. This
+  approval does not authorize a real Gemini video-analysis request; the first
+  provider-bearing Trailer Critic run remains a separate approval boundary.
+- Current Google documentation confirms that Vertex video understanding
+  accepts one public YouTube URL per request and that the GA
+  `gemini-3.7-flash` model accepts video input through the global endpoint.
+  The selected design therefore uses the existing Google Cloud identity and
+  does not download, copy, transcode, or rehost YouTube media. The existing
+  six-stage research model remains pinned to `gemini-3.5-flash`.
+- `.agents-cli-spec.md` now contains the approved Phase 2 approaches, strict
+  output contract, privacy and truthfulness rules, prompt-injection boundary,
+  behavioral evaluation set, and deployment gates.
+- The local agent service has a separately pinned Trailer Critic provider that
+  sends the canonical public YouTube video before the bounded prompt, uses
+  medium thinking and strict structured output, and returns timestamped
+  structural/narrative, technical-craft, marketing/persuasion,
+  emotional/rhetorical, and six-row matrix sections. Required limitations
+  disclose sampled, non-frame-perfect analysis and rapid-cut risk.
+- Initial YouTube media is analyzed only after its Scout Card publication
+  succeeds. A later verified Community Lead schedules the isolated
+  `/tasks/trailer-critic` job after immutable media promotion. The deterministic
+  job payload contains no nomination, prompt, private analytics, or Parallel
+  inputs. Neither path changes the research version or reruns Parallel.
+- Public `videoAnalyses` artifacts are create-only and independently versioned
+  by project, YouTube video, and analysis version. Private
+  `videoAnalysisJobs` records retain job state and lease identity. A project
+  pointer lists completed artifacts without rewriting old Scout Cards, claims,
+  pathways, sources, or research-stage outputs.
+- The Scout Card server loader validates every pointed artifact against its
+  public schema, project, source ledger, and YouTube video ID. It renders zero,
+  one, or multiple Trailer Critic artifacts in a responsive four-part section
+  with ordered timestamps, a critic matrix, citations, and explicit analysis
+  limits.
+- Local verification passes: 104 Python agent tests, 206 web tests, 21 shared
+  contract fixtures, Ruff, strict source mypy, ESLint, TypeScript, diff checks,
+  and the Next production build. Firestore rules coverage was added for the
+  exact public artifact allowlist and private job denial, but the emulator was
+  not retried because this workstation still has no Java runtime.
+- Cloud Build `ecffabdd-707d-4a07-8571-1ff587c8c222` produced immutable image
+  `trailer-critic-20260828-v1` at digest
+  `sha256:e07b372f7e73207bfe8a96b30f21f6a088e98c1c30fe764e53f0f06b46a1669b`.
+  Cloud Run revision `audience-take-agents-00022-bg8` is Ready, Active,
+  ContainerReady, and ContainerHealthy and serves 100% of traffic with the
+  existing private runtime identity, secret binding, research model, 2 CPU / 2
+  GiB, scale-to-zero, concurrency 1, and max instance 1. Its deployment-scoped
+  error scan is empty.
+- Firestore rules compiled in dry-run and were released. The public
+  `videoAnalyses` projection has an exact allowlist and the private
+  `videoAnalysisJobs` collection remains denied to clients.
+- The preflight caught one AJV `strictTypes` defect in the new matrix schema
+  before deployment. Each `allOf` properties branch now declares
+  `type: object`; 21 contract fixtures then passed under strict validation.
+- No Gemini request, Cloud Tasks dispatch, video-analysis Firestore artifact,
+  Parallel call, or research run was performed. The research queue remains
+  running and empty. A real Trailer Critic run still requires fresh explicit
+  approval.
+
+## Local audience-first section order
+
+- The Scout Card now places Audience Pulse before the comparative Industry
+  Lens. The reading order prioritizes fan participation after the evidence and
+  decision brief, then moves into industry interpretation and trust controls.
+- Existing section IDs, links, interaction behavior, and accessibility
+  semantics are unchanged. A component assertion protects the intended DOM
+  order.

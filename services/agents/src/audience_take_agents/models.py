@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator, model_validator
 
 
 class StrictModel(BaseModel):
@@ -124,7 +124,9 @@ class QueryPlan(StrictModel):
             raise ValueError("search queries must be unique")
         if any(not 2 <= len(value) <= 120 for value in normalized):
             raise ValueError("search queries must contain 2 to 120 characters")
-        token_sets = [{token for token in value.casefold().split() if token} for value in normalized]
+        token_sets = [
+            {token for token in value.casefold().split() if token} for value in normalized
+        ]
         for index, left in enumerate(token_sets):
             for right in token_sets[index + 1 :]:
                 union = left | right
@@ -309,9 +311,7 @@ class PathwayContentDraft(StrictModel):
     )
     strengths: list[PathwayText] = Field(min_length=1, max_length=2)
     risks: list[PathwayText] = Field(min_length=1, max_length=2)
-    open_questions: list[PathwayText] = Field(
-        alias="openQuestions", min_length=1, max_length=2
-    )
+    open_questions: list[PathwayText] = Field(alias="openQuestions", min_length=1, max_length=2)
     confidence: Literal["low", "medium", "high"]
     next_experiment: NextExperimentDraft = Field(alias="nextExperiment")
 
@@ -343,3 +343,104 @@ class PathwayDraft(StrictModel):
             }
             for order, pathway in enumerate(self.pathways, start=1)
         ]
+
+
+CriticText = Annotated[str, Field(min_length=1, max_length=800)]
+Timestamp = Annotated[str, Field(pattern=r"^\d{2}:\d{2}$")]
+
+
+def _timestamp_seconds(value: str) -> int:
+    minutes, seconds = (int(part) for part in value.split(":"))
+    if seconds >= 60:
+        raise ValueError("timestamp seconds must be below 60")
+    return minutes * 60 + seconds
+
+
+class TrailerBeat(StrictModel):
+    label: str = Field(min_length=1, max_length=120)
+    start: Timestamp
+    end: Timestamp
+    observation: CriticText
+    modality: Literal["visual", "audio", "audiovisual"]
+
+    @model_validator(mode="after")
+    def timestamps_are_ordered(self) -> TrailerBeat:
+        if _timestamp_seconds(self.end) < _timestamp_seconds(self.start):
+            raise ValueError("trailer beat end must not precede its start")
+        return self
+
+
+class StructuralNarrativeCritique(StrictModel):
+    genre_signaling: CriticText = Field(alias="genreSignaling")
+    narrative_delivery: CriticText = Field(alias="narrativeDelivery")
+    trailer_type: CriticText = Field(alias="trailerType")
+    beats: list[TrailerBeat] = Field(min_length=2, max_length=6)
+
+    @field_validator("beats")
+    @classmethod
+    def beats_are_chronological(cls, beats: list[TrailerBeat]) -> list[TrailerBeat]:
+        starts = [_timestamp_seconds(beat.start) for beat in beats]
+        if starts != sorted(starts):
+            raise ValueError("trailer beats must be chronological")
+        return beats
+
+
+class TechnicalCraftCritique(StrictModel):
+    editing_and_pace: CriticText = Field(alias="editingAndPace")
+    cinematography_and_framing: CriticText = Field(alias="cinematographyAndFraming")
+    sound_and_score: CriticText = Field(alias="soundAndScore")
+    graphics_and_titles: CriticText = Field(alias="graphicsAndTitles")
+
+
+class MarketingPersuasionCritique(StrictModel):
+    unique_selling_proposition: CriticText = Field(alias="uniqueSellingProposition")
+    target_audience_hypothesis: CriticText = Field(alias="targetAudienceHypothesis")
+    concept_vs_star_emphasis: CriticText = Field(alias="conceptVsStarEmphasis")
+    representation_caveat: CriticText = Field(alias="representationCaveat")
+
+
+class EmotionalRhetoricalCritique(StrictModel):
+    emotional_hook: CriticText = Field(alias="emotionalHook")
+    tone_and_mood_balance: CriticText = Field(alias="toneAndMoodBalance")
+    persuasive_argument: CriticText = Field(alias="persuasiveArgument")
+
+
+MatrixCategory = Literal[
+    "genre",
+    "narrative_stance",
+    "usp",
+    "target_audience",
+    "sound_music",
+    "camera_editing",
+]
+
+
+class CriticMatrixRow(StrictModel):
+    category: MatrixCategory
+    analysis: str = Field(min_length=1, max_length=500)
+
+
+class TrailerCriticDraft(StrictModel):
+    structural_narrative: StructuralNarrativeCritique = Field(alias="structuralNarrative")
+    technical_craft: TechnicalCraftCritique = Field(alias="technicalCraft")
+    marketing_persuasion: MarketingPersuasionCritique = Field(alias="marketingPersuasion")
+    emotional_rhetorical: EmotionalRhetoricalCritique = Field(alias="emotionalRhetorical")
+    matrix: list[CriticMatrixRow] = Field(min_length=6, max_length=6)
+    source_ids: list[EvidenceId] = Field(alias="sourceIds", max_length=12)
+    limitations: list[EvidenceText] = Field(min_length=1, max_length=4)
+
+    @model_validator(mode="after")
+    def matrix_and_sources_are_unique(self) -> TrailerCriticDraft:
+        expected = [
+            "genre",
+            "narrative_stance",
+            "usp",
+            "target_audience",
+            "sound_music",
+            "camera_editing",
+        ]
+        if [row.category for row in self.matrix] != expected:
+            raise ValueError("critic matrix must contain the six ordered categories")
+        if len(self.source_ids) != len(set(self.source_ids)):
+            raise ValueError("sourceIds must be unique")
+        return self

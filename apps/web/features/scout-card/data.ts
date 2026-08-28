@@ -5,6 +5,7 @@ import fallbackFixture from "./fixtures/junichiro-card-fallback.json";
 import partialFixture from "./fixtures/junichiro-card-partial.json";
 import unavailableMediaFixture from "./fixtures/junichiro-card-unavailable-media.json";
 import { getAdminFirestore } from "../../lib/firebase/admin";
+import { youtubeVideoId } from "../../lib/media/youtube";
 import type { ScoutCard } from "./types";
 
 export const JUNICHIO_SLUG = "junichiro-jackson";
@@ -47,6 +48,58 @@ const mediaSchema = z.discriminatedUnion("state", [
   z.object({ state: z.literal("editorial_fallback"), title: text, sourceUrl: httpUrl, attribution: text, accessibleFallback: text }),
   z.object({ state: z.literal("unavailable"), title: text, sourceUrl: httpUrl, attribution: text, accessibleFallback: text }),
 ]);
+const timestamp = z.string().regex(/^\d{2}:\d{2}$/);
+function timestampSeconds(value: string): number {
+  const [minutes, seconds] = value.split(":").map(Number);
+  return minutes * 60 + seconds;
+}
+export const trailerCriticSchema = z.object({
+  artifactId: text, projectId: text, sourceId: text, youtubeUrl: httpUrl,
+  youtubeVideoId: z.string().regex(/^[A-Za-z0-9_-]{11}$/), modelId: text,
+  analysisVersion: z.number().int().min(1), cardVersionId: text,
+  structuralNarrative: z.object({
+    genreSignaling: text, narrativeDelivery: text, trailerType: text,
+    beats: z.array(z.object({
+      label: text, start: timestamp, end: timestamp, observation: text,
+      modality: z.enum(["visual", "audio", "audiovisual"]),
+    }).strict()).min(2).max(6),
+  }).strict(),
+  technicalCraft: z.object({
+    editingAndPace: text, cinematographyAndFraming: text,
+    soundAndScore: text, graphicsAndTitles: text,
+  }).strict(),
+  marketingPersuasion: z.object({
+    uniqueSellingProposition: text, targetAudienceHypothesis: text,
+    conceptVsStarEmphasis: text, representationCaveat: text,
+  }).strict(),
+  emotionalRhetorical: z.object({
+    emotionalHook: text, toneAndMoodBalance: text, persuasiveArgument: text,
+  }).strict(),
+  matrix: z.array(z.object({
+    category: z.enum(["genre", "narrative_stance", "usp", "target_audience", "sound_music", "camera_editing"]),
+    analysis: text,
+  }).strict()).length(6),
+  sourceIds: stringList, limitations: stringList.min(1), analyzedAt: dateTime,
+  visibility: z.literal("public"),
+}).strict().superRefine((value, context) => {
+  const categories = value.matrix.map((row) => row.category);
+  const expected = ["genre", "narrative_stance", "usp", "target_audience", "sound_music", "camera_editing"];
+  if (categories.some((category, index) => category !== expected[index])) {
+    context.addIssue({ code: "custom", path: ["matrix"], message: "Critic matrix order is invalid." });
+  }
+  const starts = value.structuralNarrative.beats.map((beat) => timestampSeconds(beat.start));
+  value.structuralNarrative.beats.forEach((beat, index) => {
+    if (timestampSeconds(beat.end) < timestampSeconds(beat.start)) {
+      context.addIssue({ code: "custom", path: ["structuralNarrative", "beats", index], message: "Beat timestamps are invalid." });
+    }
+    if (index > 0 && starts[index] < starts[index - 1]) {
+      context.addIssue({ code: "custom", path: ["structuralNarrative", "beats", index], message: "Beats must be chronological." });
+    }
+  });
+  if (new Set(value.sourceIds).size !== value.sourceIds.length) {
+    context.addIssue({ code: "custom", path: ["sourceIds"], message: "Source IDs must be unique." });
+  }
+});
 const scoutCardSchema = z.object({
   cardVersionId: text, runId: text, researchVersion: z.number().int().min(1), projectId: text,
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), title: text, hook: text,
@@ -161,11 +214,26 @@ async function readPublishedScoutCard(slug: string, database: ScoutCardFirestore
   const trustedClaimStatus = claimStatus.safeParse(projectData.claimStatus).success
     ? claimStatus.parse(projectData.claimStatus)
     : "unclaimed";
+  const analysisIds = Array.isArray(projectData.latestVideoAnalysisIds)
+    ? [...new Set(projectData.latestVideoAnalysisIds.filter((value): value is string => typeof value === "string" && value.length > 0))].slice(0, 5)
+    : [];
+  const analysisSnapshots = await Promise.all(
+    analysisIds.map((analysisId) => database.collection("videoAnalyses").doc(analysisId).get()),
+  );
+  const trailerCritiques = analysisSnapshots.flatMap((snapshot) => {
+    if (!snapshot.exists) return [];
+    const parsed = trailerCriticSchema.safeParse(snapshot.data());
+    if (!parsed.success || parsed.data.artifactId !== snapshot.id || parsed.data.projectId !== card.projectId) return [];
+    const source = card.sourceLedger.find((entry) => entry.id === parsed.data.sourceId);
+    if (!source || youtubeVideoId(source.url) !== parsed.data.youtubeVideoId || youtubeVideoId(parsed.data.youtubeUrl) !== parsed.data.youtubeVideoId) return [];
+    return [parsed.data];
+  });
   return {
     ...card,
     claimStatus: trustedClaimStatus,
     creatorContext: { ...card.creatorContext, claimStatus: trustedClaimStatus },
     industryLens: { ...card.industryLens, creatorClaimStatus: trustedClaimStatus },
+    trailerCritiques,
   };
 }
 

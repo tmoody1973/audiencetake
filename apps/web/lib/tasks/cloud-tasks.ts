@@ -8,6 +8,15 @@ import {
 
 const MAX_TASK_BODY_BYTES = 4_096;
 const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+const SAFE_SOURCE_ID = /^[A-Za-z0-9_-]{1,200}$/;
+const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+
+export type TrailerCriticDispatcher = (input: {
+  projectId: string;
+  sourceId: string;
+  youtubeVideoId: string;
+  analysisVersion?: number;
+}) => Promise<void>;
 
 type CloudTasksClientLike = {
   queuePath(project: string, location: string, queue: string): string;
@@ -103,6 +112,19 @@ function researchEndpoint(serviceUrl: string): string {
   return endpoint.toString();
 }
 
+function trailerCriticEndpoint(serviceUrl: string): string {
+  let endpoint: URL;
+  try {
+    endpoint = new URL("/tasks/trailer-critic", serviceUrl);
+  } catch {
+    throw new CloudTasksConfigurationError("AGENT_SERVICE_URL must be an absolute URL.");
+  }
+  if (endpoint.protocol !== "https:") {
+    throw new CloudTasksConfigurationError("AGENT_SERVICE_URL must use HTTPS.");
+  }
+  return endpoint.toString();
+}
+
 function isAlreadyExists(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const candidate = error as { code?: unknown; status?: unknown };
@@ -151,6 +173,68 @@ export function createCloudTasksResearchDispatcher(
     } catch (error) {
       // A deterministic task name makes a retried enqueue safe. The worker's
       // lease remains the correctness boundary after Cloud Tasks accepts it.
+      if (!isAlreadyExists(error)) throw error;
+    }
+  };
+}
+
+export function deterministicTrailerCriticTaskId(
+  projectId: string,
+  youtubeVideoId: string,
+  analysisVersion = 1,
+): string {
+  if (
+    !SAFE_ID.test(projectId)
+    || !YOUTUBE_VIDEO_ID.test(youtubeVideoId)
+    || !Number.isInteger(analysisVersion)
+    || analysisVersion < 1
+    || analysisVersion > 100
+  ) {
+    throw new Error("Invalid Trailer Critic task identity.");
+  }
+  return `trailer-${projectId}-${youtubeVideoId}-v${analysisVersion}`;
+}
+
+export function createCloudTasksTrailerCriticDispatcher(
+  config: CloudTaskDispatcherConfig = cloudTaskConfigFromEnv(),
+  client: CloudTasksClientLike = new CloudTasksClient(
+    cloudTasksClientOptionsFromEnv(config.project),
+  ) as CloudTasksClientLike,
+): TrailerCriticDispatcher {
+  const endpoint = trailerCriticEndpoint(config.serviceUrl);
+  return async ({ projectId, sourceId, youtubeVideoId, analysisVersion = 1 }) => {
+    if (!SAFE_SOURCE_ID.test(sourceId)) throw new Error("Invalid Trailer Critic source identity.");
+    const taskId = deterministicTrailerCriticTaskId(projectId, youtubeVideoId, analysisVersion);
+    const payload = JSON.stringify({
+      projectId,
+      sourceId,
+      youtubeVideoId,
+      youtubeUrl: `https://www.youtube.com/watch?v=${youtubeVideoId}`,
+      analysisVersion,
+      taskName: taskId,
+    });
+    if (Buffer.byteLength(payload, "utf8") > MAX_TASK_BODY_BYTES) {
+      throw new Error("Trailer Critic task payload exceeds the safe size limit.");
+    }
+    const parent = client.queuePath(config.project, config.location, config.queue);
+    try {
+      await client.createTask({
+        parent,
+        task: {
+          name: client.taskPath(config.project, config.location, config.queue, taskId),
+          httpRequest: {
+            httpMethod: "POST",
+            url: endpoint,
+            headers: { "Content-Type": "application/json" },
+            oidcToken: {
+              serviceAccountEmail: config.serviceAccountEmail,
+              audience: config.audience,
+            },
+            body: Buffer.from(payload, "utf8").toString("base64"),
+          },
+        },
+      });
+    } catch (error) {
       if (!isAlreadyExists(error)) throw error;
     }
   };

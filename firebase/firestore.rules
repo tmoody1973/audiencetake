@@ -112,6 +112,25 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /videoAnalyses/{artifactId} {
+      allow get: if resource.data.visibility == 'public' &&
+        resource.data.artifactId == artifactId &&
+        isPublishedProject(resource.data.projectId) &&
+        resource.data.keys().hasAll([
+          'artifactId', 'projectId', 'sourceId', 'youtubeUrl', 'youtubeVideoId',
+          'modelId', 'analysisVersion', 'cardVersionId', 'structuralNarrative',
+          'technicalCraft', 'marketingPersuasion', 'emotionalRhetorical',
+          'matrix', 'sourceIds', 'limitations', 'analyzedAt', 'visibility'
+        ]) &&
+        resource.data.keys().hasOnly([
+          'artifactId', 'projectId', 'sourceId', 'youtubeUrl', 'youtubeVideoId',
+          'modelId', 'analysisVersion', 'cardVersionId', 'structuralNarrative',
+          'technicalCraft', 'marketingPersuasion', 'emotionalRhetorical',
+          'matrix', 'sourceIds', 'limitations', 'analyzedAt', 'visibility'
+        ]);
+      allow list, write: if false;
+    }
+
     match /follows/{followId} {
       allow read: if (signedIn() && resource.data.uid == request.auth.uid) ||
         (resource.data.active == true && isPublishedProject(resource.data.projectId) && profilePublishesActivity(resource.data.uid));

@@ -13,6 +13,11 @@ from audience_take_agents.publication.store import PublicationStore
 from audience_take_agents.tools.firestore_publication import FirestorePublicationStore
 from audience_take_agents.tools.parallel_search import ParallelSearchClient
 from audience_take_agents.tools.source_reader import SafeSourceReader
+from audience_take_agents.trailer_critic import (
+    FirestoreTrailerCriticStore,
+    GeminiTrailerCriticProvider,
+    TrailerCriticService,
+)
 
 
 @dataclass(frozen=True)
@@ -33,16 +38,23 @@ class AgentSettings:
     model: str
     location: str
     parallel_api_key: str | None
+    project: str | None
+    trailer_critic_model: str
 
     @classmethod
     def from_environment(cls) -> "AgentSettings":
         model = os.environ.get("AUDIENCE_TAKE_GEMINI_MODEL", "gemini-3.5-flash")
         if model.endswith("-latest") or model == "latest":
             raise ValueError("AUDIENCE_TAKE_GEMINI_MODEL cannot use a moving latest alias")
+        trailer_model = os.environ.get("AUDIENCE_TAKE_TRAILER_CRITIC_MODEL", "gemini-3.7-flash")
+        if trailer_model.endswith("-latest") or trailer_model == "latest":
+            raise ValueError("AUDIENCE_TAKE_TRAILER_CRITIC_MODEL cannot use a moving latest alias")
         return cls(
             model=model,
             location=os.environ.get("GOOGLE_CLOUD_LOCATION", "us"),
             parallel_api_key=os.environ.get("PARALLEL_API_KEY"),
+            project=os.environ.get("GOOGLE_CLOUD_PROJECT"),
+            trailer_critic_model=trailer_model,
         )
 
 
@@ -69,6 +81,7 @@ def create_research_executor(
     # by AudienceTakeOrchestrator and its Firestore stage boundaries.
     graph = build_adk_research_graph(model=configured.model, parallel=parallel)
     publisher = ScoutCardPublisher(publication_store or FirestorePublicationStore(firestore_client))
+    trailer_critic = create_trailer_critic_service(firestore_client, settings=configured)
     return AudienceTakeOrchestrator(
         input_loader=FirestoreInputLoader(firestore_client),
         source_reader=SafeSourceReader(),
@@ -76,4 +89,25 @@ def create_research_executor(
         web_researcher=researcher,
         publisher=publisher,
         adk_graph=graph,
+        trailer_critic=trailer_critic,
+    )
+
+
+def create_trailer_critic_service(
+    firestore_client: Any,
+    *,
+    settings: AgentSettings | None = None,
+) -> TrailerCriticService:
+    """Create the independently pinned public-YouTube video analyzer."""
+    configured = settings or AgentSettings.from_environment()
+    project = configured.project or getattr(firestore_client, "project", None)
+    if not isinstance(project, str) or not project:
+        raise ValueError("GOOGLE_CLOUD_PROJECT is required for Trailer Critic")
+    return TrailerCriticService(
+        provider=GeminiTrailerCriticProvider(
+            model=configured.trailer_critic_model,
+            project=project,
+            location="global",
+        ),
+        store=FirestoreTrailerCriticStore(firestore_client),
     )

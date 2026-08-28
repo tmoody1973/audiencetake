@@ -12,12 +12,22 @@ from fastapi import FastAPI, Header, HTTPException, status
 from google.cloud import firestore
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from audience_take_agents.app import create_research_executor, service_identity
+from audience_take_agents.app import (
+    create_research_executor,
+    create_trailer_critic_service,
+    service_identity,
+)
 from audience_take_agents.runtime.firestore_store import FirestoreRuntimeStore
-from audience_take_agents.runtime.models import ResearchTaskRequest, TaskDelivery
+from audience_take_agents.runtime.models import (
+    ResearchTaskRequest,
+    TaskDelivery,
+    TrailerCriticTaskRequest,
+)
 from audience_take_agents.runtime.service import ExecutorNotConfiguredError, ResearchTaskRuntime
+from audience_take_agents.trailer_critic import FirestoreTrailerCriticJobRuntime
 
 RuntimeFactory = Callable[[], ResearchTaskRuntime]
+TrailerRuntimeFactory = Callable[[], FirestoreTrailerCriticJobRuntime]
 
 
 def _safe_error_chain(error: BaseException) -> list[str]:
@@ -108,6 +118,14 @@ class TaskResponse(BaseModel):
     run_id: str
 
 
+class TrailerTaskResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    ok: bool = True
+    disposition: str
+    artifact_id: str
+
+
 def _default_runtime() -> ResearchTaskRuntime:
     project = os.environ.get("GOOGLE_CLOUD_PROJECT")
     client = firestore.Client(project=project)
@@ -117,7 +135,19 @@ def _default_runtime() -> ResearchTaskRuntime:
     )
 
 
-def create_app(runtime_factory: RuntimeFactory = _default_runtime) -> FastAPI:
+def _default_trailer_runtime() -> FirestoreTrailerCriticJobRuntime:
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    client = firestore.Client(project=project)
+    return FirestoreTrailerCriticJobRuntime(
+        client=client,
+        service=create_trailer_critic_service(client),
+    )
+
+
+def create_app(
+    runtime_factory: RuntimeFactory = _default_runtime,
+    trailer_runtime_factory: TrailerRuntimeFactory = _default_trailer_runtime,
+) -> FastAPI:
     app = FastAPI(
         title="Audience Take research runtime",
         version=service_identity().version,
@@ -187,6 +217,58 @@ def create_app(runtime_factory: RuntimeFactory = _default_runtime) -> FastAPI:
             disposition=lease.disposition.value,
             run_id=payload.run_id,
         )
+
+    @app.post("/tasks/trailer-critic", response_model=TrailerTaskResponse)
+    async def trailer_critic_task(
+        payload: TrailerCriticTaskRequest,
+        authorization: Annotated[str | None, Header()] = None,
+        cloud_task_name: Annotated[str | None, Header(alias="X-CloudTasks-TaskName")] = None,
+        cloud_queue_name: Annotated[str | None, Header(alias="X-CloudTasks-QueueName")] = None,
+        retry_count_header: Annotated[
+            str | None, Header(alias="X-CloudTasks-TaskRetryCount")
+        ] = None,
+    ) -> TrailerTaskResponse:
+        if authorization is None or not authorization.startswith("Bearer "):
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "OIDC bearer token required")
+        if not authorization.removeprefix("Bearer ").strip():
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "OIDC bearer token required")
+        if cloud_task_name is None or cloud_queue_name is None:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Cloud Tasks headers required")
+        if cloud_task_name.rsplit("/", maxsplit=1)[-1] != payload.task_name:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "task name does not match payload")
+        try:
+            retry_count = int(retry_count_header or "0")
+        except ValueError as error:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid retry count") from error
+        if retry_count < 0:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid retry count")
+        if retry_count > _max_task_retry_count():
+            return TrailerTaskResponse(
+                disposition="retry_suppressed",
+                artifact_id="retry-suppressed",
+            )
+        try:
+            disposition, artifact_id = await trailer_runtime_factory().handle(
+                payload, f"cloud-run-{uuid4().hex}"
+            )
+        except Exception as error:
+            print(
+                json.dumps(
+                    {
+                        "severity": "ERROR",
+                        "message": "trailer critic task failed safely",
+                        "projectId": payload.project_id,
+                        "errorChain": _safe_error_chain(error),
+                        "providerFailureCode": _safe_provider_failure_code(error),
+                    }
+                ),
+                flush=True,
+            )
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                "trailer critic task failed safely",
+            ) from error
+        return TrailerTaskResponse(disposition=disposition, artifact_id=artifact_id)
 
     return app
 

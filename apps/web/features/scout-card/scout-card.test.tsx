@@ -27,6 +27,12 @@ describe("ScoutCard", () => {
     expect(screen.getAllByText("[S1]", { selector: ".citation-marks" })).toHaveLength(8);
     expect(screen.getByRole("link", { name: "Junichiro Jackson public project video" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=M2djoKmnOTY");
     expect(screen.getByText(/No native audience count is claimed\./)).toBeInTheDocument();
+    const audiencePulse = container.querySelector("#audience-pulse");
+    const industryLens = container.querySelector(".industry-lens");
+    expect(audiencePulse).not.toBeNull();
+    expect(industryLens).not.toBeNull();
+    if (!audiencePulse || !industryLens) throw new Error("Expected both ordered Scout Card sections.");
+    expect(audiencePulse.compareDocumentPosition(industryLens) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("turns additional available YouTube sources into a bounded, accessible carousel", () => {
@@ -66,6 +72,41 @@ describe("ScoutCard", () => {
     fireEvent.click(screen.getByText("Industry Lens — comparative view"));
     expect(disclosure).toHaveAttribute("open");
     expect(screen.getByRole("table", { name: "Industry Lens comparison of the three pathway hypotheses" })).toBeInTheDocument();
+  });
+
+  it("renders the bounded timestamped Trailer Critic artifact", () => {
+    const card = structuredClone(getScoutCardFixture("complete"));
+    card.trailerCritiques = [{
+      artifactId: "video-analysis-1", projectId: card.projectId,
+      sourceId: "source-youtube-trailer", youtubeUrl: "https://www.youtube.com/watch?v=M2djoKmnOTY",
+      youtubeVideoId: "M2djoKmnOTY", modelId: "gemini-3.7-flash", analysisVersion: 1,
+      cardVersionId: card.cardVersionId, analyzedAt: "2026-08-28T12:00:00Z", visibility: "public",
+      structuralNarrative: {
+        genreSignaling: "The trailer signals an urban supernatural action story.",
+        narrativeDelivery: "A vignette prioritizes tone over plot summary.", trailerType: "Proof of concept.",
+        beats: [
+          { label: "Hook", start: "00:00", end: "00:30", observation: "A measured opening establishes mood.", modality: "audiovisual" },
+          { label: "Turn", start: "00:31", end: "01:00", observation: "The pace pivots into action.", modality: "visual" },
+        ],
+      },
+      technicalCraft: { editingAndPace: "Contrasting rhythms.", cinematographyAndFraming: "Low angles.", soundAndScore: "Rhythmic impacts.", graphicsAndTitles: "A closing title sting." },
+      marketingPersuasion: { uniqueSellingProposition: "A critic hypothesis about the genre blend.", targetAudienceHypothesis: "May appeal to adult animation viewers.", conceptVsStarEmphasis: "Concept-led.", representationCaveat: "A trailer cannot establish full-project consistency." },
+      emotionalRhetorical: { emotionalHook: "Curiosity before action.", toneAndMoodBalance: "Dark action and humor.", persuasiveArgument: "Execution argues for development." },
+      matrix: [
+        { category: "genre", analysis: "Occult action." }, { category: "narrative_stance", analysis: "Micro-vignette." },
+        { category: "usp", analysis: "Hybrid vocabulary." }, { category: "target_audience", analysis: "Critic hypothesis." },
+        { category: "sound_music", analysis: "Rhythmic contrast." }, { category: "camera_editing", analysis: "Kinetic montage." },
+      ],
+      sourceIds: ["source-youtube-trailer"],
+      limitations: ["Gemini samples the video; this is not frame-perfect inspection."],
+    }];
+
+    render(<ScoutCard card={card} />);
+
+    expect(screen.getByRole("heading", { name: "Trailer critic" })).toBeInTheDocument();
+    expect(screen.getByText("00:00–00:30")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Critic's breakdown matrix" })).toBeInTheDocument();
+    expect(screen.getByText(/not frame-perfect inspection/)).toBeInTheDocument();
   });
 
   it("announces a Partial card and names its missing research sections", () => {

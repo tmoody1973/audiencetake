@@ -18,5 +18,6 @@
   { "schema": "scout-card.schema.json", "fixture": "junichiro-card.json" },
   { "schema": "scout-card.schema.json", "fixture": "junichiro-card-partial.json" },
   { "schema": "scout-card.schema.json", "fixture": "junichiro-card-unavailable-media.json" },
-  { "schema": "scout-card.schema.json", "fixture": "junichiro-card-fallback.json" }
+  { "schema": "scout-card.schema.json", "fixture": "junichiro-card-fallback.json" },
+  { "schema": "video-analysis.schema.json", "fixture": "junichiro-video-analysis.json" }
 ]

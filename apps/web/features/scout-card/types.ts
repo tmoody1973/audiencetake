@@ -64,6 +64,54 @@ export type SourceLedgerEntry = {
   externalCommentary: boolean;
 };
 
+export type TrailerCriticAnalysis = {
+  artifactId: string;
+  projectId: string;
+  sourceId: string;
+  youtubeUrl: string;
+  youtubeVideoId: string;
+  modelId: string;
+  analysisVersion: number;
+  cardVersionId: string;
+  structuralNarrative: {
+    genreSignaling: string;
+    narrativeDelivery: string;
+    trailerType: string;
+    beats: Array<{
+      label: string;
+      start: string;
+      end: string;
+      observation: string;
+      modality: "visual" | "audio" | "audiovisual";
+    }>;
+  };
+  technicalCraft: {
+    editingAndPace: string;
+    cinematographyAndFraming: string;
+    soundAndScore: string;
+    graphicsAndTitles: string;
+  };
+  marketingPersuasion: {
+    uniqueSellingProposition: string;
+    targetAudienceHypothesis: string;
+    conceptVsStarEmphasis: string;
+    representationCaveat: string;
+  };
+  emotionalRhetorical: {
+    emotionalHook: string;
+    toneAndMoodBalance: string;
+    persuasiveArgument: string;
+  };
+  matrix: Array<{
+    category: "genre" | "narrative_stance" | "usp" | "target_audience" | "sound_music" | "camera_editing";
+    analysis: string;
+  }>;
+  sourceIds: string[];
+  limitations: string[];
+  analyzedAt: string;
+  visibility: "public";
+};
+
 export type ScoutCard = {
   cardVersionId: string;
   runId: string;
@@ -146,5 +194,6 @@ export type ScoutCard = {
     creatorClaimStatus: ClaimStatus;
     recommendedNextExperiment: NextExperiment;
   };
+  trailerCritiques?: TrailerCriticAnalysis[];
   publishedAt: string;
 };

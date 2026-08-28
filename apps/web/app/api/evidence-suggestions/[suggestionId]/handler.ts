@@ -8,6 +8,11 @@ import { EvidenceError } from "@/lib/evidence/errors";
 import { readEvidenceJson } from "@/lib/evidence/http";
 import { createFirestoreEvidenceStore, type EvidenceStore } from "@/lib/evidence/store";
 import { getAdminFirestore } from "@/lib/firebase/admin";
+import { youtubeVideoId } from "@/lib/media/youtube";
+import {
+  createCloudTasksTrailerCriticDispatcher,
+  type TrailerCriticDispatcher,
+} from "@/lib/tasks/cloud-tasks";
 import { AuthorizationError, requireAdmin } from "@/lib/trust/authorization";
 import {
   CorrectionError,
@@ -26,6 +31,7 @@ type RouteDependencies = {
     incorporatedSourceId: string;
     canonicalUrl: string;
   }) => Promise<unknown>;
+  dispatchTrailerCritic?: TrailerCriticDispatcher;
 };
 
 export async function handleEvidenceReviewPatch(
@@ -56,6 +62,7 @@ export async function handleEvidenceReviewPatch(
     const store = dependencies.store ?? createFirestoreEvidenceStore(database!);
     const result = await store.review(suggestionId.data, user.uid, review.data);
     let mediaPromotion: unknown = null;
+    let trailerCriticQueued = false;
     if (
       result.status === "verified_incorporated"
       && result.suggestedUse === "scout_card_video"
@@ -70,8 +77,26 @@ export async function handleEvidenceReviewPatch(
         incorporatedSourceId: result.incorporatedSourceId,
         canonicalUrl: result.canonicalUrl,
       });
+      const videoId = youtubeVideoId(result.canonicalUrl);
+      if (!videoId) {
+        throw new CorrectionError(
+          "invalid_source",
+          "Use a supported YouTube video URL.",
+          400,
+        );
+      }
+      await (
+        dependencies.dispatchTrailerCritic
+        ?? createCloudTasksTrailerCriticDispatcher()
+      )({
+        projectId: result.projectId,
+        sourceId: result.incorporatedSourceId,
+        youtubeVideoId: videoId,
+        analysisVersion: 1,
+      });
+      trailerCriticQueued = true;
     }
-    return ok({ ...result, mediaPromotion });
+    return ok({ ...result, mediaPromotion, trailerCriticQueued });
   } catch (error) {
     if (error instanceof AuthenticationError) {
       return fail({ code: error.code, message: error.message }, 401);
