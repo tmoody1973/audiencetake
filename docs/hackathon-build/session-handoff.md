@@ -620,8 +620,25 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    fallback because the published Firestore project's stored slug is
    `junichiro-live-project`; treat canonical-slug reconciliation as a separate
    data/URL task, not an authentication retry. Do not trigger another rollout
-   merely to sync this handoff entry.
-   After the production route is fixed, bind the
+   merely to sync this handoff entry. The follow-up production audit confirmed
+   exactly one matching project (`junichiro-live-20260826-1918`), immutable card
+   `card-junichiro-live-20260826-1918-v1`, no target-slug collision, and no
+   correction, claim, creator assignment, creator update, or project-scoped
+   creator role. The card itself explicitly retains an unresolved question
+   about the identity link between “Junichiro Live Project” and “Junichiro
+   Jackson,” so renaming or cloning it as Junichiro Jackson would overstate the
+   evidence. The evidence-safe fix is a server-side `308` alias from
+   `/projects/junichiro-jackson` to the verified stored route; it performs no
+   Firestore read or write before redirecting. The stored live slug also shares
+   the exact labeled saved fallback during a provider outage. The full gate
+   passes 20 contract fixtures and 42 web test files / 165 tests, lint,
+   typecheck, and production build; a local production HTTP check confirmed the
+   exact `308` and Location header. A bounded creator Auth inventory was stopped
+   after Python lacked the Admin package and Node ADC charged Identity Toolkit
+   to the unrelated quota
+   project `civictrace-dev-tm`. No API was enabled and no Auth or Firestore
+   record was changed; establish the correct Auth audit credential/quota
+   context before binding any UID. Then bind the
    pre-approved demo creator to the actual live project/Auth UID, exercise the
    three-role journey, repeat a fresh authenticated native action, reconcile
    counters, verify Vercel's trusted client-IP header before adding the

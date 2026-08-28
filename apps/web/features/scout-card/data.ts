@@ -8,6 +8,7 @@ import { getAdminFirestore } from "../../lib/firebase/admin";
 import type { ScoutCard } from "./types";
 
 export const JUNICHIO_SLUG = "junichiro-jackson";
+export const JUNICHIO_LIVE_SLUG = "junichiro-live-project";
 export const LIVE_REFRESH_FALLBACK_LABEL = "Previously generated — live refresh unavailable.";
 
 const text = z.string().min(1);
@@ -157,7 +158,9 @@ export async function loadPublishedScoutCard(slug: string, database?: ScoutCardF
     return await readPublishedScoutCard(slug, database ?? getAdminFirestore() as unknown as ScoutCardFirestore);
   } catch (error) {
     logPublishedCardLoadFailure(slug, error);
-    return slug === JUNICHIO_SLUG ? fixtures.fallback : null;
+    return slug === JUNICHIO_SLUG || slug === JUNICHIO_LIVE_SLUG
+      ? fixtures.fallback
+      : null;
   }
 }
 

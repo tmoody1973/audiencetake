@@ -6,6 +6,7 @@ import canonicalPartialFixture from "../../../../contracts/fixtures/junichiro-ca
 import canonicalUnavailableFixture from "../../../../contracts/fixtures/junichiro-card-unavailable-media.json";
 import {
   getScoutCardFixture,
+  JUNICHIO_LIVE_SLUG,
   LIVE_REFRESH_FALLBACK_LABEL,
   loadPublishedScoutCard,
   type ScoutCardFirestore,
@@ -114,9 +115,11 @@ describe("loadPublishedScoutCard", () => {
       const fallback = await loadPublishedScoutCard("junichiro-jackson", unavailable);
       expect(fallback?.fallbackUsed).toBe(true);
       expect(fallback?.fallbackLabel).toBe(LIVE_REFRESH_FALLBACK_LABEL);
+      expect((await loadPublishedScoutCard(JUNICHIO_LIVE_SLUG, unavailable))?.fallbackUsed)
+        .toBe(true);
       expect(await loadPublishedScoutCard("another-project", unavailable)).toBeNull();
 
-      expect(consoleError).toHaveBeenCalledTimes(2);
+      expect(consoleError).toHaveBeenCalledTimes(3);
       const diagnostic = JSON.parse(String(consoleError.mock.calls[0][0])) as Record<string, unknown>;
       expect(diagnostic).toEqual(expect.objectContaining({
         level: "error",
