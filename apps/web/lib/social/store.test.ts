@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { commitmentId, followId, moveVoteCounts, replyId, socialCounterFields, takeId, voteId } from "./store";
+import { commitmentId, followId, moveCommitmentCount, moveVoteCounts, replyId, socialCounterFields, takeId, voteId } from "./store";
 import { validTakeBody } from "./route";
 
 describe("native social contracts", () => {
@@ -15,6 +15,20 @@ describe("native social contracts", () => {
     const transition = (old: boolean, next: boolean) => old === next ? count : (count = Math.max(0, count + (next ? 1 : -1)));
     transition(false, true); transition(true, true); transition(true, false); transition(false, false);
     expect(count).toBe(0);
+  });
+  it("returns the authoritative commitment count for activation, replay, and withdrawal", () => {
+    expect(moveCommitmentCount({}, "would_watch", false, true)).toEqual({
+      counts: { would_watch: 1 },
+      count: 1,
+    });
+    expect(moveCommitmentCount({ would_watch: 1 }, "would_watch", true, true)).toEqual({
+      counts: { would_watch: 1 },
+      count: 1,
+    });
+    expect(moveCommitmentCount({ would_watch: 1 }, "would_watch", true, false)).toEqual({
+      counts: { would_watch: 0 },
+      count: 0,
+    });
   });
   it("moves and withdraws one current vote without negative counts", () => {
     expect(moveVoteCounts({ a: 1, b: 0 }, "a", "b")).toEqual({ a: 0, b: 1 });

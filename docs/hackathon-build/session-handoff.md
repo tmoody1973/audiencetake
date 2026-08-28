@@ -910,3 +910,27 @@ the integration must remain disabled rather than operating without permission.
 - Existing section IDs, links, interaction behavior, and accessibility
   semantics are unchanged. A component assertion protects the intended DOM
   order.
+
+## Local Scout Social Panel commitment fix
+
+- Production Vercel logs proved that signed-in commitment clicks reached the
+  correct Junichiro endpoint but returned `400` for `would_watch`,
+  `would_pay`, and `back_next_chapter`. The client passed no request body while
+  the PUT route always parses a strict JSON object, so an empty body became the
+  safe `invalid_json` response. Authentication was not the failure.
+- Non-city activation now sends `{}`. The transaction returns the authoritative
+  post-transition count plus whether it belongs to the organic or demo bucket,
+  and the client updates that exact visible bucket without waiting for the
+  Firestore listener. Replays remain counter-neutral and withdrawal cannot
+  make a count negative.
+- Saving, saved, removed, validation, and rejection feedback now appears beside
+  the affected commitment. A failed request restores the prior pressed state,
+  so the interaction no longer appears inert or hides its error below the Take
+  editor.
+- The regression failed against the old implementation with the exact missing
+  `{}` payload and missing inline alert, then passed after the fix. The complete
+  gate passes 21 contract fixtures, 52 web files / 209 tests, ESLint, strict
+  TypeScript, and the production Next build.
+- This fix is committed only after the prior Trailer Critic checkpoint and is
+  not yet pushed. The next GitHub push will trigger one production Vercel
+  rollout containing both the Trailer Critic renderer and this commitment fix.

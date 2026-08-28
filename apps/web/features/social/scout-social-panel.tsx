@@ -22,6 +22,8 @@ const commitments: Array<[Commitment, string, string]> = [
 type Take = { id: string; uid?: string; whyItShouldGrow?: string; preferredPathwayId?: string; audienceNote?: string; active?: boolean; replyCount?: number; demoReplyCount?: number; displayName?: string; demoOnly?: boolean; demoLabel?: string };
 type Reply = { id: string; uid?: string; body?: string; active?: boolean; displayName?: string; demoOnly?: boolean; demoLabel?: string };
 type Counts = { followerCount?: number; demoFollowerCount?: number; takeCount?: number; demoTakeCount?: number; replyCount?: number; demoReplyCount?: number; commitmentCounts?: Record<string, number>; demoCommitmentCounts?: Record<string, number>; pathwayVoteCounts?: Record<string, number>; demoPathwayVoteCounts?: Record<string, number> };
+type CommitmentResult = { active: boolean; type: Commitment; count: number; counterKind: "organic" | "demo"; city?: string };
+type CommitmentFeedback = { kind: "status" | "error"; message: string };
 
 function DemoCount({ value }: { value?: number }) {
   return value ? <small className="demo-count">+ {value} demo</small> : null;
@@ -34,6 +36,7 @@ export function ScoutSocialPanel({ card }: Props) {
   const [counts, setCounts] = useState<Counts>({});
   const [followed, setFollowed] = useState(false);
   const [commitmentState, setCommitmentState] = useState<Partial<Record<Commitment, boolean>>>({});
+  const [commitmentFeedback, setCommitmentFeedback] = useState<Partial<Record<Commitment, CommitmentFeedback>>>({});
   const [city, setCity] = useState("");
   const [vote, setVote] = useState<string | undefined>();
   const [takes, setTakes] = useState<Take[]>([]);
@@ -91,7 +94,31 @@ export function ScoutSocialPanel({ card }: Props) {
   const action = async (key: string, fn: () => Promise<void>) => { setError(""); setBusy(key); try { await fn(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Action failed."); } finally { setBusy(null); } };
   const requireSignIn = () => { if (!signedIn) { window.location.assign(signInHref(card.slug)); return true; } return false; };
   const onFollow = () => { if (requireSignIn()) return; void action("follow", async () => { const next = !followed; setFollowed(next); try { await socialCommand(`/api/projects/${card.projectId}/follow`, next ? "PUT" : "DELETE"); } catch (e) { setFollowed(!next); throw e; } }); };
-  const onCommitment = (type: Commitment) => { if (requireSignIn()) return; void action(type, async () => { if (type === "bring_to_city" && !commitmentState[type] && !city.trim()) throw new Error("City is required to bring this project to your city."); const next = !commitmentState[type]; setCommitmentState((old) => ({ ...old, [type]: next })); try { await socialCommand(`/api/projects/${card.projectId}/commitments/${type}`, next ? "PUT" : "DELETE", next && type === "bring_to_city" ? { city } : undefined); } catch (e) { setCommitmentState((old) => ({ ...old, [type]: !next })); throw e; } }); };
+  const onCommitment = (type: Commitment) => {
+    if (requireSignIn()) return;
+    if (type === "bring_to_city" && !commitmentState[type] && !city.trim()) {
+      setCommitmentFeedback((old) => ({ ...old, [type]: { kind: "error", message: "City is required to bring this project to your city." } }));
+      return;
+    }
+    void action(type, async () => {
+      const next = !commitmentState[type];
+      setCommitmentFeedback((old) => ({ ...old, [type]: { kind: "status", message: "Saving…" } }));
+      setCommitmentState((old) => ({ ...old, [type]: next }));
+      try {
+        const result = await socialCommand<CommitmentResult>(
+          `/api/projects/${card.projectId}/commitments/${type}`,
+          next ? "PUT" : "DELETE",
+          next ? (type === "bring_to_city" ? { city } : {}) : undefined,
+        );
+        const countField = result.counterKind === "demo" ? "demoCommitmentCounts" : "commitmentCounts";
+        setCounts((old) => ({ ...old, [countField]: { ...(old[countField] ?? {}), [type]: result.count } }));
+        setCommitmentFeedback((old) => ({ ...old, [type]: { kind: "status", message: next ? "Saved." : "Removed." } }));
+      } catch (cause) {
+        setCommitmentState((old) => ({ ...old, [type]: !next }));
+        setCommitmentFeedback((old) => ({ ...old, [type]: { kind: "error", message: cause instanceof Error ? cause.message : "Commitment could not be saved." } }));
+      }
+    });
+  };
   const onVote = (pathwayId: string) => { if (requireSignIn()) return; void action("vote", async () => { const next = vote === pathwayId ? undefined : pathwayId; setVote(next); try { await socialCommand(`/api/projects/${card.projectId}/pathway-vote`, next ? "PUT" : "DELETE", next ? { pathwayId: next } : undefined); } catch (e) { setVote(vote); throw e; } }); };
   const saveTake = () => action("take", async () => { if (!takeWhy.trim() || (takeWhy.trim().length + takeNote.trim().length) > 600) throw new Error("Your Take and optional note must total 600 characters or fewer."); await socialCommand(`/api/projects/${card.projectId}/take`, mine ? "PATCH" : "PUT", { whyItShouldGrow: takeWhy.trim(), preferredPathwayId: takePath, audienceNote: takeNote.trim() || undefined }); setTakeWhy(""); setTakeNote(""); setEditing(false); });
   const withdrawTake = () => action("withdraw", async () => { await socialCommand(`/api/projects/${card.projectId}/take`, "DELETE"); setEditing(false); });
@@ -99,7 +126,6 @@ export function ScoutSocialPanel({ card }: Props) {
   const withdrawReply = (takeId: string) => action(`withdraw-reply-${takeId}`, async () => { await socialCommand(`/api/takes/${takeId}/reply`, "DELETE"); });
 
   // Populate the editor from the user's current Take when it arrives from Firestore.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (mine && !editing) { setTakeWhy(mine.whyItShouldGrow ?? ""); setTakeNote(mine.audienceNote ?? ""); setTakePath(mine.preferredPathwayId ?? card.pathways[0]?.id ?? ""); } }, [mine, editing, card.pathways]);
 
   return <section className="scout-social-panel" id="audience-pulse" aria-labelledby="audience-pulse-title">
@@ -108,7 +134,7 @@ export function ScoutSocialPanel({ card }: Props) {
     {!signedIn ? <p className="social-auth-note">Sign in to participate. <Link href={signInHref(card.slug)}>Continue to sign in</Link></p> : null}
     <div className="social-primary"><button className="button-primary" type="button" aria-pressed={followed} aria-busy={busy === "follow"} disabled={busy !== null} onClick={onFollow}>{followed ? "Following" : "Follow this project"} <span>{counts.followerCount ?? 0}</span><DemoCount value={counts.demoFollowerCount} /></button><small>Follow is a lightweight signal that you want updates. Demo-account signals are shown separately.</small></div>
     <div className="social-grid">
-      <fieldset className="commitment-list"><legend>Commitments</legend>{commitments.map(([type, label, definition]) => <div className="social-control" key={type}><button type="button" aria-pressed={Boolean(commitmentState[type])} aria-busy={busy === type} disabled={busy !== null} onClick={() => onCommitment(type)}>{commitmentState[type] ? "✓ " : ""}{label}<span>{counts.commitmentCounts?.[type] ?? 0}</span><DemoCount value={counts.demoCommitmentCounts?.[type]} /></button><small>{definition}</small>{type === "bring_to_city" && commitmentState[type] !== true ? <label>City<input value={city} onChange={(event) => setCity(event.target.value)} placeholder="e.g. Chicago" /></label> : null}</div>)}</fieldset>
+      <fieldset className="commitment-list"><legend>Commitments</legend>{commitments.map(([type, label, definition]) => { const feedback = commitmentFeedback[type]; return <div className="social-control" key={type}><button type="button" aria-pressed={Boolean(commitmentState[type])} aria-busy={busy === type} disabled={busy !== null} onClick={() => onCommitment(type)}>{commitmentState[type] ? "✓ " : ""}{label}<span>{counts.commitmentCounts?.[type] ?? 0}</span><DemoCount value={counts.demoCommitmentCounts?.[type]} /></button><small>{definition}</small>{type === "bring_to_city" && commitmentState[type] !== true ? <label>City<input value={city} onChange={(event) => setCity(event.target.value)} placeholder="e.g. Chicago" /></label> : null}{feedback ? <p className={`social-action-status${feedback.kind === "error" ? " field-error" : ""}`} role={feedback.kind === "error" ? "alert" : "status"}>{feedback.message}</p> : null}</div>; })}</fieldset>
       <fieldset className="pathway-votes"><legend>Which pathway should grow?</legend>{card.pathways.map((pathway) => <label key={pathway.id}><input type="radio" name={`pathway-${card.projectId}`} checked={vote === pathway.id} disabled={busy !== null} onChange={() => onVote(pathway.id)} /> <span>{pathway.label}</span><small>{counts.pathwayVoteCounts?.[pathway.id] ?? 0} organic votes <DemoCount value={counts.demoPathwayVoteCounts?.[pathway.id]} /></small></label>)}<button className="text-link" type="button" disabled={!vote || busy !== null} onClick={() => { if (vote) onVote(vote); }}>Clear my vote</button></fieldset>
     </div>
     <div className="take-editor"><div><span className="route-label">One structured Take</span><h3>Make the case for growth</h3><p>One Take per person. Flat replies keep the conversation legible.</p></div><form onSubmit={(event) => { event.preventDefault(); if (requireSignIn()) return; void saveTake(); }}><label>Why should it grow? <textarea value={takeWhy} onChange={(event) => setTakeWhy(event.target.value)} maxLength={600} required disabled={!signedIn || busy !== null} /><small>{takeWhy.length}/600</small></label><label>Preferred pathway<select value={takePath} onChange={(event) => setTakePath(event.target.value)} disabled={!signedIn || busy !== null}>{card.pathways.map((pathway) => <option value={pathway.id} key={pathway.id}>{pathway.label}</option>)}</select></label><label>Audience note (optional)<textarea value={takeNote} onChange={(event) => setTakeNote(event.target.value)} maxLength={600} disabled={!signedIn || busy !== null} /></label><div><button className="button-primary" type="submit" disabled={busy !== null}>{mine ? "Edit Take" : "Publish Take"}</button>{mine ? <button type="button" onClick={withdrawTake} disabled={busy !== null}>Withdraw</button> : null}</div></form></div>
