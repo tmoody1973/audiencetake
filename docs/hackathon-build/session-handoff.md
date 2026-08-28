@@ -832,10 +832,10 @@ the integration must remain disabled rather than operating without permission.
   educational licensing, and Community impact screenings. The public Vercel
   route returns `200`, contains all three labels, and contains none of the old
   animation labels.
-- The research queue remains `PAUSED` and empty. A resume command was rejected
-  by the safety gate because resuming enables future production task execution
-  and requires its own explicit approval. Do not bypass that gate; no task or
-  provider call was started.
+- After separate explicit user approval, the research queue was resumed and
+  verified `RUNNING` with zero tasks. It retains one concurrent dispatch, one
+  dispatch per second, `maxAttempts: 1`, and the application-level retry-count
+  suppression. Resuming the empty queue did not start a task or provider call.
 - The approved future phase is a separately specified Gemini YouTube Trailer
   Critic. It has not been implemented or deployed yet and must begin with its
   own behavior-evaluation contract.
