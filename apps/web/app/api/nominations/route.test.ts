@@ -110,10 +110,51 @@ describe("POST /api/nominations", () => {
       dispatch: vi.fn(),
       urlPolicy,
       database: {} as never,
-      consumeLimit: vi.fn().mockRejectedValue(new RateLimitError(120)),
+      consumeLimits: vi.fn().mockRejectedValue(new RateLimitError(120)),
     });
     expect(response.status).toBe(429);
     expect(response.headers.get("Retry-After")).toBe("120");
     await expect(response.json()).resolves.toMatchObject({ error: { code: "rate_limited" } });
+  });
+
+  it("checks the account and trusted Vercel IP in one limiter transaction", async () => {
+    const consumeLimits = vi.fn().mockResolvedValue([]);
+    const response = await handleNominationPost(request(validBody), {
+      verifyRequest: vi.fn().mockResolvedValue({ user: { uid: "creator-1" } }),
+      store: store(),
+      dispatch: vi.fn().mockResolvedValue(undefined),
+      urlPolicy,
+      database: {} as never,
+      consumeLimits,
+      resolveClientIp: vi.fn().mockReturnValue("203.0.113.8"),
+    });
+
+    expect(response.status).toBe(200);
+    expect(consumeLimits).toHaveBeenCalledWith({}, [
+      expect.objectContaining({
+        uid: "creator-1",
+        policy: expect.objectContaining({ name: "nomination" }),
+      }),
+      expect.objectContaining({
+        uid: "203.0.113.8",
+        policy: expect.objectContaining({ name: "nomination_ip" }),
+      }),
+    ]);
+  });
+
+  it("does not create an IP principal when the runtime cannot establish one", async () => {
+    const consumeLimits = vi.fn().mockResolvedValue([]);
+    const response = await handleNominationPost(request(validBody), {
+      verifyRequest: vi.fn().mockResolvedValue({ user: { uid: "creator-1" } }),
+      store: store(),
+      dispatch: vi.fn().mockResolvedValue(undefined),
+      urlPolicy,
+      database: {} as never,
+      consumeLimits,
+      resolveClientIp: vi.fn().mockReturnValue(null),
+    });
+
+    expect(response.status).toBe(200);
+    expect(consumeLimits.mock.calls[0]?.[1]).toHaveLength(1);
   });
 });

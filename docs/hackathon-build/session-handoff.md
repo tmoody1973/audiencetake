@@ -633,17 +633,31 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    the exact labeled saved fallback during a provider outage. The full gate
    passes 20 contract fixtures and 42 web test files / 165 tests, lint,
    typecheck, and production build; a local production HTTP check confirmed the
-   exact `308` and Location header. A bounded creator Auth inventory was stopped
-   after Python lacked the Admin package and Node ADC charged Identity Toolkit
-   to the unrelated quota
-   project `civictrace-dev-tm`. No API was enabled and no Auth or Firestore
-   record was changed; establish the correct Auth audit credential/quota
-   context before binding any UID. Then bind the
-   pre-approved demo creator to the actual live project/Auth UID, exercise the
-   three-role journey, repeat a fresh authenticated native action, reconcile
-   counters, verify Vercel's trusted client-IP header before adding the
-   nomination per-IP limiter (account limiting is already active), and rehearse
-   the judge path. Stop at visual pause `3`.
+   exact `308` and Location header. Production deployment
+   `dpl_D7WQQXHApCyREoLbxNrF9z2gPTfq` from `a418321` reached `READY` and is
+   assigned to `https://audiencetake.vercel.app`.
+   `/projects/junichiro-jackson` returns that evidence-safe `308`; the live
+   destination returns `200`, renders `card-junichiro-live-20260826-1918-v1`,
+   contains no saved-fallback markers, and its deployment-scoped error scan is
+   clean. The creator Auth audit blocker was then resolved without modifying
+   local ADC: the installed Google Auth Library confirms that process-local
+   `GOOGLE_CLOUD_QUOTA_PROJECT` replaces the ADC quota project before it adds
+   `x-goog-user-project`. A read-only inventory charged to `test-app-mkark4`
+   succeeded and found exactly zero Firebase Auth users. No API was enabled and
+   no Auth or Firestore record was changed. A real account must sign in or be
+   created before there is a UID to review and bind; do not synthesize or guess
+   a privileged identity. Vercel's current request-header contract confirms
+   that it overwrites `x-forwarded-for` and discards caller-supplied values to
+   prevent spoofing; `VERCEL=1` identifies that runtime. The local nomination
+   command now uses that header only on Vercel, validates one IPv4/IPv6 literal,
+   and atomically checks account plus IP limits before writing either counter.
+   Raw UIDs and IP addresses are never persisted. Non-Vercel or ambiguous
+   requests retain the account limit and omit the IP principal. The full local
+   gate passes 20 contract fixtures and 43 web test files / 172 tests, lint,
+   typecheck, and the production build. After a real account exists, bind the
+   pre-approved demo creator to the reviewed live project/Auth UID, exercise
+   the three-role journey, repeat a fresh authenticated native action,
+   reconcile counters, and rehearse the judge path. Stop at visual pause `3`.
 8. The run-wide next-sequence and trusted-project-slug fixes are local only.
    Require explicit deployment approval before replacing revision `00019-z6v`.
 

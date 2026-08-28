@@ -1,7 +1,12 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { describe, expect, it } from "vitest";
 
-import { consumeRateLimit, RateLimitError, type RateLimitPolicy } from "./rate-limit";
+import {
+  consumeRateLimit,
+  consumeRateLimits,
+  RateLimitError,
+  type RateLimitPolicy,
+} from "./rate-limit";
 
 const policy: RateLimitPolicy = {
   name: "test_action",
@@ -75,5 +80,38 @@ describe("account rate limits", () => {
         retryAfterSeconds: 30,
       }));
     expect(memory.writes).toHaveLength(0);
+  });
+
+  it("checks all principals before writing any counter", async () => {
+    const now = new Date("2026-08-27T12:00:30.000Z");
+    const burstStart = Date.parse("2026-08-27T12:00:00.000Z");
+    const ipPolicy = { ...policy, name: "test_action_ip" };
+    const ipPrincipal = await import("node:crypto").then(({ createHash }) =>
+      createHash("sha256").update(`${ipPolicy.name}:203.0.113.8`).digest("hex"));
+    const memory = memoryDatabase({
+      [`rateLimitCounters/${ipPrincipal}_burst_${burstStart}`]: { count: 2 },
+    });
+
+    await expect(consumeRateLimits(memory.database, [
+      { uid: "user-1", policy, now },
+      { uid: "203.0.113.8", policy: ipPolicy, now },
+    ])).rejects.toBeInstanceOf(RateLimitError);
+    expect(memory.writes).toHaveLength(0);
+  });
+
+  it("persists only digests when consuming account and IP limits together", async () => {
+    const memory = memoryDatabase();
+    const results = await consumeRateLimits(memory.database, [
+      { uid: "user-1", policy, now: new Date("2026-08-27T12:00:30.000Z") },
+      {
+        uid: "203.0.113.8",
+        policy: { ...policy, name: "test_action_ip" },
+        now: new Date("2026-08-27T12:00:30.000Z"),
+      },
+    ]);
+
+    expect(results).toHaveLength(2);
+    expect([...memory.values.keys()].join(" ")).not.toContain("user-1");
+    expect([...memory.values.keys()].join(" ")).not.toContain("203.0.113.8");
   });
 });

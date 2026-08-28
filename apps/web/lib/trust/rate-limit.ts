@@ -11,6 +11,7 @@ export type RateLimitPolicy = {
 
 export const RATE_LIMITS = {
   nomination: { name: "nomination", burstLimit: 2, burstWindowSeconds: 60 * 60, dailyLimit: 5 },
+  nominationIp: { name: "nomination_ip", burstLimit: 10, burstWindowSeconds: 60 * 60, dailyLimit: 25 },
   evidenceSuggestion: { name: "evidence_suggestion", burstLimit: 3, burstWindowSeconds: 10 * 60, dailyLimit: 20 },
   claimRequest: { name: "claim_request", burstLimit: 2, burstWindowSeconds: 60 * 60, dailyLimit: 5 },
   creatorUpdate: { name: "creator_update", burstLimit: 8, burstWindowSeconds: 10 * 60, dailyLimit: 50 },
@@ -31,6 +32,19 @@ export class RateLimitError extends Error {
 
 type Counter = { count?: unknown };
 
+export type RateLimitInput = {
+  uid: string;
+  policy: RateLimitPolicy;
+  idempotencyKey?: string;
+  now?: Date;
+};
+
+export type RateLimitResult = {
+  remainingBurst: number;
+  remainingDaily: number;
+  reused: boolean;
+};
+
 function digest(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -48,74 +62,103 @@ function countOf(value: Counter | undefined): number {
 
 export async function consumeRateLimit(
   database: Firestore,
-  input: {
-    uid: string;
-    policy: RateLimitPolicy;
-    idempotencyKey?: string;
-    now?: Date;
-  },
-): Promise<{ remainingBurst: number; remainingDaily: number; reused: boolean }> {
-  const nowMs = (input.now ?? new Date()).getTime();
-  const burstMs = input.policy.burstWindowSeconds * 1000;
-  const burstStart = Math.floor(nowMs / burstMs) * burstMs;
-  const dayStart = Date.UTC(
-    new Date(nowMs).getUTCFullYear(),
-    new Date(nowMs).getUTCMonth(),
-    new Date(nowMs).getUTCDate(),
-  );
-  const principal = digest(`${input.policy.name}:${input.uid}`);
-  const burstRef = database.collection("rateLimitCounters").doc(`${principal}_burst_${burstStart}`);
-  const dayRef = database.collection("rateLimitCounters").doc(`${principal}_day_${dayStart}`);
-  const actionRef = input.idempotencyKey
-    ? database.collection("rateLimitActions").doc(digest(`${input.policy.name}:${input.uid}:${input.idempotencyKey}`))
-    : null;
+  input: RateLimitInput,
+): Promise<RateLimitResult> {
+  return (await consumeRateLimits(database, [input]))[0];
+}
+
+export async function consumeRateLimits(
+  database: Firestore,
+  inputs: readonly RateLimitInput[],
+): Promise<RateLimitResult[]> {
+  if (inputs.length === 0) return [];
+
+  const batchNow = new Date();
+  const entries = inputs.map((input) => {
+    const nowMs = (input.now ?? batchNow).getTime();
+    const burstMs = input.policy.burstWindowSeconds * 1000;
+    const burstStart = Math.floor(nowMs / burstMs) * burstMs;
+    const now = new Date(nowMs);
+    const dayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const principal = digest(`${input.policy.name}:${input.uid}`);
+    return {
+      input,
+      nowMs,
+      burstMs,
+      burstStart,
+      burstRef: database.collection("rateLimitCounters").doc(`${principal}_burst_${burstStart}`),
+      dayRef: database.collection("rateLimitCounters").doc(`${principal}_day_${dayStart}`),
+      actionRef: input.idempotencyKey
+        ? database.collection("rateLimitActions").doc(
+            digest(`${input.policy.name}:${input.uid}:${input.idempotencyKey}`),
+          )
+        : null,
+    };
+  });
 
   return database.runTransaction(async (transaction) => {
-    const burstSnapshot = await transaction.get(burstRef);
-    const daySnapshot = await transaction.get(dayRef);
-    const actionSnapshot = actionRef ? await transaction.get(actionRef) : null;
-    const burstCount = countOf(burstSnapshot.data() as Counter | undefined);
-    const dayCount = countOf(daySnapshot.data() as Counter | undefined);
-
-    if (actionSnapshot?.exists) {
-      return {
-        remainingBurst: Math.max(0, input.policy.burstLimit - burstCount),
-        remainingDaily: Math.max(0, input.policy.dailyLimit - dayCount),
-        reused: true,
-      };
-    }
-
-    if (burstCount >= input.policy.burstLimit || dayCount >= input.policy.dailyLimit) {
-      const retryAt = burstCount >= input.policy.burstLimit ? burstStart + burstMs : nextUtcDay(nowMs);
-      throw new RateLimitError(Math.max(1, Math.ceil((retryAt - nowMs) / 1000)));
-    }
-
-    transaction.set(burstRef, {
-      policy: input.policy.name,
-      count: FieldValue.increment(1),
-      window: "burst",
-      expiresAt: Timestamp.fromMillis(burstStart + burstMs * 2),
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-    transaction.set(dayRef, {
-      policy: input.policy.name,
-      count: FieldValue.increment(1),
-      window: "day",
-      expiresAt: Timestamp.fromMillis(nextUtcDay(nowMs) + 24 * 60 * 60 * 1000),
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-    if (actionRef) {
-      transaction.create(actionRef, {
-        policy: input.policy.name,
-        expiresAt: Timestamp.fromMillis(nextUtcDay(nowMs) + 24 * 60 * 60 * 1000),
-        createdAt: FieldValue.serverTimestamp(),
+    const states = [];
+    for (const entry of entries) {
+      const burstSnapshot = await transaction.get(entry.burstRef);
+      const daySnapshot = await transaction.get(entry.dayRef);
+      const actionSnapshot = entry.actionRef ? await transaction.get(entry.actionRef) : null;
+      states.push({
+        ...entry,
+        burstCount: countOf(burstSnapshot.data() as Counter | undefined),
+        dayCount: countOf(daySnapshot.data() as Counter | undefined),
+        reused: actionSnapshot?.exists === true,
       });
     }
 
-    return {
-      remainingBurst: input.policy.burstLimit - burstCount - 1,
-      remainingDaily: input.policy.dailyLimit - dayCount - 1,
-      reused: false,
-    };
+    for (const state of states) {
+      if (state.reused) continue;
+      if (
+        state.burstCount >= state.input.policy.burstLimit ||
+        state.dayCount >= state.input.policy.dailyLimit
+      ) {
+        const retryAt = state.burstCount >= state.input.policy.burstLimit
+          ? state.burstStart + state.burstMs
+          : nextUtcDay(state.nowMs);
+        throw new RateLimitError(Math.max(1, Math.ceil((retryAt - state.nowMs) / 1000)));
+      }
+    }
+
+    return states.map((state) => {
+      if (state.reused) {
+        return {
+          remainingBurst: Math.max(0, state.input.policy.burstLimit - state.burstCount),
+          remainingDaily: Math.max(0, state.input.policy.dailyLimit - state.dayCount),
+          reused: true,
+        };
+      }
+
+      transaction.set(state.burstRef, {
+        policy: state.input.policy.name,
+        count: FieldValue.increment(1),
+        window: "burst",
+        expiresAt: Timestamp.fromMillis(state.burstStart + state.burstMs * 2),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      transaction.set(state.dayRef, {
+        policy: state.input.policy.name,
+        count: FieldValue.increment(1),
+        window: "day",
+        expiresAt: Timestamp.fromMillis(nextUtcDay(state.nowMs) + 24 * 60 * 60 * 1000),
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      if (state.actionRef) {
+        transaction.create(state.actionRef, {
+          policy: state.input.policy.name,
+          expiresAt: Timestamp.fromMillis(nextUtcDay(state.nowMs) + 24 * 60 * 60 * 1000),
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      }
+
+      return {
+        remainingBurst: state.input.policy.burstLimit - state.burstCount - 1,
+        remainingDaily: state.input.policy.dailyLimit - state.dayCount - 1,
+        reused: false,
+      };
+    });
   });
 }
