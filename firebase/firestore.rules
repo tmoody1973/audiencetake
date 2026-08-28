@@ -22,7 +22,8 @@ service cloud.firestore {
     // performs authorization independently and is not governed by these rules.
     match /users/{uid} {
       // This collection contains public profile fields only. Authorization is
-      // held in custom claims and roleAssignments, never in a readable profile.
+      // enforced server-side from the roleAssignments collection, which the
+      // server also mirrors into custom claims, never from a readable profile.
       allow read: if resource.data.visibility == 'public';
       allow write: if false;
     }

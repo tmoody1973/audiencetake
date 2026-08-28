@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { trackSignedOut } from "../lib/analytics/auth-events";
 import { signOutCurrentUser } from "../lib/auth/sign-in";
 import { getClientAuth } from "../lib/firebase/client";
 import { hasFirebaseClientConfig } from "../lib/firebase/config";
@@ -34,6 +35,7 @@ export function SiteHeader() {
     setSigningOut(true);
     try {
       await signOutCurrentUser();
+      trackSignedOut();
     } finally {
       setSigningOut(false);
     }
