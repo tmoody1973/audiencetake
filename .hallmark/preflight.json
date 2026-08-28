@@ -1,0 +1,16 @@
+{
+  "scannedAt": "2026-08-28",
+  "designSystem": "DESIGN.md — Audience Take / The Public Scouting Program",
+  "fontStack": "League Gothic AT display, Helvetica Neue body, SFMono-Regular metadata",
+  "palette": "Locked warm paper, near-black ink, acid yellow, electric blue, signal coral, evidence green",
+  "motion": "Motion-cut; no JavaScript motion library; CSS reduced-motion support present",
+  "spacing": "Locked 8–32px component rhythm documented in DESIGN.md",
+  "framework": "Next.js 16 App Router, React 19",
+  "preserve": [
+    "typography roles",
+    "semantic accent roles",
+    "square geometry",
+    "continuous ruled fields",
+    "visible evidence labels"
+  ]
+}

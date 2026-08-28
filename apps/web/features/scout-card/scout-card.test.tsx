@@ -104,6 +104,13 @@ describe("ScoutCard", () => {
     render(<ScoutCard card={card} />);
 
     expect(screen.getByRole("heading", { name: "Trailer critic" })).toBeInTheDocument();
+    expect(screen.getByText("Genre")).toBeInTheDocument();
+    expect(screen.getByText("Form")).toBeInTheDocument();
+    const disclosure = screen.getByText("Show full analysis").closest("details");
+    expect(disclosure).not.toBeNull();
+    expect(disclosure).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByText("Show full analysis"));
+    expect(disclosure).toHaveAttribute("open");
     expect(screen.getByText("00:00–00:30")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Critic's breakdown matrix" })).toBeInTheDocument();
     expect(screen.getByText(/not frame-perfect inspection/)).toBeInTheDocument();
