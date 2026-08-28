@@ -1,5 +1,12 @@
 import { IndustryLens } from "../industry-lens/industry-lens";
 import { citationText, createCitationLabels } from "./citation-labels";
+import {
+  claimEvidenceState,
+  evidenceStateLabel,
+  evidenceStatusLabel,
+  sourcePresentation,
+  structureStatus,
+} from "./evidence-display";
 import type { ScoutCard as ScoutCardModel } from "./types";
 import { ScoutSocialPanel } from "../social/scout-social-panel";
 import { ScoutTrustPanel } from "../trust/scout-trust-panel";
@@ -13,7 +20,7 @@ function SourceMarks({ sourceIds, labels }: { sourceIds: string[]; labels: Map<s
   return <span className="citation-marks" aria-label={`Citations ${citationText(sourceIds, labels)}`}>{citationText(sourceIds, labels)}</span>;
 }
 
-function ScoutMedia({ card }: { card: ScoutCardModel }) {
+function ScoutMediaContent({ card }: { card: ScoutCardModel }) {
   const { media } = card;
   if (media.state === "authorized_embed" && media.embedUrl) {
     return <SourceVideoCarousel card={card} />;
@@ -31,6 +38,67 @@ function ScoutMedia({ card }: { card: ScoutCardModel }) {
   );
 }
 
+function ScoutMedia({ card }: { card: ScoutCardModel }) {
+  return (
+    <section className="scout-start-here" aria-labelledby="start-here-title">
+      <div className="scout-start-here-heading">
+        <span>Start here / source media</span>
+        <h2 id="start-here-title">Watch before you judge</h2>
+      </div>
+      <ScoutMediaContent card={card} />
+    </section>
+  );
+}
+
+function claimSourceIds(card: ScoutCardModel, claimIds: string[]): string[] {
+  return [...new Set(claimIds.flatMap(
+    (claimId) => card.evidenceClaims.find((claim) => claim.id === claimId)?.sourceIds ?? [],
+  ))];
+}
+
+function EvidenceBrief({ card, sourceLabels }: { card: ScoutCardModel; sourceLabels: Map<string, string> }) {
+  const knownClaims = card.evidenceClaims.filter((claim) => (
+    claimEvidenceState(claim, card.sourceLedger) !== "unknown"
+  )).slice(0, 2);
+  const checking = card.industryLens.unresolvedQuestions.slice(0, 2);
+  const observationSourceIds = claimSourceIds(card, card.storyContext.claimIds);
+  const hooks = card.storyContext.audienceHooks.slice(0, 3);
+  const activeQuestion = checking[0] ?? card.limitations[0];
+
+  return (
+    <div className="scout-summary evidence-brief">
+      <div className="evidence-brief-block">
+        <h2>What we know</h2>
+        {knownClaims.length ? <ul>{knownClaims.map((claim) => {
+          const state = claimEvidenceState(claim, card.sourceLedger);
+          return <li key={claim.id}><span className={`evidence-state evidence-state-${state}`}>{evidenceStateLabel(state)}</span><p>{claim.statement} <SourceMarks sourceIds={claim.sourceIds} labels={sourceLabels} /></p></li>;
+        })}</ul> : <p>No public claim has enough usable source support yet.</p>}
+      </div>
+      <div className="evidence-brief-block evidence-checking">
+        <h3>What we&apos;re checking</h3>
+        <ul>{checking.map((question) => <li key={question}>{question}</li>)}</ul>
+      </div>
+      <div className="why-scouted">
+        <h3>Why this is being scouted</h3>
+        <ol>{hooks.map((hook) => <li key={hook}><span className="evidence-state evidence-state-inferred">Inferred</span><p>{hook} <SourceMarks sourceIds={observationSourceIds} labels={sourceLabels} /></p></li>)}</ol>
+      </div>
+      <aside className="active-question" aria-label="Active community question">
+        <span>Open question</span>
+        <strong>{activeQuestion}</strong>
+        <a href="#audience-pulse">Add your informed Take</a>
+      </aside>
+    </div>
+  );
+}
+
+function readinessLabel(confidence: ScoutCardModel["pathways"][number]["confidence"]): string {
+  return {
+    low: "Early evidence basis",
+    medium: "Developing evidence basis",
+    high: "Stronger evidence basis",
+  }[confidence];
+}
+
 function CardStatus({ card }: { card: ScoutCardModel }) {
   if (card.fallbackUsed) {
     return <div className="card-state-banner card-state-fallback" role="status"><strong>Saved Scout Card</strong><span>{card.fallbackLabel}</span></div>;
@@ -44,11 +112,13 @@ function CardStatus({ card }: { card: ScoutCardModel }) {
 export function ScoutCard({ card }: { card: ScoutCardModel }) {
   if (card.pathways.length !== 3) throw new Error("A Scout Card requires exactly three pathways.");
   const sourceLabels = createCitationLabels(card.sourceLedger);
+  const cardStructureStatus = structureStatus(card);
+  const cardEvidenceLabel = evidenceStatusLabel(card);
 
   return (
     <main className="scout-card-page paper-texture">
-      <div className="scout-release-strip" aria-label={`${card.completeness} Scout Card`}>
-        <strong>Scout Card — public summary ({card.completeness})<span className="tear-holes" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i key={index} />)}</span></strong>
+      <div className="scout-release-strip" aria-label={`${cardStructureStatus} structure; ${cardEvidenceLabel}`}>
+        <strong>Scout Card — public evidence summary<span className="tear-holes" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <i key={index} />)}</span></strong>
         <span className="tear-label">Scout Card tear-off<span className="tear-dashes" aria-hidden="true" /><i className="fold-wedge" aria-hidden="true" /></span>
         <span>AT—{card.cardVersionId.slice(-8).toUpperCase()}</span>
       </div>
@@ -58,7 +128,11 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
         <header className="scout-identity">
           <h1 id="scout-card-title">{card.title}</h1>
           <p>{card.submissionLabel}</p>
-          <strong className="scout-completeness">{card.completeness} Scout Card</strong>
+          <div className="scout-status-stack" aria-label="Scout Card status">
+            <span><small>Structure</small><strong>{cardStructureStatus}</strong></span>
+            <span><small>Evidence</small><strong>{cardEvidenceLabel}</strong></span>
+          </div>
+          {card.identity?.relationshipStatus === "unresolved" ? <p className="identity-caution">Identity relationship remains unresolved; similar names are not silently merged.</p> : null}
           <p className="scout-hook">{card.hook}</p>
           <dl className="scout-accession">
             <div><dt>Format</dt><dd>{card.projectType.replace("_", " ")}</dd></div>
@@ -69,16 +143,7 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
 
         <section className="scout-overview" aria-label="Submitted media and scouting summary">
           <ScoutMedia card={card} />
-          <div className="scout-summary">
-            <h2>Scouting summary</h2>
-            <p>{card.storyContext.summary}</p>
-            <dl>
-              <div><dt>Current format</dt><dd>{card.storyContext.currentFormat}</dd></div>
-              <div><dt>Storyworld</dt><dd>{card.storyContext.storyworld}</dd></div>
-              <div><dt>Source basis</dt><dd>{card.provenance.nominationLabel}</dd></div>
-            </dl>
-            <div className="theme-list" aria-label="Story themes">{card.storyContext.themes.map((theme) => <span key={theme}>{theme}</span>)}</div>
-          </div>
+          <EvidenceBrief card={card} sourceLabels={sourceLabels} />
         </section>
 
         <section className="pathway-hypotheses" aria-labelledby="pathway-title">
@@ -94,7 +159,7 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
                     <div><dt>Format</dt><dd>{pathway.format}</dd></div>
                     <div><dt>Audience</dt><dd>{pathway.audience}</dd></div>
                     <div><dt>Evidence</dt><dd><span className="source-origin source-origin-inference">Inference</span> <SourceMarks sourceIds={pathway.supportingClaimIds.flatMap((claimId) => card.evidenceClaims.find((claim) => claim.id === claimId)?.sourceIds ?? [])} labels={sourceLabels} /></dd></div>
-                    <div><dt>Confidence</dt><dd>{pathway.confidence}</dd></div>
+                    <div><dt>Evidence readiness</dt><dd>{readinessLabel(pathway.confidence)}</dd></div>
                   </dl>
                   <p className="pathway-experiment"><strong>Next experiment:</strong> {pathway.nextExperiment.title} / {pathway.nextExperiment.timebox}</p>
                 </div>
@@ -119,7 +184,7 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
             <h3>Claim ledger</h3>
             {card.evidenceClaims.map((claim) => (
               <article key={claim.id}>
-                <span className={`claim-status claim-status-${claim.status}`}>{claim.status}</span>
+                <span className={`evidence-state evidence-state-${claimEvidenceState(claim, card.sourceLedger)}`}>{evidenceStateLabel(claimEvidenceState(claim, card.sourceLedger))}</span>
                 <p>{claim.statement} <SourceMarks sourceIds={claim.sourceIds} labels={sourceLabels} /></p>
                 {claim.qualification ? <small>{claim.qualification}</small> : null}
               </article>
@@ -131,7 +196,7 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
               {card.sourceLedger.map((source) => (
                 <li key={source.id}>
                   <span className="source-index">{sourceLabels.get(source.id)}</span>
-                  <div><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a><p><span className={`source-origin source-origin-${source.origin}`}>{source.origin.replace("_", " ")}</span> {source.verificationStatus} / {source.availability}</p><small>Retrieved {formatDate(source.retrievedAt)}</small></div>
+                  <div><a href={source.url} target="_blank" rel="noreferrer">{source.title}</a><p>{sourcePresentation(source).role} / {sourcePresentation(source).tier} / {source.availability}</p><small>Retrieved {formatDate(source.retrievedAt)}</small></div>
                 </li>
               ))}
             </ol>

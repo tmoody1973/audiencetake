@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { sourcePresentation } from "./evidence-display";
 import type { ScoutCard } from "./types";
 
 const MAX_SOURCE_VIDEOS = 5;
@@ -36,8 +37,9 @@ function youtubeVideoId(value: string): string | null {
   }
 }
 
-function provenanceLabel(origin: ScoutCard["sourceLedger"][number]["origin"], verificationStatus: ScoutCard["sourceLedger"][number]["verificationStatus"]): string {
-  return `${origin.replace("_", " ")} / ${verificationStatus}`;
+function provenanceLabel(source: ScoutCard["sourceLedger"][number]): string {
+  const presentation = sourcePresentation(source);
+  return `${presentation.role} / ${presentation.tier}`;
 }
 
 export function sourceVideosForCard(card: ScoutCard): SourceVideo[] {
@@ -58,7 +60,7 @@ export function sourceVideosForCard(card: ScoutCard): SourceVideo[] {
     attribution: card.media.attribution,
     accessibleFallback: card.media.accessibleFallback,
     provenance: primaryLedgerEntry
-      ? provenanceLabel(primaryLedgerEntry.origin, primaryLedgerEntry.verificationStatus)
+      ? provenanceLabel(primaryLedgerEntry)
       : "primary source",
   }];
 
@@ -74,7 +76,7 @@ export function sourceVideosForCard(card: ScoutCard): SourceVideo[] {
       embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
       attribution: `${source.title}. Audience Take embeds the public source and does not rehost it.`,
       accessibleFallback: `Open ${source.title} on YouTube if the embedded player is unavailable.`,
-      provenance: provenanceLabel(source.origin, source.verificationStatus),
+      provenance: provenanceLabel(source),
     });
   }
 
@@ -102,7 +104,7 @@ export function SourceVideoCarousel({ card }: { card: ScoutCard }) {
           title={activeVideo.title}
           loading="lazy"
           referrerPolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
         <div className="source-video-caption">

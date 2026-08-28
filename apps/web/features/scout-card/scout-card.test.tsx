@@ -11,10 +11,16 @@ describe("ScoutCard", () => {
     render(<ScoutCard card={getScoutCardFixture("complete")} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Junichiro Jackson" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Watch before you judge" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Scout Card status")).toHaveTextContent("StructurecompleteEvidenceSource limited");
+    expect(screen.getByRole("heading", { name: "What we know" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "What we're checking" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Why this is being scouted" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Add your informed Take" })).toHaveAttribute("href", "#audience-pulse");
     const pathways = screen.getByRole("heading", { name: "Pathway hypotheses" }).closest("section");
     expect(pathways).not.toBeNull();
     expect(within(pathways as HTMLElement).getAllByRole("listitem")).toHaveLength(3);
-    expect(screen.getAllByText("[S1]", { selector: ".citation-marks" })).toHaveLength(4);
+    expect(screen.getAllByText("[S1]", { selector: ".citation-marks" })).toHaveLength(8);
     expect(screen.getByRole("link", { name: "Junichiro Jackson public project video" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=M2djoKmnOTY");
     expect(screen.getByText(/No native audience count is claimed\./)).toBeInTheDocument();
   });
@@ -40,9 +46,10 @@ describe("ScoutCard", () => {
     expect(screen.getByRole("button", { name: "Previous source video" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Show source video 2: Additional Junichiro Jackson video" }));
     expect(screen.getByTitle("Additional Junichiro Jackson video")).toHaveAttribute("src", "https://www.youtube-nocookie.com/embed/s8G7425lfKs");
-    expect(screen.getByText("community lead / observed")).toBeInTheDocument();
+    expect(screen.getByText("Community lead / Observed source")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next source video" })).toBeDisabled();
     expect(screen.getByRole("link", { name: "Open source video" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=s8G7425lfKs&list=RDs8G7425lfKs");
+    expect(screen.getByTitle("Additional Junichiro Jackson video")).not.toHaveAttribute("allow", expect.stringContaining("autoplay"));
   });
 
   it("keeps the comparative Industry Lens collapsed until a reader expands it", () => {
