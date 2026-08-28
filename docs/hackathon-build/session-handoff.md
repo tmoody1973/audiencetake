@@ -654,7 +654,14 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    Raw UIDs and IP addresses are never persisted. Non-Vercel or ambiguous
    requests retain the account limit and omit the IP principal. The full local
    gate passes 20 contract fixtures and 43 web test files / 172 tests, lint,
-   typecheck, and the production build. After a real account exists, bind the
+   typecheck, and the production build. Deployment
+   `dpl_xXD7R2NgtpXmtT7E75n9cSYvxdsF` from `541faa5` reached `READY` and owns
+   the public alias. The production alias route returns `308`, the live
+   Firestore card returns `200` with immutable version
+   `card-junichiro-live-20260826-1918-v1` and no saved-fallback marker, and the
+   deployment-scoped error/fatal log query is empty. The optional emulator
+   rerun was not retried because this workstation currently has no Java runtime;
+   no rules changed in this slice. After a real account exists, bind the
    pre-approved demo creator to the reviewed live project/Auth UID, exercise
    the three-role journey, repeat a fresh authenticated native action,
    reconcile counters, and rehearse the judge path. Stop at visual pause `3`.
