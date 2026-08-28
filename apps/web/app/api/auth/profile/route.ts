@@ -73,8 +73,8 @@ export async function PUT(request: NextRequest) {
       }
       transaction.set(handleRef, { uid: user.uid, updatedAt: FieldValue.serverTimestamp() });
       // Replace the document so legacy/private fields can never linger in the
-      // publicly readable users collection. Roles live in custom claims or the
-      // server-only roleAssignments collection.
+      // publicly readable users collection. Roles live in the server-only
+      // roleAssignments collection, mirrored into custom claims.
       transaction.set(
         profileRef,
         {

@@ -6,13 +6,15 @@ import { verifyAuthenticatedRequest } from "@/lib/auth/verify-request";
 import { claimReviewSchema } from "@/lib/creator/contract";
 import { creatorFailure, invalidCreatorInput, readCreatorJson } from "@/lib/creator/route";
 import { createCreatorStore, type CreatorStore } from "@/lib/creator/store";
-import { getAdminFirestore } from "@/lib/firebase/admin";
+import { getAdminAuth, getAdminFirestore } from "@/lib/firebase/admin";
 import { requireAdmin } from "@/lib/trust/authorization";
+import { syncRoleClaims } from "@/lib/trust/claims";
 
 type Dependencies = {
   verifyRequest?: typeof verifyAuthenticatedRequest;
   store?: CreatorStore;
   authorize?: typeof requireAdmin;
+  syncClaims?: typeof syncRoleClaims;
 };
 
 export async function handleClaimReviewPatch(
@@ -32,7 +34,11 @@ export async function handleClaimReviewPatch(
     const database = getAdminFirestore();
     await (dependencies.authorize ?? requireAdmin)(database, user.uid);
     const store = dependencies.store ?? createCreatorStore(database);
-    return ok(await store.reviewClaim(claimId, user.uid, parsed.data));
+    const result = await store.reviewClaim(claimId, user.uid, parsed.data);
+    if (result.status === "approved") {
+      await (dependencies.syncClaims ?? syncRoleClaims)(getAdminAuth(), database, result.requesterUid);
+    }
+    return ok(result);
   } catch (error) {
     return creatorFailure(error, "claim_review_failed", "We could not review that claim request.");
   }

@@ -274,7 +274,7 @@ export function createCreatorStore(database: Firestore) {
           occurredAt: FieldValue.serverTimestamp(),
         });
 
-        return { claimId, projectId, status: input.status };
+        return { claimId, projectId, requesterUid, status: input.status };
       });
     },
 
