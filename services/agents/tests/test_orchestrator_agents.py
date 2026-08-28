@@ -7,6 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
 
+import pytest
+
 from audience_take_agents.agents.web_researcher import WebResearcher
 from audience_take_agents.models import (
     EvidenceDraft,
@@ -23,6 +25,11 @@ from audience_take_agents.orchestrator import (
     ResearchSliceFailure,
 )
 from audience_take_agents.publication import InMemoryPublicationStore, ScoutCardPublisher
+from audience_take_agents.publication.media import (
+    privacy_enhanced_youtube_embed,
+    project_submitted_media,
+    youtube_video_id,
+)
 from audience_take_agents.runtime.models import (
     EventKind,
     ResearchTaskRequest,
@@ -104,6 +111,47 @@ def test_firestore_input_loader_whitelists_nomination_fields() -> None:
     assert result.canonical_url.unicode_string() == "https://example.com/project"
     assert result.project_slug == "project-junichiro-live"
     assert result.submission_type == "fan"
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://www.youtube.com/watch?v=s8G7425lfKs", "s8G7425lfKs"),
+        ("https://youtu.be/s8G7425lfKs?t=5", "s8G7425lfKs"),
+        ("https://youtube.com/shorts/s8G7425lfKs", "s8G7425lfKs"),
+        ("https://m.youtube.com/live/s8G7425lfKs", "s8G7425lfKs"),
+        ("https://www.youtube.com/embed/s8G7425lfKs", "s8G7425lfKs"),
+        ("https://www.youtube-nocookie.com/embed/s8G7425lfKs", "s8G7425lfKs"),
+    ],
+)
+def test_youtube_video_id_accepts_supported_first_party_urls(
+    url: str, expected: str
+) -> None:
+    assert youtube_video_id(url) == expected
+    assert privacy_enhanced_youtube_embed(url) == (
+        "https://www.youtube-nocookie.com/embed/s8G7425lfKs"
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://youtube.example/watch?v=s8G7425lfKs",
+        "https://youtube.com.example/watch?v=s8G7425lfKs",
+        "https://user:password@youtube.com/watch?v=s8G7425lfKs",
+        "javascript:alert(1)",
+        "https://youtube.com/watch?v=too-short",
+    ],
+)
+def test_youtube_video_id_rejects_unsafe_or_unsupported_urls(url: str) -> None:
+    assert youtube_video_id(url) is None
+
+
+def test_submitted_media_falls_back_for_non_youtube_sources() -> None:
+    media = project_submitted_media("https://example.com/project", "Example")
+
+    assert media["state"] == "editorial_fallback"
+    assert "embedUrl" not in media
 
 
 class FakeInputLoader:
@@ -325,6 +373,19 @@ def test_orchestrator_persists_separate_stages_receipts_and_success_proof() -> N
     assert context.terminal == (6, RunStatus.COMPLETE)
     card = publication_store.card("card-junichiro-jackson-v1")
     assert card is not None and card["slug"] == "project-junichiro-live"
+    assert card["media"] == {
+        "state": "authorized_embed",
+        "title": "Watch the submitted public source for Junichiro Jackson",
+        "sourceUrl": "https://www.youtube.com/watch?v=M2djoKmnOTY",
+        "embedUrl": "https://www.youtube-nocookie.com/embed/M2djoKmnOTY",
+        "attribution": (
+            "Embedded from the fan-submitted public YouTube source; "
+            "Audience Take does not rehost the video."
+        ),
+        "accessibleFallback": (
+            "Open the submitted source on YouTube if the embedded player is unavailable."
+        ),
+    }
     public_payload = json.dumps(context.stages)
     assert "server-secret" not in public_payload
     assert "instruction" not in public_payload.casefold()

@@ -282,6 +282,35 @@ def test_previously_generated_card_cannot_enter_the_live_publication_path() -> N
     assert decision["cardVersionId"] is None
 
 
+def test_card_media_must_match_an_evidence_ledger_source() -> None:
+    candidate = make_candidate()
+    assert candidate.card is not None
+    candidate.card["media"]["sourceUrl"] = "https://youtu.be/s8G7425lfKs"
+    candidate.card["media"]["embedUrl"] = (
+        "https://www.youtube-nocookie.com/embed/s8G7425lfKs"
+    )
+
+    decision, created = publish(InMemoryPublicationStore(), candidate)
+
+    assert created is True
+    assert decision["outcome"] == "failed"
+    assert decision["cardVersionId"] is None
+
+
+def test_card_embed_must_be_the_privacy_enhanced_projection_of_its_source() -> None:
+    candidate = make_candidate()
+    assert candidate.card is not None
+    candidate.card["media"]["embedUrl"] = (
+        "https://www.youtube-nocookie.com/embed/s8G7425lfKs?autoplay=1"
+    )
+
+    decision, created = publish(InMemoryPublicationStore(), candidate)
+
+    assert created is True
+    assert decision["outcome"] == "failed"
+    assert decision["cardVersionId"] is None
+
+
 @pytest.mark.parametrize("stage", ["sources", "pathways", "card", "publication", "pointer"])
 def test_failure_injection_rolls_back_every_atomic_publication_stage(stage: str) -> None:
     store = InMemoryPublicationStore()

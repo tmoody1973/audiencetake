@@ -24,6 +24,7 @@ from audience_take_agents.publication import (
     PublicationCandidate,
     ScoutCardPublisher,
 )
+from audience_take_agents.publication.media import project_submitted_media
 from audience_take_agents.runtime.models import EventKind, RunStatus
 from audience_take_agents.tools.parallel_search import ParallelSearchError
 from audience_take_agents.tools.source_reader import (
@@ -519,13 +520,7 @@ def assemble_scout_card(
             ),
             "researchedAt": researched_at,
         },
-        "media": {
-            "state": "editorial_fallback",
-            "title": f"Open the submitted public source for {title}"[:240],
-            "sourceUrl": submitted_url,
-            "attribution": "Linked from the submitted public source; Audience Take does not rehost third-party media.",
-            "accessibleFallback": "Open the submitted public source in a new browser tab.",
-        },
+        "media": project_submitted_media(submitted_url, title),
         "storyContext": {
             "summary": analysis.story_context.synopsis,
             "storyworld": analysis.story_context.storyworld,

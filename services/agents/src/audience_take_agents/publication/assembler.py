@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import Any
 
 from audience_take_agents.publication.errors import SemanticContractError
+from audience_take_agents.publication.media import privacy_enhanced_youtube_embed
 from audience_take_agents.publication.pathways import PathwayStrategist
 from audience_take_agents.publication.schema import validate_schema
 from audience_take_agents.publication.truth import (
@@ -52,6 +53,18 @@ class ScoutCardAssembler:
         if card_source_ids != ledger_source_ids:
             raise SemanticContractError("card sourceIds must exactly match sourceLedger IDs")
         require_references(card_source_ids, source_ids, relationship="Scout Card source ledger")
+
+        media = assembled["media"]
+        media_source_url = str(media["sourceUrl"])
+        ledger_source_urls = {str(item["url"]) for item in assembled["sourceLedger"]}
+        if media_source_url not in ledger_source_urls:
+            raise SemanticContractError("Scout Card media must reference a source ledger URL")
+        if media["state"] == "authorized_embed":
+            expected_embed_url = privacy_enhanced_youtube_embed(media_source_url)
+            if expected_embed_url is None or media.get("embedUrl") != expected_embed_url:
+                raise SemanticContractError(
+                    "Scout Card YouTube embed must match its submitted source"
+                )
 
         ledger_claims = {str(item["id"]): item for item in evidence_ledger["claims"]}
         card_claims = {str(item["id"]): item for item in assembled["evidenceClaims"]}
