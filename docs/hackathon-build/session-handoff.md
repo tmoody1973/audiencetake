@@ -911,7 +911,7 @@ the integration must remain disabled rather than operating without permission.
   semantics are unchanged. A component assertion protects the intended DOM
   order.
 
-## Local Scout Social Panel commitment fix
+## Deployed Scout Social Panel commitment fix
 
 - Production Vercel logs proved that signed-in commitment clicks reached the
   correct Junichiro endpoint but returned `400` for `would_watch`,
@@ -931,6 +931,15 @@ the integration must remain disabled rather than operating without permission.
   `{}` payload and missing inline alert, then passed after the fix. The complete
   gate passes 21 contract fixtures, 52 web files / 209 tests, ESLint, strict
   TypeScript, and the production Next build.
-- This fix is committed only after the prior Trailer Critic checkpoint and is
-  not yet pushed. The next GitHub push will trigger one production Vercel
-  rollout containing both the Trailer Critic renderer and this commitment fix.
+- Commits `d8b6f08` and `0245c82` are pushed to
+  `origin/codex/build-mvp`. Production deployment
+  `dpl_BkWJk2JQ1RftdQ4jWzQjZtGTmQNX` is Ready and owns
+  `https://audiencetake.vercel.app`. The live Scout Card returns `200`, renders
+  immutable correction card
+  `card-junichiro-live-20260826-1918-v1-correction-5ea5f36d0447`, places
+  Audience Pulse before Industry Lens, includes Commitments, and contains no
+  saved-fallback marker. The deployment-scoped error scan is empty.
+- No authenticated commitment was synthesized during rollout verification.
+  The user should make one fresh signed-in click; a normal account should show
+  organic `1`, while a demo account should show `+ 1 demo` and keep the organic
+  total at `0`.
