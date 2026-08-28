@@ -661,7 +661,12 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
    `card-junichiro-live-20260826-1918-v1` and no saved-fallback marker, and the
    deployment-scoped error/fatal log query is empty. The optional emulator
    rerun was not retried because this workstation currently has no Java runtime;
-   no rules changed in this slice. After a real account exists, bind the
+   no rules changed in this slice. A read-only production reconciliation then
+   compared `follows`, `commitments`, `pathwayVotes`, `takes`, and `replies`
+   with every organic and demo counter on project
+   `junichiro-live-20260826-1918`. All source collections and all stored
+   counters are currently zero, so they match exactly and no repair is needed.
+   After a real account exists, bind the
    pre-approved demo creator to the reviewed live project/Auth UID, exercise
    the three-role journey, repeat a fresh authenticated native action,
    reconcile counters, and rehearse the judge path. Stop at visual pause `3`.
