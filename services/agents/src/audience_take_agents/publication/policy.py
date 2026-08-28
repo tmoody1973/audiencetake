@@ -68,6 +68,8 @@ class PublicationPolicy:
             if unique_missing:
                 proposed["completeness"] = "partial"
                 proposed["missingSections"] = list(unique_missing)
+            if "structureStatus" in proposed:
+                proposed["structureStatus"] = proposed["completeness"]
             try:
                 valid_card = ScoutCardAssembler().validate(
                     proposed,

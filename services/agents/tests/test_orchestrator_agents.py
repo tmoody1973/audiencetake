@@ -373,6 +373,11 @@ def test_orchestrator_persists_separate_stages_receipts_and_success_proof() -> N
     assert context.terminal == (6, RunStatus.COMPLETE)
     card = publication_store.card("card-junichiro-jackson-v1")
     assert card is not None and card["slug"] == "project-junichiro-live"
+    assert card["structureStatus"] == "complete"
+    assert card["evidenceStatus"] == "source_limited"
+    assert card["identity"] == {"relationshipStatus": "unresolved"}
+    assert card["sourceLedger"][0]["sourceRole"] == "other"
+    assert card["sourceLedger"][0]["sourceTier"] == "platform_metadata"
     assert card["media"] == {
         "state": "authorized_embed",
         "title": "Watch the submitted public source for Junichiro Jackson",

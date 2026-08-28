@@ -23,6 +23,19 @@
     "submissionLabel": { "type": "string", "minLength": 1, "maxLength": 240 },
     "claimStatus": { "enum": ["unclaimed", "pending", "approved", "rejected"] },
     "completeness": { "enum": ["complete", "partial"] },
+    "structureStatus": { "enum": ["complete", "partial"] },
+    "evidenceStatus": { "enum": ["verified_core", "verification_in_progress", "source_limited", "conflicting"] },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationshipStatus"],
+      "properties": {
+        "relationshipStatus": { "enum": ["unresolved", "source_aligned", "creator_confirmed", "disputed"] },
+        "primarySourceId": { "type": "string", "minLength": 1 },
+        "lastVerifiedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "primaryWorkSourceId": { "type": "string", "minLength": 1 },
     "fallbackUsed": { "type": "boolean" },
     "fallbackLabel": { "type": "string" },
     "provenance": {
@@ -195,6 +208,8 @@
         "retrievedAt": { "type": "string", "format": "date-time" },
         "availability": { "enum": ["available", "unavailable", "restricted"] },
         "verificationStatus": { "enum": ["observed", "verified", "qualified", "conflicting", "unverified"] },
+        "sourceRole": { "enum": ["primary_work", "commentary", "trade_reporting", "community", "creator_statement", "other"] },
+        "sourceTier": { "enum": ["primary", "creator_authorized", "reputable_trade", "platform_metadata", "secondary", "community"] },
         "supportsClaimIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "externalCommentary": { "type": "boolean" }
       }

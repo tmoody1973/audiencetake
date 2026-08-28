@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import Any
 
 from audience_take_agents.publication.errors import SemanticContractError
+from audience_take_agents.publication.evidence_status import derive_evidence_status
 from audience_take_agents.publication.media import privacy_enhanced_youtube_embed
 from audience_take_agents.publication.pathways import PathwayStrategist
 from audience_take_agents.publication.schema import validate_schema
@@ -46,6 +47,13 @@ class ScoutCardAssembler:
             )
         if assembled["fallbackUsed"] and not allow_fallback:
             raise SemanticContractError("a live publication cannot publish a fallback card")
+        if assembled.get("structureStatus", assembled["completeness"]) != assembled["completeness"]:
+            raise SemanticContractError("Scout Card structure status must match completeness")
+        if (
+            "evidenceStatus" in assembled
+            and assembled["evidenceStatus"] != derive_evidence_status(evidence_ledger, sources)
+        ):
+            raise SemanticContractError("Scout Card evidence status changes its evidence ledger")
 
         source_ids = {str(source["id"]) for source in sources}
         card_source_ids = {str(item) for item in assembled["sourceIds"]}
@@ -53,6 +61,31 @@ class ScoutCardAssembler:
         if card_source_ids != ledger_source_ids:
             raise SemanticContractError("card sourceIds must exactly match sourceLedger IDs")
         require_references(card_source_ids, source_ids, relationship="Scout Card source ledger")
+        identity_source_id = assembled.get("identity", {}).get("primarySourceId")
+        if identity_source_id is not None:
+            require_references(
+                [str(identity_source_id)], card_source_ids, relationship="Scout Card identity"
+            )
+        primary_work_source_id = assembled.get("primaryWorkSourceId")
+        if primary_work_source_id is not None:
+            require_references(
+                [str(primary_work_source_id)],
+                card_source_ids,
+                relationship="Scout Card primary work",
+            )
+            primary_work = next(
+                item
+                for item in assembled["sourceLedger"]
+                if str(item["id"]) == str(primary_work_source_id)
+            )
+            if primary_work.get("sourceRole") != "primary_work":
+                raise SemanticContractError(
+                    "Scout Card primary work source must have the primary_work role"
+                )
+            if primary_work["url"] != assembled["media"]["sourceUrl"]:
+                raise SemanticContractError(
+                    "Scout Card primary work source must match the displayed media"
+                )
 
         media = assembled["media"]
         media_source_url = str(media["sourceUrl"])

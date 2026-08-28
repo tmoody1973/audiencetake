@@ -16,6 +16,8 @@ const nullableText = z.string().nullable();
 const dateTime = z.string().datetime();
 const httpUrl = z.string().url().refine((value) => value.startsWith("https://") || value.startsWith("http://"));
 const claimStatus = z.enum(["unclaimed", "pending", "approved", "rejected"]);
+const completeness = z.enum(["complete", "partial"]);
+const evidenceStatus = z.enum(["verified_core", "verification_in_progress", "source_limited", "conflicting"]);
 const stringList = z.array(text);
 
 const nextExperimentSchema = z.object({ title: text, hypothesis: text, method: text, participantAction: text, signal: text, timebox: text });
@@ -28,6 +30,8 @@ const sourceLedgerSchema = z.object({
   id: text, origin: z.enum(["submitted", "parallel", "community_lead", "creator"]), title: text, url: httpUrl,
   publishedAt: dateTime.nullable(), retrievedAt: dateTime, availability: z.enum(["available", "unavailable", "restricted"]),
   verificationStatus: z.enum(["observed", "verified", "qualified", "conflicting", "unverified"]), supportsClaimIds: stringList,
+  sourceRole: z.enum(["primary_work", "commentary", "trade_reporting", "community", "creator_statement", "other"]).optional(),
+  sourceTier: z.enum(["primary", "creator_authorized", "reputable_trade", "platform_metadata", "secondary", "community"]).optional(),
   externalCommentary: z.boolean(),
 });
 const mediaSchema = z.discriminatedUnion("state", [
@@ -40,7 +44,12 @@ const scoutCardSchema = z.object({
   cardVersionId: text, runId: text, researchVersion: z.number().int().min(1), projectId: text,
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), title: text, hook: text,
   projectType: z.enum(["series", "film", "short_film", "documentary", "creator_project"]), submissionLabel: text,
-  claimStatus, completeness: z.enum(["complete", "partial"]), fallbackUsed: z.boolean(), fallbackLabel: z.string().optional(),
+  claimStatus, completeness, structureStatus: completeness.optional(), evidenceStatus: evidenceStatus.optional(),
+  identity: z.object({
+    relationshipStatus: z.enum(["unresolved", "source_aligned", "creator_confirmed", "disputed"]),
+    primarySourceId: text.optional(), lastVerifiedAt: dateTime.optional(),
+  }).optional(),
+  primaryWorkSourceId: text.optional(), fallbackUsed: z.boolean(), fallbackLabel: z.string().optional(),
   provenance: z.object({ submissionType: z.enum(["fan", "creator"]), submittedSourceUrl: httpUrl, nominationLabel: text, nominatedByLabel: text, researchedAt: dateTime }),
   media: mediaSchema,
   storyContext: z.object({ summary: text, storyworld: text, themes: stringList, currentFormat: text, audienceHooks: stringList, claimIds: stringList.min(1) }),

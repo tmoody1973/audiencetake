@@ -24,6 +24,10 @@ from audience_take_agents.publication import (
     PublicationCandidate,
     ScoutCardPublisher,
 )
+from audience_take_agents.publication.evidence_status import (
+    derive_evidence_status,
+    source_presentation,
+)
 from audience_take_agents.publication.media import project_submitted_media
 from audience_take_agents.runtime.models import EventKind, RunStatus
 from audience_take_agents.tools.parallel_search import ParallelSearchError
@@ -510,6 +514,9 @@ def assemble_scout_card(
         ),
         "claimStatus": analysis.creator_context.claim_status.value,
         "completeness": "complete",
+        "structureStatus": "complete",
+        "evidenceStatus": derive_evidence_status(evidence_ledger, sources),
+        "identity": {"relationshipStatus": "unresolved"},
         "fallbackUsed": False,
         "provenance": {
             "submissionType": nomination.submission_type,
@@ -560,6 +567,7 @@ def assemble_scout_card(
                     "externalCommentary",
                 )
             }
+            | source_presentation(source)
             for source in sources
         ],
         "missingSections": [],

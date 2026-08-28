@@ -1,6 +1,10 @@
 export type ClaimStatus = "unclaimed" | "pending" | "approved" | "rejected";
 export type Completeness = "complete" | "partial";
 export type Confidence = "low" | "medium" | "high";
+export type EvidenceStatus = "verified_core" | "verification_in_progress" | "source_limited" | "conflicting";
+export type EvidenceDisplayState = "verified" | "reported" | "inferred" | "conflicting" | "unknown";
+export type SourceRole = "primary_work" | "commentary" | "trade_reporting" | "community" | "creator_statement" | "other";
+export type SourceTier = "primary" | "creator_authorized" | "reputable_trade" | "platform_metadata" | "secondary" | "community";
 
 export type NextExperiment = {
   title: string;
@@ -44,6 +48,8 @@ export type SourceLedgerEntry = {
   retrievedAt: string;
   availability: "available" | "unavailable" | "restricted";
   verificationStatus: "observed" | "verified" | "qualified" | "conflicting" | "unverified";
+  sourceRole?: SourceRole;
+  sourceTier?: SourceTier;
   supportsClaimIds: string[];
   externalCommentary: boolean;
 };
@@ -60,6 +66,14 @@ export type ScoutCard = {
   submissionLabel: string;
   claimStatus: ClaimStatus;
   completeness: Completeness;
+  structureStatus?: Completeness;
+  evidenceStatus?: EvidenceStatus;
+  identity?: {
+    relationshipStatus: "unresolved" | "source_aligned" | "creator_confirmed" | "disputed";
+    primarySourceId?: string;
+    lastVerifiedAt?: string;
+  };
+  primaryWorkSourceId?: string;
   fallbackUsed: boolean;
   fallbackLabel?: string;
   provenance: {

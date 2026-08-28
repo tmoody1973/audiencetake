@@ -20,6 +20,10 @@ from audience_take_agents.publication import (
     ScoutCardPublisher,
     SemanticContractError,
 )
+from audience_take_agents.publication.evidence_status import (
+    derive_evidence_status,
+    source_presentation,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = ROOT / "contracts" / "fixtures"
@@ -207,6 +211,32 @@ def test_pathway_cannot_rely_on_unsupported_or_unproven_platform_claims() -> Non
         )
 
 
+def test_evidence_status_is_conservative_and_conflicts_win() -> None:
+    source = fixture("junichiro-source.json")
+    ledger = fixture("junichiro-evidence-ledger.json")
+    assert derive_evidence_status(ledger, [source]) == "source_limited"
+
+    source["verificationStatus"] = "verified"
+    ledger["claims"][0]["status"] = "supported"
+    ledger["claims"][0]["qualification"] = None
+    assert derive_evidence_status(ledger, [source]) == "verified_core"
+
+    ledger["claims"][0]["status"] = "conflicting"
+    assert derive_evidence_status(ledger, [source]) == "conflicting"
+
+
+def test_source_presentation_uses_only_existing_provenance() -> None:
+    source = fixture("junichiro-source.json")
+    assert source_presentation(source) == {
+        "sourceRole": "other",
+        "sourceTier": "platform_metadata",
+    }
+    source.update(origin="creator", sourceType="official_project")
+    assert source_presentation(source) == {
+        "sourceRole": "primary_work",
+        "sourceTier": "primary",
+    }
+
 def test_policy_publishes_complete_partial_and_failed_honestly() -> None:
     complete_store = InMemoryPublicationStore()
     complete, created = publish(complete_store)
@@ -235,6 +265,22 @@ def test_policy_publishes_complete_partial_and_failed_honestly() -> None:
     assert failed["usefulEvidence"] is False
     assert failed["cardVersionId"] is None
     assert failed_store.pointer("junichiro-jackson") is None
+
+
+def test_partial_publication_keeps_structure_status_in_sync() -> None:
+    candidate = make_candidate()
+    assert candidate.card is not None
+    candidate.card["structureStatus"] = "complete"
+    store = InMemoryPublicationStore()
+
+    decision, created = publish(
+        store, candidate, missing_sections=("parallel_web_sources",)
+    )
+
+    assert created is True
+    assert decision["outcome"] == "partial"
+    card = store.card("card-junichiro-v1")
+    assert card is not None and card["structureStatus"] == "partial"
 
 
 def test_successful_attempt_preserves_a_prior_failed_publication_decision() -> None:
