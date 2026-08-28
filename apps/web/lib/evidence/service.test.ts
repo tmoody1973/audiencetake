@@ -47,4 +47,25 @@ describe("suggestEvidence", () => {
       evidenceFingerprint("project-b", result.canonicalUrl),
     );
   });
+
+  it("normalizes a proposed YouTube player to one stable watch URL", async () => {
+    const store = evidenceStore();
+    await suggestEvidence(
+      "project-a",
+      "fan-1",
+      {
+        url: "https://youtu.be/s8G7425lfKs?si=tracking",
+        suggestedUse: "scout_card_video",
+      },
+      { store, urlPolicy },
+    );
+    expect(store.submit).toHaveBeenCalledWith(expect.objectContaining({
+      canonicalUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+      suggestedUse: "scout_card_video",
+      fingerprint: evidenceFingerprint(
+        "project-a",
+        "https://www.youtube.com/watch?v=s8G7425lfKs",
+      ),
+    }));
+  });
 });

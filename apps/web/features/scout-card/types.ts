@@ -26,6 +26,10 @@ export type ScoutPathway = {
   order: number;
   label: string;
   format: string;
+  strategyKind?: "development" | "distribution" | "audience" | "financing" | "education" | "adaptation";
+  proposedMedium?: "documentary" | "live_action" | "animation" | "hybrid" | "unknown";
+  crossFormat?: boolean;
+  crossFormatClaimIds?: string[];
   audience: string;
   rationale: string;
   supportingClaimIds: string[];

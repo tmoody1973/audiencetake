@@ -78,5 +78,29 @@ describe("acceptNomination", () => {
     expect(store.failures).toEqual(["run-1"]);
     expect(JSON.stringify(result)).not.toContain("provider details");
   });
-});
 
+  it("keeps a campaign as the research source and normalizes a separate YouTube player", async () => {
+    const store = new ContendedMemoryStore();
+    const mediaInput: NominationInput = {
+      ...input,
+      submittedUrl: "https://www.kickstarter.com/projects/teamto/junichiro-live",
+      mediaUrl: "https://youtu.be/s8G7425lfKs?si=tracking",
+      supportingUrls: [
+        "https://youtu.be/s8G7425lfKs?si=tracking",
+        "https://example.com/about",
+      ],
+    };
+
+    await acceptNomination(mediaInput, "fan-1", {
+      store,
+      dispatch: vi.fn().mockResolvedValue(undefined),
+      urlPolicy,
+    });
+
+    expect(store.accepted).toMatchObject({
+      canonicalUrl: "https://www.kickstarter.com/projects/teamto/junichiro-live",
+      canonicalMediaUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+      canonicalSupportingUrls: ["https://example.com/about"],
+    });
+  });
+});

@@ -15,6 +15,7 @@ export type PreparedEvidenceSuggestion = {
   submittedByUid: string;
   canonicalUrl: string;
   note?: string;
+  suggestedUse?: "scout_card_video";
   fingerprint: string;
 };
 
@@ -32,6 +33,8 @@ export type EvidenceReviewResult = {
   projectId: string;
   status: EvidenceReviewOutcome;
   incorporatedSourceId: string | null;
+  canonicalUrl: string;
+  suggestedUse: "scout_card_video" | null;
   changed: boolean;
 };
 
@@ -61,6 +64,7 @@ function publicSuggestion(
     canonicalUrl: suggestion.canonicalUrl,
     sourceFingerprint: suggestion.fingerprint,
     ...(suggestion.note ? { note: suggestion.note } : {}),
+    ...(suggestion.suggestedUse ? { suggestedUse: suggestion.suggestedUse } : {}),
     status: "community_lead" as const,
     visibility: "public" as const,
     createdAt: now,
@@ -215,6 +219,11 @@ export function createFirestoreEvidenceStore(database: Firestore): EvidenceStore
             projectId: String(suggestion.projectId),
             status: review.outcome,
             incorporatedSourceId: currentSourceId,
+            canonicalUrl: String(suggestion.canonicalUrl),
+            suggestedUse:
+              suggestion.suggestedUse === "scout_card_video"
+                ? "scout_card_video"
+                : null,
             changed: false,
           };
         }
@@ -321,6 +330,11 @@ export function createFirestoreEvidenceStore(database: Firestore): EvidenceStore
           projectId: String(suggestion.projectId),
           status: review.outcome,
           incorporatedSourceId,
+          canonicalUrl: String(suggestion.canonicalUrl),
+          suggestedUse:
+            suggestion.suggestedUse === "scout_card_video"
+              ? "scout_card_video"
+              : null,
           changed: true,
         };
       });

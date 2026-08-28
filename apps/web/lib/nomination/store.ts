@@ -6,6 +6,7 @@ import type { NominationInput } from "./contract";
 
 export type PreparedNomination = NominationInput & {
   canonicalUrl: string;
+  canonicalMediaUrl?: string;
   canonicalSupportingUrls: string[];
   fingerprint: string;
   nominatorUid: string;
@@ -28,6 +29,10 @@ export interface NominationStore {
   markDispatchFailed(runId: string, safeReason: string): Promise<void>;
 }
 
+export function projectSlugFromId(projectId: string): string {
+  return `project-${projectId.slice(0, 10).toLowerCase()}`;
+}
+
 export function createFirestoreNominationStore(database: Firestore): NominationStore {
   return {
     async accept(nomination) {
@@ -37,7 +42,9 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
       const runRef = database.collection("researchRuns").doc();
       const publicRunRef = database.collection("publicResearchRuns").doc(runRef.id);
       const eventRef = database.collection("events").doc();
-      const slug = `project-${projectRef.id.slice(0, 10)}`;
+      // Firestore auto IDs are mixed-case, while the agent's public-route
+      // contract deliberately accepts lowercase URL-safe slugs only.
+      const slug = projectSlugFromId(projectRef.id);
       const cardUrl = `/projects/${slug}`;
       const researchUrl = `/research/${runRef.id}`;
       const acceptedAt = new Date().toISOString();
@@ -62,6 +69,9 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
           runId: runRef.id,
           sourceFingerprint: nomination.fingerprint,
           canonicalSourceUrl: nomination.canonicalUrl,
+          ...(nomination.canonicalMediaUrl
+            ? { canonicalMediaUrl: nomination.canonicalMediaUrl }
+            : {}),
           canonicalCardUrl: cardUrl,
           createdAt: now,
           updatedAt: now,
@@ -104,6 +114,10 @@ export function createFirestoreNominationStore(database: Firestore): NominationS
           submissionType: nomination.submissionType,
           submittedUrl: nomination.submittedUrl,
           canonicalUrl: nomination.canonicalUrl,
+          ...(nomination.mediaUrl ? { mediaUrl: nomination.mediaUrl } : {}),
+          ...(nomination.canonicalMediaUrl
+            ? { canonicalMediaUrl: nomination.canonicalMediaUrl }
+            : {}),
           whyItShouldGrow: nomination.whyItShouldGrow,
           ...(nomination.suggestedFormat ? { suggestedFormat: nomination.suggestedFormat } : {}),
           ...(nomination.audienceFit ? { audienceFit: nomination.audienceFit } : {}),

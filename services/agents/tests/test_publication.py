@@ -34,6 +34,10 @@ def fixture(name: str) -> dict[str, Any]:
     return json.loads((FIXTURES / name).read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
+def project_profile() -> dict[str, Any]:
+    return deepcopy(fixture("junichiro-evidence-ledger.json")["projectProfile"])
+
+
 def make_candidate(*, version: int = 1, run_id: str = "run-junichiro-v1") -> PublicationCandidate:
     source = fixture("junichiro-source.json")
     ledger = fixture("junichiro-evidence-ledger.json")
@@ -101,6 +105,7 @@ def test_evidence_editor_accepts_supported_qualified_and_conflicting_claims() ->
         research_version=1,
         sources=[source],
         claims=[qualified, supported, conflicting],
+        project_profile=project_profile(),
         limitations=["Public evidence remains bounded."],
         unresolved_questions=["Which account is current?"],
     )
@@ -126,6 +131,7 @@ def test_evidence_editor_rejects_missing_evidence_and_overstated_platform_intere
             research_version=1,
             sources=[source],
             claims=[missing],
+            project_profile=project_profile(),
             limitations=["Missing source."],
             unresolved_questions=["Can this be verified?"],
         )
@@ -138,6 +144,7 @@ def test_evidence_editor_rejects_missing_evidence_and_overstated_platform_intere
             research_version=1,
             sources=[source],
             claims=[claim],
+            project_profile=project_profile(),
             limitations=["No platform confirmation."],
             unresolved_questions=["Has anyone expressed interest?"],
         )
@@ -156,6 +163,7 @@ def test_evidence_editor_deduplicates_canonical_urls_without_losing_claim_covera
         research_version=1,
         sources=[source, duplicate],
         claims=[claim],
+        project_profile=project_profile(),
         limitations=["One canonical public source."],
         unresolved_questions=["What independent source corroborates this?"],
     )
@@ -228,7 +236,7 @@ def test_evidence_status_is_conservative_and_conflicts_win() -> None:
 def test_source_presentation_uses_only_existing_provenance() -> None:
     source = fixture("junichiro-source.json")
     assert source_presentation(source) == {
-        "sourceRole": "other",
+        "sourceRole": "primary_work",
         "sourceTier": "platform_metadata",
     }
     source.update(origin="creator", sourceType="official_project")

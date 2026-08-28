@@ -268,6 +268,12 @@ def test_only_web_researcher_has_the_single_parallel_tool() -> None:
     assert agents["pathway_strategist_drafter"].generate_content_config.thinking_config == (
         types.ThinkingConfig(thinking_level=types.ThinkingLevel.MINIMAL)
     )
+    query_planner = agents["web_research_query_planner"].generate_content_config
+    assert query_planner.max_output_tokens == 2_048
+    assert query_planner.thinking_config == types.ThinkingConfig(
+        thinking_level=types.ThinkingLevel.MINIMAL
+    )
+    assert query_planner.temperature is None
     assert "scout_card_drafter" not in agents
 
 
@@ -275,7 +281,11 @@ def test_structured_provider_budgets_evidence_without_unbounding_other_stages() 
     provider = AdkStructuredProvider(model="gemini-2.5-flash")
 
     assert provider.source_analyst.generate_content_config.max_output_tokens == 4_096
-    assert provider.query_planner.generate_content_config.max_output_tokens == 1_024
+    assert provider.query_planner.generate_content_config.max_output_tokens == 2_048
+    assert provider.query_planner.generate_content_config.thinking_config == (
+        types.ThinkingConfig(thinking_level=types.ThinkingLevel.MINIMAL)
+    )
+    assert provider.query_planner.generate_content_config.temperature is None
     assert provider.evidence_editor.generate_content_config.max_output_tokens == 8_192
     assert provider.pathway_strategist.generate_content_config.max_output_tokens == 8_192
     assert provider.pathway_strategist.generate_content_config.thinking_config == (
@@ -297,6 +307,12 @@ def test_structured_provider_budgets_evidence_without_unbounding_other_stages() 
 
 def _pathway_draft_json() -> str:
     content = {
+        "label": "Serialized animation development",
+        "format": "Serialized adult animation",
+        "strategyKind": "development",
+        "proposedMedium": "animation",
+        "crossFormat": False,
+        "crossFormatClaimIds": [],
         "audience": "Adult animation viewers.",
         "rationale": "Test one bounded direction against qualified public evidence.",
         "supportingClaimIds": ["claim-qualified"],
@@ -315,9 +331,23 @@ def _pathway_draft_json() -> str:
         },
     }
     return PathwayDraft(
-        series=content,
-        feature={**content, "audience": "Independent animation audiences."},
-        creatorDirect={**content, "audience": "Creator-direct serial audiences."},
+        pathways=[
+            content,
+            {
+                **content,
+                "label": "Independent animation financing",
+                "format": "Feature-length independent animation",
+                "strategyKind": "financing",
+                "audience": "Independent animation audiences.",
+            },
+            {
+                **content,
+                "label": "Creator-direct animation audience",
+                "format": "Short-form animation publishing",
+                "strategyKind": "audience",
+                "audience": "Creator-direct serial audiences.",
+            },
+        ]
     ).model_dump_json(by_alias=True)
 
 
@@ -503,13 +533,12 @@ def test_external_signal_uses_vertex_compatible_boolean_and_rejects_true() -> No
 
 def test_pathway_draft_is_bounded_and_injects_fixed_identity() -> None:
     schema = PathwayDraft.model_json_schema(by_alias=True)
-    assert set(schema["properties"]) == {"series", "feature", "creatorDirect"}
-    assert schema["properties"]["series"] == {"$ref": "#/$defs/PathwayContentDraft"}
-    assert schema["properties"]["feature"] == {"$ref": "#/$defs/PathwayContentDraft"}
-    assert schema["properties"]["creatorDirect"] == {
-        "$ref": "#/$defs/PathwayContentDraft"
-    }
-    content_schema = schema["$defs"]["PathwayContentDraft"]
+    assert set(schema["properties"]) == {"pathways"}
+    assert schema["properties"]["pathways"]["minItems"] == 3
+    assert schema["properties"]["pathways"]["maxItems"] == 3
+    content_schema = schema["$defs"]["PathwayDirectionDraft"]
+    assert content_schema["properties"]["label"]["maxLength"] == 160
+    assert content_schema["properties"]["format"]["maxLength"] == 160
     assert content_schema["properties"]["audience"]["maxLength"] == 240
     assert content_schema["properties"]["rationale"]["maxLength"] == 600
     assert content_schema["properties"]["supportingClaimIds"]["maxItems"] == 3
@@ -519,6 +548,12 @@ def test_pathway_draft_is_bounded_and_injects_fixed_identity() -> None:
     assert content_schema["properties"]["openQuestions"]["maxItems"] == 2
 
     content = {
+        "label": "Serialized animation development",
+        "format": "Serialized adult animation",
+        "strategyKind": "development",
+        "proposedMedium": "animation",
+        "crossFormat": False,
+        "crossFormatClaimIds": [],
         "audience": "Adult animation viewers seeking serialized character drama.",
         "rationale": "Test a bounded direction against the qualified public evidence.",
         "supportingClaimIds": ["claim-qualified"],
@@ -537,30 +572,45 @@ def test_pathway_draft_is_bounded_and_injects_fixed_identity() -> None:
         },
     }
     draft = PathwayDraft(
-        series=content,
-        feature={**content, "audience": "Independent animation feature audiences."},
-        creatorDirect={**content, "audience": "Creator-direct serial audiences."},
+        pathways=[
+            content,
+            {
+                **content,
+                "label": "Independent animation financing",
+                "format": "Feature-length independent animation",
+                "strategyKind": "financing",
+                "audience": "Independent animation feature audiences.",
+            },
+            {
+                **content,
+                "label": "Creator-direct animation audience",
+                "format": "Short-form animation publishing",
+                "strategyKind": "audience",
+                "audience": "Creator-direct serial audiences.",
+            },
+        ]
     )
 
     pathways = draft.to_pathways(run_id="run-1", project_id="project-1")
     assert [pathway["id"] for pathway in pathways] == [
-        "pathway-series",
-        "pathway-feature",
-        "pathway-creator-direct",
+        "pathway-01",
+        "pathway-02",
+        "pathway-03",
     ]
     assert [pathway["order"] for pathway in pathways] == [1, 2, 3]
     assert [pathway["label"] for pathway in pathways] == [
-        "Premium adult animated series",
-        "Independent animated feature",
-        "Creator-direct serialized franchise",
+        "Serialized animation development",
+        "Independent animation financing",
+        "Creator-direct animation audience",
     ]
     assert all(pathway["runId"] == "run-1" for pathway in pathways)
     assert all(pathway["projectId"] == "project-1" for pathway in pathways)
 
     with pytest.raises(ValueError):
         PathwayDraft(
-            series={**content, "supportingClaimIds": []},
-            feature=content,
-            creatorDirect=content,
+            pathways=[
+                {**content, "supportingClaimIds": []},
+                content,
+                content,
+            ]
         )
-

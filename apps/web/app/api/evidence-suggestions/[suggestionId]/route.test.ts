@@ -35,6 +35,8 @@ function store(): EvidenceStore {
       projectId: "project-1",
       status: "verified_incorporated",
       incorporatedSourceId: `community-${suggestionId}`,
+      canonicalUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+      suggestedUse: null,
       changed: true,
     }),
   };
@@ -88,6 +90,41 @@ describe("PATCH evidence review", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       error: { code: "invalid_evidence_review" },
+    });
+  });
+
+  it("publishes a new card version when a verified lead was proposed as its video", async () => {
+    const evidenceStore = store();
+    vi.mocked(evidenceStore.review).mockResolvedValue({
+      suggestionId,
+      projectId: "project-1",
+      status: "verified_incorporated",
+      incorporatedSourceId: `community-${suggestionId}`,
+      canonicalUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+      suggestedUse: "scout_card_video",
+      changed: true,
+    });
+    const promoteMedia = vi.fn().mockResolvedValue({
+      cardVersionId: "card-v2",
+      changed: true,
+    });
+
+    const response = await handleEvidenceReviewPatch(request(validReview), suggestionId, {
+      verifyRequest: vi.fn().mockResolvedValue({ user: { uid: "admin-1" } }),
+      authorizeAdmin: vi.fn().mockResolvedValue(undefined),
+      store: evidenceStore,
+      promoteMedia,
+    });
+
+    expect(response.status).toBe(200);
+    expect(promoteMedia).toHaveBeenCalledWith({
+      projectId: "project-1",
+      reviewerUid: "admin-1",
+      incorporatedSourceId: `community-${suggestionId}`,
+      canonicalUrl: "https://www.youtube.com/watch?v=s8G7425lfKs",
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      data: { mediaPromotion: { cardVersionId: "card-v2", changed: true } },
     });
   });
 });

@@ -2,6 +2,13 @@
   "runId": "run-junichiro-v1",
   "projectId": "junichiro-jackson",
   "researchVersion": 1,
+  "projectProfile": {
+    "medium": "animation",
+    "form": "proof_of_concept",
+    "lifecycle": "development",
+    "sourceIds": ["source-youtube-trailer"],
+    "qualification": "The submitted public concept video and source analysis identify the work as animation."
+  },
   "claims": [
     {
       "id": "claim-project-world",

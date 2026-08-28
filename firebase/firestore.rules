@@ -155,7 +155,7 @@ service cloud.firestore {
         ]) &&
         resource.data.keys().hasOnly([
           'projectId', 'submitterLabel', 'url', 'canonicalUrl',
-          'sourceFingerprint', 'note', 'status', 'visibility', 'createdAt',
+          'sourceFingerprint', 'note', 'suggestedUse', 'status', 'visibility', 'createdAt',
           'updatedAt', 'reviewedAt', 'incorporatedSourceId'
         ]);
       // The collection itself is the public-safe projection; reviewer reasons,
@@ -190,8 +190,8 @@ service cloud.firestore {
         resource.data.keys().hasOnly([
           'correctionId', 'projectId', 'section', 'summary', 'priorBasis',
           'cardVersionId', 'correctionType', 'fromCardVersionId',
-          'toCardVersionId', 'correctedSourceId', 'visibility', 'createdAt',
-          'updatedAt'
+          'toCardVersionId', 'correctedSourceId', 'correctedPathwayIds',
+          'projectProfile', 'visibility', 'createdAt', 'updatedAt'
         ]);
       // Public correction rows are a dedicated projection; actor identity and
       // operational details remain in projectCorrectionAudits.

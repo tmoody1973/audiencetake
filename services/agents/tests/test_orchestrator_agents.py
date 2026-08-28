@@ -96,6 +96,7 @@ def test_firestore_input_loader_whitelists_nomination_fields() -> None:
                     "nominatorUid": "private-workflow-field",
                     "submittedUrl": "https://example.com/project",
                     "canonicalUrl": "https://example.com/project",
+                    "canonicalMediaUrl": "https://www.youtube.com/watch?v=s8G7425lfKs",
                     "whyItShouldGrow": "A distinct public project worth scouting.",
                     "submissionType": "fan",
                     "supportingUrls": [],
@@ -109,6 +110,8 @@ def test_firestore_input_loader_whitelists_nomination_fields() -> None:
     result = asyncio.run(FirestoreInputLoader(client).load("run-1", "project-1", 1))
 
     assert result.canonical_url.unicode_string() == "https://example.com/project"
+    assert result.media_url is not None
+    assert result.media_url.unicode_string() == "https://www.youtube.com/watch?v=s8G7425lfKs"
     assert result.project_slug == "project-junichiro-live"
     assert result.submission_type == "fan"
 
@@ -287,15 +290,11 @@ class FakeModelProvider:
             {
                 key: value
                 for key, value in pathway.items()
-                if key not in {"id", "projectId", "runId", "order", "label", "format"}
+                if key not in {"id", "projectId", "runId", "order"}
             }
             for pathway in pathways
         ]
-        return PathwayDraft(
-            series=contents[0],
-            feature=contents[1],
-            creatorDirect=contents[2],
-        )
+        return PathwayDraft(pathways=contents)
 
 class FakeContext:
     def __init__(self) -> None:
@@ -376,7 +375,7 @@ def test_orchestrator_persists_separate_stages_receipts_and_success_proof() -> N
     assert card["structureStatus"] == "complete"
     assert card["evidenceStatus"] == "source_limited"
     assert card["identity"] == {"relationshipStatus": "unresolved"}
-    assert card["sourceLedger"][0]["sourceRole"] == "other"
+    assert card["sourceLedger"][0]["sourceRole"] == "primary_work"
     assert card["sourceLedger"][0]["sourceTier"] == "platform_metadata"
     assert card["media"] == {
         "state": "authorized_embed",
@@ -395,6 +394,61 @@ def test_orchestrator_persists_separate_stages_receipts_and_success_proof() -> N
     assert "server-secret" not in public_payload
     assert "instruction" not in public_payload.casefold()
     assert "reasoning" not in public_payload.casefold()
+
+
+class CampaignAndVideoInputLoader:
+    async def load(
+        self, run_id: str, project_id: str, research_version: int
+    ) -> ResearchInput:
+        assert (run_id, project_id, research_version) == (
+            "run-junichiro-v1",
+            "junichiro-jackson",
+            1,
+        )
+        return ResearchInput(
+            projectSlug="project-junichiro-live",
+            submittedUrl="https://www.kickstarter.com/projects/teamto/junichiro-live",
+            canonicalUrl="https://www.kickstarter.com/projects/teamto/junichiro-live",
+            mediaUrl="https://www.youtube.com/watch?v=s8G7425lfKs",
+            whyItShouldGrow="The campaign and proof of concept show a distinct storyworld.",
+            submissionType="fan",
+            supportingUrls=[],
+        )
+
+
+def test_orchestrator_keeps_campaign_provenance_and_uses_separate_video() -> None:
+    provider = FakeModelProvider()
+    publication_store = InMemoryPublicationStore()
+    orchestrator = AudienceTakeOrchestrator(
+        input_loader=CampaignAndVideoInputLoader(),
+        source_reader=SafeSourceReader(transport=FakeSourceTransport()),
+        model_provider=provider,
+        web_researcher=WebResearcher(
+            model_provider=provider,
+            parallel=ParallelSearchClient(api_key="key", transport=FakeParallelTransport()),
+            clock=lambda: NOW,
+        ),
+        publisher=ScoutCardPublisher(publication_store),
+        clock=lambda: NOW,
+    )
+
+    asyncio.run(orchestrator.execute(FakeContext()))
+
+    card = publication_store.card("card-junichiro-jackson-v1")
+    assert card is not None
+    assert card["provenance"]["submittedSourceUrl"].startswith("https://www.kickstarter.com/")
+    assert card["media"]["sourceUrl"] == "https://www.youtube.com/watch?v=s8G7425lfKs"
+    assert card["media"]["embedUrl"] == "https://www.youtube-nocookie.com/embed/s8G7425lfKs"
+    assert len(card["sourceLedger"]) >= 2
+    campaign_source = next(
+        source for source in card["sourceLedger"] if "kickstarter.com" in source["url"]
+    )
+    video_source = next(
+        source for source in card["sourceLedger"] if "youtube.com" in source["url"]
+    )
+    assert campaign_source["sourceRole"] == "other"
+    assert video_source["sourceRole"] == "primary_work"
+    assert card["primaryWorkSourceId"] == video_source["id"]
 
 
 def test_orchestrator_never_increments_proof_for_failed_parallel_call() -> None:

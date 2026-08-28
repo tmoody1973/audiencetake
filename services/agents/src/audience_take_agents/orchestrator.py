@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any, Protocol, cast
 from urllib.parse import urlsplit
@@ -28,7 +29,9 @@ from audience_take_agents.publication.evidence_status import (
     derive_evidence_status,
     source_presentation,
 )
-from audience_take_agents.publication.media import project_submitted_media
+from audience_take_agents.publication.media import project_submitted_media, youtube_video_id
+from audience_take_agents.publication.project_profile import project_profile_from_analysis
+from audience_take_agents.publication.schema import validate_schema
 from audience_take_agents.runtime.models import EventKind, RunStatus
 from audience_take_agents.tools.parallel_search import ParallelSearchError
 from audience_take_agents.tools.source_reader import (
@@ -129,6 +132,7 @@ class FirestoreInputLoader:
                     "projectSlug": project.get("slug"),
                     "submittedUrl": nomination.get("submittedUrl"),
                     "canonicalUrl": nomination.get("canonicalUrl"),
+                    "mediaUrl": nomination.get("canonicalMediaUrl"),
                     "whyItShouldGrow": nomination.get("whyItShouldGrow"),
                     "submissionType": nomination.get("submissionType"),
                     "suggestedFormat": nomination.get("suggestedFormat"),
@@ -300,10 +304,15 @@ class AudienceTakeOrchestrator:
         analysis: SourceAnalysis,
         bundle: ResearchBundle,
     ) -> None:
-        sources = normalize_publication_sources(bundle)
+        sources = normalize_publication_sources(bundle, nomination)
+        project_profile = project_profile_from_analysis(analysis)
         completed_evidence = context.load_stage_output(4)
         if completed_evidence is not None:
-            ledger = cast(dict[str, Any], completed_evidence.output)
+            ledger = deepcopy(cast(dict[str, Any], completed_evidence.output))
+            # Older completed stage-4 artifacts predate the profile contract.
+            # Upgrade only the in-memory continuation; never rewrite durable history.
+            ledger.setdefault("projectProfile", project_profile)
+            validate_schema("evidence-ledger.schema.json", ledger)
         else:
             context.heartbeat(4)
             draft = await self._model_provider.draft_evidence(analysis, bundle)
@@ -320,6 +329,7 @@ class AudienceTakeOrchestrator:
                 external_signals=cast(
                     list[dict[str, Any]], draft_payload["externalSignals"]
                 ),
+                project_profile=project_profile,
                 limitations=cast(list[str], draft_payload["limitations"]),
                 unresolved_questions=cast(
                     list[str], draft_payload["unresolvedQuestions"]
@@ -497,6 +507,15 @@ def assemble_scout_card(
     )
     researched_at = published_at.isoformat().replace("+00:00", "Z")
     submitted_url = str(nomination.canonical_url)
+    media_url = str(nomination.media_url or nomination.canonical_url)
+    primary_work_source_id = next(
+        (
+            str(source["id"])
+            for source in sources
+            if str(source.get("canonicalUrl")) == media_url
+        ),
+        submitted_source_id(media_url),
+    )
     title = analysis.identity.title
     return {
         "cardVersionId": f"card-{bundle.project_id}-v{bundle.research_version}",
@@ -527,7 +546,8 @@ def assemble_scout_card(
             ),
             "researchedAt": researched_at,
         },
-        "media": project_submitted_media(submitted_url, title),
+        "primaryWorkSourceId": primary_work_source_id,
+        "media": project_submitted_media(media_url, title),
         "storyContext": {
             "summary": analysis.story_context.synopsis,
             "storyworld": analysis.story_context.storyworld,
@@ -607,7 +627,18 @@ def validate_analysis_scope(analysis: SourceAnalysis, submitted_source_id: str) 
             raise ModelOutputError("source observation referenced an unapproved source")
 
 
-def normalize_publication_sources(bundle: ResearchBundle) -> list[dict[str, Any]]:
+def _submitted_source_type(url: str) -> str:
+    if youtube_video_id(url) is not None:
+        return "submitted_video"
+    host = (urlsplit(url).hostname or "").casefold().removeprefix("www.")
+    if host in {"kickstarter.com", "indiegogo.com"} or host.endswith(".kickstarter.com"):
+        return "campaign"
+    return "official_project"
+
+
+def normalize_publication_sources(
+    bundle: ResearchBundle, nomination: ResearchInput
+) -> list[dict[str, Any]]:
     sources: list[dict[str, Any]] = []
     for source in bundle.sources:
         host = urlsplit(str(source.canonical_url)).hostname or "unknown.invalid"
@@ -630,7 +661,9 @@ def normalize_publication_sources(bundle: ResearchBundle) -> list[dict[str, Any]
                 ),
                 "retrievedAt": source.retrieved_at.isoformat().replace("+00:00", "Z"),
                 "sourceType": (
-                    "submitted_video" if source.origin.value == "submitted" else "other"
+                    _submitted_source_type(str(source.canonical_url))
+                    if source.origin.value == "submitted"
+                    else "other"
                 ),
                 "availability": "available",
                 "verificationStatus": (
@@ -646,6 +679,36 @@ def normalize_publication_sources(bundle: ResearchBundle) -> list[dict[str, Any]
                 ),
             }
         )
+    if nomination.media_url is not None:
+        media_url = str(nomination.media_url)
+        if not any(str(source["canonicalUrl"]) == media_url for source in sources):
+            retrieved_at = max(source.retrieved_at for source in bundle.sources)
+            sources.append(
+                {
+                    "id": submitted_source_id(media_url),
+                    "projectId": bundle.project_id,
+                    "runId": bundle.run_id,
+                    "origin": "submitted",
+                    "url": media_url,
+                    "canonicalUrl": media_url,
+                    "domain": urlsplit(media_url).hostname or "youtube.com",
+                    "title": "Submitted trailer or proof-of-concept video",
+                    "excerpt": (
+                        "Public YouTube video supplied with the original nomination "
+                        "for the Scout Card player."
+                    ),
+                    "author": None,
+                    "publishedAt": None,
+                    "retrievedAt": retrieved_at.isoformat().replace("+00:00", "Z"),
+                    "sourceType": "submitted_video",
+                    "availability": "available",
+                    "verificationStatus": "observed",
+                    "supportsClaimIds": [],
+                    "conflictsWithClaimIds": [],
+                    "externalCommentary": False,
+                    "queryProvenance": None,
+                }
+            )
     return sources
 
 

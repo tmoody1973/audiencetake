@@ -8,7 +8,7 @@ afterEach(cleanup);
 
 describe("ScoutCard", () => {
   it("renders the complete card with cited claims and exactly three pathway hypotheses", () => {
-    render(<ScoutCard card={getScoutCardFixture("complete")} />);
+    const { container } = render(<ScoutCard card={getScoutCardFixture("complete")} />);
 
     expect(screen.getByRole("heading", { level: 1, name: "Junichiro Jackson" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Watch before you judge" })).toBeInTheDocument();
@@ -17,6 +17,10 @@ describe("ScoutCard", () => {
     expect(screen.getByRole("heading", { name: "What we're checking" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Why this is being scouted" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Add your informed Take" })).toHaveAttribute("href", "#audience-pulse");
+    const overview = screen.getByLabelText("Submitted media and scouting summary");
+    expect(overview.firstElementChild).toHaveClass("scout-start-here");
+    expect(overview.lastElementChild).toHaveClass("evidence-brief");
+    expect(container.querySelector(".evidence-brief")?.children).toHaveLength(4);
     const pathways = screen.getByRole("heading", { name: "Pathway hypotheses" }).closest("section");
     expect(pathways).not.toBeNull();
     expect(within(pathways as HTMLElement).getAllByRole("listitem")).toHaveLength(3);

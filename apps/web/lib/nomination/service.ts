@@ -1,6 +1,12 @@
 import type { NominationInput } from "./contract";
 import type { NominationStore } from "./store";
-import { intakePublicUrl, sourceFingerprint, type SafeUrlPolicy } from "./url-policy";
+import { youtubeVideoId } from "../media/youtube";
+import {
+  intakePublicUrl,
+  sourceFingerprint,
+  type SafeUrlPolicy,
+  UnsafeUrlError,
+} from "./url-policy";
 
 export type ResearchDispatcher = (job: {
   runId: string;
@@ -31,15 +37,32 @@ export async function acceptNomination(
   },
 ): Promise<NominationResult> {
   const canonicalUrl = await intakePublicUrl(input.submittedUrl, dependencies.urlPolicy);
+  const checkedMediaUrl = input.mediaUrl
+    ? await intakePublicUrl(input.mediaUrl, dependencies.urlPolicy)
+    : undefined;
+  const mediaVideoId = checkedMediaUrl ? youtubeVideoId(checkedMediaUrl) : null;
+  if (checkedMediaUrl && mediaVideoId === null) {
+    throw new UnsafeUrlError(
+      "Use a supported public YouTube video URL for the Scout Card player.",
+      "unsupported_media",
+    );
+  }
+  const canonicalMediaUrl = mediaVideoId
+    ? `https://www.youtube.com/watch?v=${mediaVideoId}`
+    : undefined;
   const canonicalSupportingUrls = await Promise.all(
     input.supportingUrls.map((url) => intakePublicUrl(url, dependencies.urlPolicy)),
   );
   const uniqueSupportingUrls = [...new Set(canonicalSupportingUrls)].filter(
-    (url) => url !== canonicalUrl,
+    (url) =>
+      url !== canonicalUrl
+      && url !== canonicalMediaUrl
+      && (!mediaVideoId || youtubeVideoId(url) !== mediaVideoId),
   );
   const accepted = await dependencies.store.accept({
     ...input,
     canonicalUrl,
+    canonicalMediaUrl,
     canonicalSupportingUrls: uniqueSupportingUrls,
     fingerprint: sourceFingerprint(canonicalUrl),
     nominatorUid,

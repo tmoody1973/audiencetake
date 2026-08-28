@@ -18,6 +18,7 @@ type EvidenceLead = {
   note?: string;
   status?: string;
   incorporatedSourceId?: string;
+  suggestedUse?: "scout_card_video";
 };
 
 type CreatorUpdate = {
@@ -65,6 +66,7 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
   const [corrections, setCorrections] = useState<Correction[]>([]);
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [evidenceNote, setEvidenceNote] = useState("");
+  const [proposeAsVideo, setProposeAsVideo] = useState(false);
   const [role, setRole] = useState("");
   const [claimEmail, setClaimEmail] = useState("");
   const [proofUrl, setProofUrl] = useState("");
@@ -188,10 +190,15 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
     const result = await trustCommand<{ duplicate: boolean; status: string }>(
       `/api/projects/${card.projectId}/evidence-suggestions`,
       "POST",
-      { url: evidenceUrl, ...(evidenceNote.trim() ? { note: evidenceNote.trim() } : {}) },
+      {
+        url: evidenceUrl,
+        ...(evidenceNote.trim() ? { note: evidenceNote.trim() } : {}),
+        ...(proposeAsVideo ? { suggestedUse: "scout_card_video" } : {}),
+      },
     );
     setEvidenceUrl("");
     setEvidenceNote("");
+    setProposeAsVideo(false);
     return result.duplicate
       ? "That source is already in the project ledger or review queue."
       : "Evidence lead submitted for review.";
@@ -252,6 +259,8 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
           <form onSubmit={(event) => { event.preventDefault(); void submitEvidence(); }}>
             <label>Public URL<input type="url" value={evidenceUrl} onChange={(event) => setEvidenceUrl(event.target.value)} required disabled={!signedIn || busy !== null} /></label>
             <label>Why it matters (optional)<textarea value={evidenceNote} onChange={(event) => setEvidenceNote(event.target.value)} maxLength={1000} disabled={!signedIn || busy !== null} /></label>
+            <label className="trust-checkbox"><input type="checkbox" checked={proposeAsVideo} onChange={(event) => setProposeAsVideo(event.target.checked)} disabled={!signedIn || busy !== null} />Propose this YouTube link as the Scout Card video after review</label>
+            <p className="trust-form-note">A verified video publishes as a new immutable Scout Card version. It never silently rewrites the existing card.</p>
             <button type="submit" disabled={!signedIn || busy !== null}>Submit evidence lead</button>
           </form>
         </section>
@@ -275,6 +284,7 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
         <h3 id="community-leads-title">Community evidence leads</h3>
         {evidence.length ? <ul>{evidence.map((lead) => <li key={lead.id}>
           <div><a href={lead.url} target="_blank" rel="noreferrer">{lead.url}</a><strong>{evidenceLabels[lead.status ?? ""] ?? "Under review"}</strong></div>
+          {lead.suggestedUse === "scout_card_video" ? <small>Proposed Scout Card video</small> : null}
           {lead.note ? <p>{lead.note}</p> : null}
           {lead.incorporatedSourceId ? <small>Source ledger link: {lead.incorporatedSourceId}</small> : <small>Separate from published confidence and claims.</small>}
           {signedIn ? <button type="button" disabled={busy !== null} onClick={() => void submitReport({ type: "evidence_suggestion", id: lead.id })}>Report lead</button> : null}

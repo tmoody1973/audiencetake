@@ -7,6 +7,7 @@
   "required": ["submittedUrl", "whyItShouldGrow", "submissionType", "supportingUrls"],
   "properties": {
     "submittedUrl": { "type": "string", "format": "uri", "pattern": "^https?://" },
+    "mediaUrl": { "type": "string", "format": "uri", "pattern": "^https?://(?:(?:(?:www|m|music)\\.)?youtube\\.com|youtu\\.be|(?:www\\.)?youtube-nocookie\\.com)/" },
     "whyItShouldGrow": { "type": "string", "minLength": 20, "maxLength": 1200 },
     "submissionType": { "enum": ["fan", "creator"] },
     "suggestedFormat": { "type": "string", "maxLength": 240 },

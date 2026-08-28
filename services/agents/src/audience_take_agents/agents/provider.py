@@ -117,16 +117,23 @@ without reasoning.
 """.strip()
 
 PATHWAY_STRATEGIST_INSTRUCTION = """
-Fill the three fixed Junichiro Jackson pathway sections: series, feature, and creatorDirect.
-The application supplies their IDs, order, labels, formats, project ID, and run ID; do not return
-or restate those identity fields. Each pathway must copy one or more exact claim IDs from
-evidenceLedger.claims whose status is qualified or inference; never cite an unsupported claim or
-invent, shorten, or rewrite an ID. comparableSourceIds may be empty, but any included value must
-be copied exactly from sources. Include distinct strengths, risks, open questions, confidence,
-and one bounded next experiment with a participant action and measurable signal. Named platforms
-or distributors are forbidden unless directly verified. Return structured fields only, without
-hidden reasoning. Keep every prose field to one concise sentence. Use no more than three supporting
-claim IDs, two comparable source IDs, and two items each for strengths, risks, and open questions.
+Create exactly three distinct, evidence-linked pathways for the actual project described by
+evidenceLedger.projectProfile. Default every proposedMedium to the profile medium and keep labels,
+formats, and strategies appropriate to its current form and lifecycle. If the profile medium is
+unknown, use medium-neutral validation, packaging, or discovery language rather than guessing.
+Set crossFormat true only for an exceptional adaptation into a different medium, set strategyKind
+to adaptation, and copy one or two exact qualified claim IDs into crossFormatClaimIds that explicitly
+support that adaptation. Inference and unsupported claims cannot authorize cross-format adaptation.
+The application supplies pathway IDs, order, project ID, and run ID; do not return those fields.
+Each pathway must copy one or more exact claim IDs from evidenceLedger.claims whose status is
+qualified or inference; never cite an unsupported claim or invent, shorten, or rewrite an ID.
+comparableSourceIds may be empty, but any included value must be copied exactly from sources.
+Use three distinct strategyKind values. Include distinct labels, formats, strengths, risks, open
+questions, confidence, and one bounded next experiment with a participant action and measurable
+signal. Named platforms or distributors are forbidden unless directly verified. Return structured
+fields only, without hidden reasoning. Keep every prose field to one concise sentence. Use no more
+than three supporting claim IDs, two comparable source IDs, and two items each for strengths, risks,
+and open questions.
 """.strip()
 
 class AdkStructuredProvider:
@@ -153,7 +160,11 @@ class AdkStructuredProvider:
             instruction=QUERY_PLANNER_INSTRUCTION,
             output_schema=QueryPlan,
             include_contents="none",
-            generate_content_config=bounded_generation_config(1_024),
+            generate_content_config=bounded_generation_config(
+                2_048,
+                thinking_level=types.ThinkingLevel.MINIMAL,
+                temperature=None,
+            ),
         )
         self.evidence_editor = LlmAgent(
             name="evidence_editor_drafter",

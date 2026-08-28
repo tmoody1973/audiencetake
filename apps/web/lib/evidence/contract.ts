@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { youtubeVideoId } from "../media/youtube";
+
 const evidenceUrl = z
   .string()
   .trim()
@@ -13,8 +15,18 @@ export const evidenceSuggestionInputSchema = z
   .object({
     url: evidenceUrl,
     note: z.string().trim().min(1).max(1_000).optional(),
+    suggestedUse: z.literal("scout_card_video").optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.suggestedUse === "scout_card_video" && youtubeVideoId(value.url) === null) {
+      context.addIssue({
+        code: "custom",
+        path: ["url"],
+        message: "A proposed Scout Card video must be a supported YouTube video URL.",
+      });
+    }
+  });
 
 export const evidenceReviewOutcomes = [
   "verified_incorporated",

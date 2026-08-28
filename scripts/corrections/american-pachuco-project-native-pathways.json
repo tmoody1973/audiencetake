@@ -1,0 +1,136 @@
+{
+  "section": "pathway",
+  "summary": "Replaced animation-only pathway labels and formats with project-native documentary routes.",
+  "priorBasis": "The prior reusable pathway template incorrectly injected animation directions even though the card identifies the project as a documentary film.",
+  "expectedCardVersionId": "card-vSU2DLAPidOArl8MbA5E-v1",
+  "replacement": {
+    "kind": "project_native_pathways",
+    "projectProfile": {
+      "medium": "documentary",
+      "form": "feature",
+      "lifecycle": "released",
+      "sourceIds": [
+        "source-submitted-53b215464a33f0c6",
+        "source-parallel-4c9110fe9e5fdec2",
+        "source-parallel-cc5d5d3d1e27fd47"
+      ],
+      "qualification": "The published card identifies the current format as a documentary film, while cited public sources describe its festival recognition, theatrical release, production context, and campaign."
+    },
+    "pathways": [
+      {
+        "id": "pathway-01",
+        "order": 1,
+        "label": "Festival and theatrical expansion",
+        "format": "Feature documentary exhibition",
+        "strategyKind": "distribution",
+        "proposedMedium": "documentary",
+        "crossFormat": false,
+        "crossFormatClaimIds": [],
+        "audience": "Festival programmers, specialty exhibitors, cultural-documentary audiences, and viewers interested in Chicano history.",
+        "rationale": "The cited festival awards and public recognition support testing additional documentary exhibition opportunities without treating awards as proof of audience demand.",
+        "supportingClaimIds": ["claim-01", "claim-02"],
+        "comparableSourceIds": [
+          "source-parallel-4c9110fe9e5fdec2",
+          "source-parallel-bc4868f27cb5d0e1"
+        ],
+        "strengths": [
+          "The existing feature has cited festival recognition that can make outreach more legible.",
+          "A completed documentary can be evaluated without changing its medium."
+        ],
+        "risks": [
+          "Festival recognition may not convert into additional bookings or sustained attendance.",
+          "Current rights, windows, and exhibition availability remain unverified."
+        ],
+        "openQuestions": [
+          "Which territories and exhibition windows are currently available?",
+          "Which prior screenings produced reusable programmer or audience feedback?"
+        ],
+        "confidence": "medium",
+        "nextExperiment": {
+          "title": "Documentary exhibitor fit interviews",
+          "hypothesis": "A concise evidence-linked exhibition packet will reveal which venues see a credible fit for the existing feature.",
+          "method": "Share one bounded packet and screener-access request with a small set of documentary programmers and specialty exhibitors.",
+          "participantAction": "Review the packet and identify fit, timing, and the main booking constraint.",
+          "signal": "Repeated fit themes and qualified requests for a follow-up conversation or screener.",
+          "timebox": "Three weeks"
+        }
+      },
+      {
+        "id": "pathway-02",
+        "order": 2,
+        "label": "Public media and educational licensing",
+        "format": "Feature documentary broadcast and educational licensing",
+        "strategyKind": "education",
+        "proposedMedium": "documentary",
+        "crossFormat": false,
+        "crossFormatClaimIds": [],
+        "audience": "Public-media viewers, educators, libraries, cultural institutions, and students of Chicano history and theater.",
+        "rationale": "The cited production context, historical footage, and interviews support testing documentary broadcast and classroom use while rights and partner commitments remain unconfirmed.",
+        "supportingClaimIds": ["claim-04", "claim-05"],
+        "comparableSourceIds": [
+          "source-parallel-cc5d5d3d1e27fd47",
+          "source-parallel-9d127bcc036085f6"
+        ],
+        "strengths": [
+          "The documented subject matter and interview material can support facilitated educational discussion.",
+          "The cited production context gives public-media outreach a relevant starting point."
+        ],
+        "risks": [
+          "Educational use may require additional clearances, captions, guides, or license administration.",
+          "Production involvement does not establish current broadcast or licensing commitments."
+        ],
+        "openQuestions": [
+          "Which educational rights and accessibility assets are already available?",
+          "Which course areas and institutional buyers have the clearest documented fit?"
+        ],
+        "confidence": "medium",
+        "nextExperiment": {
+          "title": "Educational use-case review",
+          "hypothesis": "A documentary discussion guide and rights summary will reveal the most credible classroom and institutional uses.",
+          "method": "Present a bounded sample guide and licensing outline to a small group of educators, librarians, and cultural-program staff.",
+          "participantAction": "Identify a concrete use case, required materials, and the main adoption constraint.",
+          "signal": "Repeated use cases and qualified requests for screening or licensing information.",
+          "timebox": "Four weeks"
+        }
+      },
+      {
+        "id": "pathway-03",
+        "order": 3,
+        "label": "Community impact screenings",
+        "format": "Feature documentary community exhibition",
+        "strategyKind": "audience",
+        "proposedMedium": "documentary",
+        "crossFormat": false,
+        "crossFormatClaimIds": [],
+        "audience": "Chicano cultural organizations, community hosts, campaign supporters, local arts groups, and intergenerational audiences.",
+        "rationale": "The cited campaign and documentary subject matter support testing host-led community screenings without assuming that campaign backing equals current participation.",
+        "supportingClaimIds": ["claim-03", "claim-04"],
+        "comparableSourceIds": [
+          "source-parallel-af1c6d7987261b69",
+          "source-parallel-9d127bcc036085f6"
+        ],
+        "strengths": [
+          "The campaign provides a public starting point for identifying potential community hosts.",
+          "The documentary's cultural-history focus can support facilitated local conversations."
+        ],
+        "risks": [
+          "Past campaign participation does not prove present host capacity or attendance.",
+          "Community exhibition requires clear rights, logistics, accessibility, and facilitation support."
+        ],
+        "openQuestions": [
+          "Which campaign supporters or cultural organizations still want to host screenings?",
+          "What minimum toolkit would let a host run an accessible and rights-compliant event?"
+        ],
+        "confidence": "low",
+        "nextExperiment": {
+          "title": "Community host interest pilot",
+          "hypothesis": "A clear host toolkit will reveal whether a small group can organize rights-compliant documentary screenings.",
+          "method": "Share one draft host kit with a bounded set of campaign-connected and cultural-community contacts.",
+          "participantAction": "State a preferred venue, date range, audience, and the support needed to host.",
+          "signal": "Qualified host plans that name a venue path, timing, and unresolved requirement.",
+          "timebox": "Four weeks"
+        }
+      }
+    ]
+  }
+}

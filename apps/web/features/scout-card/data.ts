@@ -27,6 +27,9 @@ const nextExperimentSchema = z.object({
 });
 const pathwaySchema = z.object({
   id: text, order: z.number().int().min(1).max(3), label: text, format: text, audience: text, rationale: text,
+  strategyKind: z.enum(["development", "distribution", "audience", "financing", "education", "adaptation"]).optional(),
+  proposedMedium: z.enum(["documentary", "live_action", "animation", "hybrid", "unknown"]).optional(),
+  crossFormat: z.boolean().optional(), crossFormatClaimIds: stringList.optional(),
   supportingClaimIds: stringList.min(1), comparableSourceIds: stringList, strengths: stringList.min(1), risks: stringList.min(1),
   openQuestions: stringList.min(1), confidence: z.enum(["low", "medium", "high"]), nextExperiment: nextExperimentSchema,
 });

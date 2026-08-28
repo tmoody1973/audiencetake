@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 
 import { getScoutCardFixture } from "@/features/scout-card/data";
 
-import { correctionInputSchema, CorrectionError, recordProjectCorrection } from "./corrections";
+import {
+  correctionInputSchema,
+  CorrectionError,
+  promoteReviewedYouTubeLead,
+  recordProjectCorrection,
+} from "./corrections";
 
 describe("project corrections", () => {
   it("requires a concise public explanation of both the correction and prior basis", () => {
@@ -170,5 +175,220 @@ describe("project corrections", () => {
         cardTitle: "Junichiro Jackson (JJ)",
       },
     }).success).toBe(false);
+  });
+
+  it("reuses a verified evidence source when publishing the reviewed video", async () => {
+    const fixture = getScoutCardFixture("complete");
+    const sourceId = "community-reviewed-video";
+    const sourceUrl = "https://www.youtube.com/watch?v=s8G7425lfKs";
+    const records = new Map<string, Record<string, unknown>>([
+      ["projects/project-1", {
+        publicationStatus: "published",
+        slug: "junichiro-jackson",
+        latestCardVersionId: "card-v1",
+      }],
+      ["scoutCards/card-v1", {
+        ...fixture,
+        cardVersionId: "card-v1",
+        projectId: "project-1",
+        slug: "junichiro-jackson",
+        visibility: "public",
+      }],
+      [`sources/${sourceId}`, {
+        id: sourceId,
+        projectId: "project-1",
+        canonicalUrl: sourceUrl,
+        url: sourceUrl,
+        title: "Junichiro Jackson proof of concept",
+        author: "TeamTO",
+        verificationStatus: "verified",
+      }],
+    ]);
+    const writes: Array<{ operation: string; path: string; value: Record<string, unknown> }> = [];
+    const snapshot = (path: string) => ({
+      exists: records.has(path),
+      data: () => records.get(path),
+    });
+    const database = {
+      collection: (name: string) => ({
+        doc: (id = "auto") => {
+          const path = `${name}/${id}`;
+          return { id, path, get: async () => snapshot(path) };
+        },
+      }),
+      runTransaction: async (callback: (transaction: {
+        getAll(...refs: Array<{ path: string }>): Promise<Array<ReturnType<typeof snapshot>>>;
+        get(ref: { path: string }): Promise<ReturnType<typeof snapshot>>;
+        create(ref: { path: string }, value: Record<string, unknown>): void;
+        update(ref: { path: string }, value: Record<string, unknown>): void;
+      }) => Promise<unknown>) => callback({
+        getAll: async (...refs) => refs.map((ref) => snapshot(ref.path)),
+        get: async (ref) => snapshot(ref.path),
+        create: (ref, value) => {
+          writes.push({ operation: "create", path: ref.path, value });
+          records.set(ref.path, value);
+        },
+        update: (ref, value) => {
+          writes.push({ operation: "update", path: ref.path, value });
+          records.set(ref.path, { ...(records.get(ref.path) ?? {}), ...value });
+        },
+      }),
+    } as unknown as Firestore;
+
+    const result = await promoteReviewedYouTubeLead(database, {
+      projectId: "project-1",
+      reviewerUid: "admin-1",
+      incorporatedSourceId: sourceId,
+      canonicalUrl: sourceUrl,
+    });
+
+    expect(result).toMatchObject({ changed: true, previousCardVersionId: "card-v1" });
+    expect(writes.some((write) => write.path.startsWith("sources/"))).toBe(false);
+    const cardWrite = writes.find((write) => write.path.startsWith("scoutCards/card-v1-correction-"));
+    expect(cardWrite?.value).toMatchObject({
+      primaryWorkSourceId: sourceId,
+      identity: fixture.identity,
+      media: {
+        sourceUrl,
+        embedUrl: "https://www.youtube-nocookie.com/embed/s8G7425lfKs",
+      },
+    });
+    const sourceEntry = (cardWrite?.value.sourceLedger as Array<Record<string, unknown>>)
+      .find((source) => source.id === sourceId);
+    expect(sourceEntry).toMatchObject({
+      verificationStatus: "verified",
+      sourceRole: "primary_work",
+    });
+  });
+
+  it("publishes three project-native pathways as an immutable documentary correction", async () => {
+    const fixture = getScoutCardFixture("complete");
+    const fromCard = {
+      ...fixture,
+      cardVersionId: "card-documentary-v1",
+      projectId: "documentary-1",
+      slug: "american-pachuco",
+      projectType: "documentary",
+      storyContext: { ...fixture.storyContext, currentFormat: "Feature documentary" },
+      visibility: "public",
+    } as const;
+    const records = new Map<string, Record<string, unknown>>([
+      ["projects/documentary-1", {
+        publicationStatus: "published",
+        slug: "american-pachuco",
+        latestCardVersionId: "card-documentary-v1",
+        publishedResearchVersion: 1,
+      }],
+      ["scoutCards/card-documentary-v1", fromCard],
+    ]);
+    const writes: Array<{ operation: string; path: string; value: Record<string, unknown> }> = [];
+    const snapshot = (path: string) => ({
+      exists: records.has(path),
+      data: () => records.get(path),
+    });
+    const database = {
+      collection: (name: string) => ({
+        doc: (id = "auto") => ({ id, path: `${name}/${id}` }),
+      }),
+      runTransaction: async (callback: (transaction: {
+        getAll(...refs: Array<{ path: string }>): Promise<Array<ReturnType<typeof snapshot>>>;
+        create(ref: { path: string }, value: Record<string, unknown>): void;
+        update(ref: { path: string }, value: Record<string, unknown>): void;
+      }) => Promise<unknown>) => callback({
+        getAll: async (...refs) => refs.map((ref) => snapshot(ref.path)),
+        create: (ref, value) => {
+          writes.push({ operation: "create", path: ref.path, value });
+          records.set(ref.path, value);
+        },
+        update: (ref, value) => {
+          writes.push({ operation: "update", path: ref.path, value });
+          records.set(ref.path, { ...(records.get(ref.path) ?? {}), ...value });
+        },
+      }),
+    } as unknown as Firestore;
+    const base = {
+      proposedMedium: "documentary",
+      crossFormat: false,
+      crossFormatClaimIds: [],
+      audience: "Documentary viewers and cultural-history audiences.",
+      rationale: "Test a bounded route using the card's qualified public evidence.",
+      supportingClaimIds: [fixture.claimIds[0]],
+      comparableSourceIds: [],
+      strengths: ["The existing documentary can be evaluated in its current medium."],
+      risks: ["Audience response remains unverified."],
+      openQuestions: ["Which route best fits the current rights and release status?"],
+      confidence: "low",
+      nextExperiment: {
+        title: "Run a bounded documentary route test",
+        hypothesis: "One route will produce clearer qualified interest.",
+        method: "Present one existing-format package to a bounded participant group.",
+        participantAction: "Review the package and explain the preferred route.",
+        signal: "Qualified preference and recurring reasons.",
+        timebox: "Three weeks",
+      },
+    } as const;
+    const input = {
+      section: "pathway",
+      summary: "Replaced animation-only pathways with project-native documentary routes.",
+      priorBasis: "The original reusable pathway template incorrectly injected animation directions.",
+      expectedCardVersionId: "card-documentary-v1",
+      replacement: {
+        kind: "project_native_pathways",
+        projectProfile: {
+          medium: "documentary",
+          form: "feature",
+          lifecycle: "released",
+          sourceIds: [fixture.sourceIds[0]],
+          qualification: "The immutable card identifies the project as a documentary.",
+        },
+        pathways: [
+          {
+            ...base,
+            id: "pathway-01",
+            order: 1,
+            label: "Festival and theatrical expansion",
+            format: "Feature documentary exhibition",
+            strategyKind: "distribution",
+          },
+          {
+            ...base,
+            id: "pathway-02",
+            order: 2,
+            label: "Public media and streaming distribution",
+            format: "Feature documentary distribution",
+            strategyKind: "audience",
+          },
+          {
+            ...base,
+            id: "pathway-03",
+            order: 3,
+            label: "Educational and community licensing",
+            format: "Documentary educational exhibition",
+            strategyKind: "education",
+          },
+        ],
+      },
+    } as const;
+
+    const result = await recordProjectCorrection(database, "documentary-1", "admin-secret", input);
+    expect(result).toMatchObject({ changed: true, previousCardVersionId: "card-documentary-v1" });
+    const cardWrite = writes.find((write) =>
+      write.path.startsWith("scoutCards/card-documentary-v1-correction-"),
+    );
+    expect(cardWrite?.value.pathways).toEqual(input.replacement.pathways);
+    expect((cardWrite?.value.industryLens as Record<string, unknown>).pathwayIds).toEqual([
+      "pathway-01", "pathway-02", "pathway-03",
+    ]);
+    expect(JSON.stringify(cardWrite?.value).toLocaleLowerCase()).not.toContain("animated");
+    expect(writes.filter((write) => write.path.startsWith("pathways/"))).toHaveLength(3);
+    expect(writes.some((write) => write.path === "scoutCards/card-documentary-v1")).toBe(false);
+    expect(writes.find((write) => write.path.startsWith("projectCorrections/"))?.value)
+      .not.toHaveProperty("actorUid");
+    expect(writes.find((write) => write.path.startsWith("projectCorrectionAudits/"))?.value)
+      .toMatchObject({ actorUid: "admin-secret" });
+    const writeCount = writes.length;
+    await expect(recordProjectCorrection(database, "documentary-1", "admin-secret", input))
+      .resolves.toMatchObject({ changed: false, cardVersionId: result.cardVersionId });
+    expect(writes).toHaveLength(writeCount);
   });
 });

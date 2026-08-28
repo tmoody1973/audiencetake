@@ -17,13 +17,15 @@ describe("HomePage", () => {
     expect(screen.getByTitle(/Junichiro Jackson public project video/i)).toHaveAttribute("src", expect.stringContaining("youtube-nocookie.com"));
   });
 
-  it("shows the truthful three-step sequence and labeled Selects examples", () => {
+  it("shows the truthful three-step sequence and links the published Select to its Scout Card", () => {
     render(<HomePage />);
 
     expect(screen.getByRole("heading", { name: "Nominate" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Agents scout" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Audience takes action" })).toBeInTheDocument();
-    expect(screen.getAllByText(/Sample — no audience activity claimed/i)).toHaveLength(3);
+    expect(screen.getByText(/Published Scout Card · source-limited evidence/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Complete demonstration card Junichiro Jackson/i })).toHaveAttribute("href", "/projects/junichiro-live-project");
+    expect(screen.getByRole("link", { name: /Browse the Scouting Wall/i })).toHaveAttribute("href", "/projects");
   });
 });
 

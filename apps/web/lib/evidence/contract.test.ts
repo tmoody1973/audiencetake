@@ -65,4 +65,15 @@ describe("evidence contracts", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("allows only YouTube links to be proposed as the Scout Card video", () => {
+    expect(evidenceSuggestionInputSchema.safeParse({
+      url: "https://youtu.be/s8G7425lfKs",
+      suggestedUse: "scout_card_video",
+    }).success).toBe(true);
+    expect(evidenceSuggestionInputSchema.safeParse({
+      url: "https://example.com/trailer",
+      suggestedUse: "scout_card_video",
+    }).success).toBe(false);
+  });
 });

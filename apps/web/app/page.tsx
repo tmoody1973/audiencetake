@@ -17,9 +17,14 @@ const steps = [
 ];
 
 const selects = [
-  { title: "A local story with a wider horizon", type: "Editorial example", reason: "Selected to show how a distinctive storyworld could be surfaced.", color: "yellow" },
-  { title: "A short built for its next chapter", type: "Demo project", reason: "Selected to demonstrate an early-evidence research state.", color: "blue" },
-  { title: "An unfinished signal worth following", type: "Editorial fallback", reason: "Selected to show that partial truth stays visibly partial.", color: "coral" },
+  {
+    title: "Junichiro Jackson",
+    type: "Complete demonstration card",
+    reason: "Selected to show an evidence-limited project with three bounded pathways and an immutable correction history.",
+    color: "yellow",
+    href: "/projects/junichiro-live-project",
+    status: "Published Scout Card · source-limited evidence",
+  },
 ];
 
 export default function HomePage() {
@@ -62,12 +67,13 @@ export default function HomePage() {
             <span className="featured-label">Featured nomination · source 01</span>
             <p className="claim-label">Fan nomination — unclaimed by creator</p>
             <p className="featured-summary">See the supplied public source, then follow how a nomination becomes a cited Scout Card. No creator endorsement is implied.</p>
-            <a className="button button-inverse" href="https://www.youtube.com/watch?v=M2djoKmnOTY">Open public source <ArrowIcon /></a>
+            <a className="button button-inverse" href="https://www.youtube.com/watch?v=s8G7425lfKs">Open public source <ArrowIcon /></a>
+            <Link className="featured-card-link" href="/projects/junichiro-live-project">Open Scout Card <ArrowIcon /></Link>
           </div>
           <div className="source-frame">
-            <iframe src="https://www.youtube-nocookie.com/embed/M2djoKmnOTY" title="Junichiro Jackson public project video on YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+            <iframe src="https://www.youtube-nocookie.com/embed/s8G7425lfKs" title="Junichiro Jackson public project video on YouTube" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
           </div>
-          <aside className="source-receipt" aria-label="Source status"><span>Source</span><strong>YouTube</strong><span>Card status</span><strong>Preview</strong><span>Creator claim</span><strong>Unclaimed</strong></aside>
+          <aside className="source-receipt" aria-label="Source status"><span>Source</span><strong>YouTube</strong><span>Card status</span><strong>Published</strong><span>Creator claim</span><strong>Unclaimed</strong></aside>
         </section>
 
         <section className="workflow" aria-labelledby="workflow-title">
@@ -85,9 +91,9 @@ export default function HomePage() {
         </section>
 
         <section className="selects" id="selects" aria-labelledby="selects-title">
-          <header className="selects-header"><div><h2 id="selects-title">The Selects</h2><p>An editorial program, not a leaderboard. Every placement says why it is here.</p></div><span className="selects-note">Preview collection · demo entries</span></header>
+          <header className="selects-header"><div><h2 id="selects-title">The Selects</h2><p>An editorial program, not a leaderboard. Every placement says why it is here.</p></div><div className="selects-actions"><span className="selects-note">Published collection · clearly labeled</span><Link className="text-link" href="/projects">Browse the Scouting Wall <ArrowIcon /></Link></div></header>
           <div className="selects-rail">
-            {selects.map((item, index) => <article className={`select-entry select-entry-${index + 1}`} key={item.title}><div className={`editorial-poster poster-${item.color}`} aria-hidden="true"><span>{String(index + 1).padStart(2, "0")}</span><i /><b>AT</b></div><div className="select-copy"><span>{item.type}</span><h3>{item.title}</h3><p>{item.reason}</p><span className="select-status">Sample — no audience activity claimed</span></div></article>)}
+            {selects.map((item, index) => <Link className={`select-entry select-entry-${index + 1}`} href={item.href} key={item.title}><div className={`editorial-poster poster-${item.color}`} aria-hidden="true"><span>{String(index + 1).padStart(2, "0")}</span><i /><b>AT</b></div><div className="select-copy"><span>{item.type}</span><h3>{item.title}</h3><p>{item.reason}</p><span className="select-status">{item.status}</span></div></Link>)}
           </div>
         </section>
       </main>

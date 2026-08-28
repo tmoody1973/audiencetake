@@ -5,11 +5,23 @@
   "description": "The Evidence Editor handoff. Public-web evidence, external commentary, and inference remain explicitly distinct.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["runId", "projectId", "researchVersion", "claims", "comparables", "externalSignals", "sourceAssessments", "evidenceQuality", "limitations", "unresolvedQuestions"],
+  "required": ["runId", "projectId", "researchVersion", "projectProfile", "claims", "comparables", "externalSignals", "sourceAssessments", "evidenceQuality", "limitations", "unresolvedQuestions"],
   "properties": {
     "runId": { "type": "string", "minLength": 1 },
     "projectId": { "type": "string", "minLength": 1 },
     "researchVersion": { "type": "integer", "minimum": 1 },
+    "projectProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["medium", "form", "lifecycle", "sourceIds", "qualification"],
+      "properties": {
+        "medium": { "enum": ["documentary", "live_action", "animation", "hybrid", "unknown"] },
+        "form": { "enum": ["feature", "short", "series", "proof_of_concept", "campaign", "unknown"] },
+        "lifecycle": { "enum": ["development", "production", "released", "campaigning", "unknown"] },
+        "sourceIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "qualification": { "type": "string", "minLength": 1, "maxLength": 500 }
+      }
+    },
     "claims": {
       "type": "array",
       "minItems": 1,

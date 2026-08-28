@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { youtubeVideoId } from "../media/youtube";
+
 const publicHttpUrl = z
   .string()
   .trim()
@@ -7,9 +9,15 @@ const publicHttpUrl = z
   .url()
   .refine((value) => /^https?:\/\//i.test(value), "Use a public HTTP(S) URL.");
 
+const youtubeMediaUrl = publicHttpUrl.refine(
+  (value) => youtubeVideoId(value) !== null,
+  "Use a supported public YouTube video URL.",
+);
+
 export const nominationInputSchema = z
   .object({
     submittedUrl: publicHttpUrl,
+    mediaUrl: youtubeMediaUrl.optional(),
     whyItShouldGrow: z.string().trim().min(20).max(1_200),
     submissionType: z.enum(["fan", "creator"]),
     suggestedFormat: z.string().trim().max(240).optional(),
@@ -29,4 +37,3 @@ export const nominationInputSchema = z
   });
 
 export type NominationInput = z.infer<typeof nominationInputSchema>;
-

@@ -47,7 +47,7 @@ def source_presentation(source: Mapping[str, Any]) -> dict[str, str]:
 
     if source.get("externalCommentary") is True:
         role = "commentary"
-    elif source_type == "official_project":
+    elif source_type in {"official_project", "submitted_video"}:
         role = "primary_work"
     elif source_type == "editorial_coverage":
         role = "trade_reporting"

@@ -49,7 +49,11 @@ def build_adk_research_graph(*, model: str, parallel: ParallelSearchClient) -> S
         output_schema=QueryPlan,
         output_key="query_plan",
         include_contents="none",
-        generate_content_config=bounded_generation_config(1_024),
+        generate_content_config=bounded_generation_config(
+            2_048,
+            thinking_level=types.ThinkingLevel.MINIMAL,
+            temperature=None,
+        ),
     )
     web_researcher = LlmAgent(
         name="web_researcher",

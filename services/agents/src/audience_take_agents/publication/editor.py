@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import Any
 
 from audience_take_agents.publication.errors import SemanticContractError
+from audience_take_agents.publication.project_profile import validate_project_profile
 from audience_take_agents.publication.schema import validate_schema
 from audience_take_agents.publication.truth import (
     enforce_named_platform_proof,
@@ -28,6 +29,7 @@ class EvidenceEditor:
         claims: Sequence[dict[str, Any]],
         comparables: Sequence[dict[str, Any]] = (),
         external_signals: Sequence[dict[str, Any]] = (),
+        project_profile: Mapping[str, Any],
         limitations: Sequence[str],
         unresolved_questions: Sequence[str],
     ) -> dict[str, Any]:
@@ -38,6 +40,14 @@ class EvidenceEditor:
                 raise SemanticContractError("source identity does not match evidence ledger")
 
         source_ids = values(unique_sources, "id")
+        normalized_profile = deepcopy(dict(project_profile))
+        normalized_profile["sourceIds"] = list(
+            dict.fromkeys(
+                source_aliases.get(str(item), str(item))
+                for item in normalized_profile.get("sourceIds", [])
+            )
+        )
+        validate_project_profile(normalized_profile, available_source_ids=source_ids)
         sources_by_id: dict[str, Mapping[str, Any]] = {
             str(source["id"]): source for source in unique_sources
         }
@@ -125,6 +135,7 @@ class EvidenceEditor:
             "runId": run_id,
             "projectId": project_id,
             "researchVersion": research_version,
+            "projectProfile": normalized_profile,
             "claims": normalized_claims,
             "comparables": normalized_comparables,
             "externalSignals": normalized_signals,

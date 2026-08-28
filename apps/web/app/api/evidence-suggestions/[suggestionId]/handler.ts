@@ -9,6 +9,10 @@ import { readEvidenceJson } from "@/lib/evidence/http";
 import { createFirestoreEvidenceStore, type EvidenceStore } from "@/lib/evidence/store";
 import { getAdminFirestore } from "@/lib/firebase/admin";
 import { AuthorizationError, requireAdmin } from "@/lib/trust/authorization";
+import {
+  CorrectionError,
+  promoteReviewedYouTubeLead,
+} from "@/lib/trust/corrections";
 
 const suggestionIdSchema = z.string().regex(/^[a-f0-9]{64}$/);
 
@@ -16,6 +20,12 @@ type RouteDependencies = {
   verifyRequest?: typeof verifyAuthenticatedRequest;
   authorizeAdmin?: (uid: string) => Promise<void>;
   store?: EvidenceStore;
+  promoteMedia?: (input: {
+    projectId: string;
+    reviewerUid: string;
+    incorporatedSourceId: string;
+    canonicalUrl: string;
+  }) => Promise<unknown>;
 };
 
 export async function handleEvidenceReviewPatch(
@@ -44,7 +54,24 @@ export async function handleEvidenceReviewPatch(
       );
     }
     const store = dependencies.store ?? createFirestoreEvidenceStore(database!);
-    return ok(await store.review(suggestionId.data, user.uid, review.data));
+    const result = await store.review(suggestionId.data, user.uid, review.data);
+    let mediaPromotion: unknown = null;
+    if (
+      result.status === "verified_incorporated"
+      && result.suggestedUse === "scout_card_video"
+      && result.incorporatedSourceId
+    ) {
+      mediaPromotion = await (
+        dependencies.promoteMedia
+        ?? ((input) => promoteReviewedYouTubeLead(database ?? getAdminFirestore(), input))
+      )({
+        projectId: result.projectId,
+        reviewerUid: user.uid,
+        incorporatedSourceId: result.incorporatedSourceId,
+        canonicalUrl: result.canonicalUrl,
+      });
+    }
+    return ok({ ...result, mediaPromotion });
   } catch (error) {
     if (error instanceof AuthenticationError) {
       return fail({ code: error.code, message: error.message }, 401);
@@ -53,6 +80,9 @@ export async function handleEvidenceReviewPatch(
       return fail({ code: error.code, message: error.message }, 403);
     }
     if (error instanceof EvidenceError) {
+      return fail({ code: error.code, message: error.message }, error.status);
+    }
+    if (error instanceof CorrectionError) {
       return fail({ code: error.code, message: error.message }, error.status);
     }
     if (error instanceof Error && error.message === "BODY_TOO_LARGE") {

@@ -21,6 +21,23 @@ class ProjectType(StrEnum):
     CREATOR_PROJECT = "creator_project"
 
 
+class ProjectMedium(StrEnum):
+    DOCUMENTARY = "documentary"
+    LIVE_ACTION = "live_action"
+    ANIMATION = "animation"
+    HYBRID = "hybrid"
+    UNKNOWN = "unknown"
+
+
+class PathwayStrategy(StrEnum):
+    DEVELOPMENT = "development"
+    DISTRIBUTION = "distribution"
+    AUDIENCE = "audience"
+    FINANCING = "financing"
+    EDUCATION = "education"
+    ADAPTATION = "adaptation"
+
+
 class ClaimStatus(StrEnum):
     UNCLAIMED = "unclaimed"
     PENDING = "pending"
@@ -201,6 +218,7 @@ class ResearchInput(StrictModel):
     )
     submitted_url: HttpUrl = Field(alias="submittedUrl")
     canonical_url: HttpUrl = Field(alias="canonicalUrl")
+    media_url: HttpUrl | None = Field(default=None, alias="mediaUrl")
     why_it_should_grow: str = Field(alias="whyItShouldGrow", min_length=1, max_length=600)
     submission_type: str = Field(alias="submissionType", pattern="^(fan|creator)$")
     suggested_format: str | None = Field(default=None, alias="suggestedFormat", max_length=400)
@@ -298,46 +316,30 @@ class PathwayContentDraft(StrictModel):
     next_experiment: NextExperimentDraft = Field(alias="nextExperiment")
 
 
-class PathwayDraft(StrictModel):
-    """Three fixed Junichiro directions with model-authored bounded content."""
+class PathwayDirectionDraft(PathwayContentDraft):
+    label: str = Field(min_length=1, max_length=160)
+    format: str = Field(min_length=1, max_length=160)
+    strategy_kind: PathwayStrategy = Field(alias="strategyKind")
+    proposed_medium: ProjectMedium = Field(alias="proposedMedium")
+    cross_format: bool = Field(alias="crossFormat", strict=True)
+    cross_format_claim_ids: list[EvidenceId] = Field(
+        default_factory=list, alias="crossFormatClaimIds", max_length=2
+    )
 
-    series: PathwayContentDraft
-    feature: PathwayContentDraft
-    creator_direct: PathwayContentDraft = Field(alias="creatorDirect")
+
+class PathwayDraft(StrictModel):
+    """Exactly three bounded, project-native pathway directions."""
+
+    pathways: list[PathwayDirectionDraft] = Field(min_length=3, max_length=3)
 
     def to_pathways(self, *, run_id: str, project_id: str) -> list[dict[str, object]]:
-        blueprints = (
-            (
-                "pathway-series",
-                1,
-                "Premium adult animated series",
-                "Serialized adult animation",
-                self.series,
-            ),
-            (
-                "pathway-feature",
-                2,
-                "Independent animated feature",
-                "Feature-length independent animation",
-                self.feature,
-            ),
-            (
-                "pathway-creator-direct",
-                3,
-                "Creator-direct serialized franchise",
-                "Short-form animation and publishing",
-                self.creator_direct,
-            ),
-        )
         return [
             {
-                "id": pathway_id,
+                "id": f"pathway-{order:02d}",
                 "projectId": project_id,
                 "runId": run_id,
                 "order": order,
-                "label": label,
-                "format": format_name,
-                **content.model_dump(by_alias=True, mode="json"),
+                **pathway.model_dump(by_alias=True, mode="json"),
             }
-            for pathway_id, order, label, format_name, content in blueprints
+            for order, pathway in enumerate(self.pathways, start=1)
         ]

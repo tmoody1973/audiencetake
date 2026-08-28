@@ -3,20 +3,22 @@
 import { FormEvent, useMemo, useState } from "react";
 
 import { ArrowIcon } from "../../components/icons";
+import { youtubeVideoId } from "../../lib/media/youtube";
 import { nominationCommandHeaders } from "../../lib/nomination/client-auth";
 
 type Mode = "fan" | "creator";
 type FormState = {
   projectUrl: string;
+  mediaUrl: string;
   reason: string;
   potential: string;
   audience: string;
   supportingLinks: string[];
   creatorConnection: boolean;
 };
-type Errors = Partial<Record<"projectUrl" | "reason" | "supportingLinks" | "creatorConnection", string>>;
+type Errors = Partial<Record<"projectUrl" | "mediaUrl" | "reason" | "supportingLinks" | "creatorConnection", string>>;
 
-const emptyState = (initialUrl: string): FormState => ({ projectUrl: initialUrl, reason: "", potential: "", audience: "", supportingLinks: [""], creatorConnection: false });
+const emptyState = (initialUrl: string): FormState => ({ projectUrl: initialUrl, mediaUrl: "", reason: "", potential: "", audience: "", supportingLinks: [""], creatorConnection: false });
 
 function publicUrlError(value: string, label: string): string | undefined {
   if (!value.trim()) return `${label} is required.`;
@@ -52,6 +54,13 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
     const next: Errors = {};
     const urlMessage = publicUrlError(values.projectUrl, "Project URL");
     if (urlMessage) next.projectUrl = urlMessage;
+    if (values.mediaUrl.trim()) {
+      const mediaUrlMessage = publicUrlError(values.mediaUrl, "YouTube video");
+      if (mediaUrlMessage) next.mediaUrl = mediaUrlMessage;
+      else if (youtubeVideoId(values.mediaUrl) === null) {
+        next.mediaUrl = "Use a public YouTube video link for the Scout Card player.";
+      }
+    }
     if (!values.reason.trim()) next.reason = "Tell us why this project should grow.";
     else if (values.reason.trim().length < 20) next.reason = "Give scouts a little more context — at least 20 characters.";
     const invalidSupport = completedSupportingLinks.find((link) => publicUrlError(link, "Supporting link"));
@@ -82,6 +91,7 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
         headers: await nominationCommandHeaders(),
         body: JSON.stringify({
           submittedUrl: values.projectUrl.trim(),
+          mediaUrl: values.mediaUrl.trim() || undefined,
           whyItShouldGrow: values.reason.trim(),
           submissionType: mode,
           suggestedFormat: values.potential.trim() || undefined,
@@ -112,6 +122,7 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
         <div className="review-heading"><div><span>Final check</span><h2 id="review-title">Review your nomination</h2></div><span className="review-status">{statusLabel}</span></div>
         <dl className="review-list">
           <div><dt>Public project URL</dt><dd><a href={values.projectUrl}>{values.projectUrl}</a></dd></div>
+          <div><dt>Trailer or proof-of-concept video</dt><dd>{values.mediaUrl ? <a href={values.mediaUrl}>{values.mediaUrl}</a> : "Uses the project URL when it is a supported YouTube video"}</dd></div>
           <div><dt>Why should this grow?</dt><dd>{values.reason}</dd></div>
           <div><dt>What could it become?</dt><dd>{values.potential || "Not supplied"}</dd></div>
           <div><dt>Who is it for?</dt><dd>{values.audience || "Not supplied"}</dd></div>
@@ -139,6 +150,12 @@ export function NominationForm({ initialUrl = "" }: { initialUrl?: string }) {
           <p id="url-help">YouTube, Vimeo, a public creator page, trailer, episode, documentary sample, or public crowdfunding project.</p>
           <input id="nomination-url" type="url" inputMode="url" autoComplete="url" value={values.projectUrl} onChange={(event) => update("projectUrl", event.target.value)} aria-describedby={`url-help${errors.projectUrl ? " url-error" : ""}`} aria-invalid={Boolean(errors.projectUrl)} placeholder="https://…" />
           {errors.projectUrl ? <p className="field-error" id="url-error">{errors.projectUrl}</p> : null}
+        </div>
+        <div className="field-block">
+          <label htmlFor="nomination-media-url">Trailer or proof-of-concept video <small>Optional</small></label>
+          <p id="media-url-help">Add a public YouTube link for the embedded Scout Card player. If the project URL above is already YouTube, leave this blank. You can also propose a video later from the published card.</p>
+          <input id="nomination-media-url" type="url" inputMode="url" value={values.mediaUrl} onChange={(event) => update("mediaUrl", event.target.value)} aria-describedby={`media-url-help${errors.mediaUrl ? " media-url-error" : ""}`} aria-invalid={Boolean(errors.mediaUrl)} placeholder="https://www.youtube.com/watch?v=…" />
+          {errors.mediaUrl ? <p className="field-error" id="media-url-error">{errors.mediaUrl}</p> : null}
         </div>
         <div className="field-block">
           <label htmlFor="nomination-reason">Why should this grow? <span>*</span></label>

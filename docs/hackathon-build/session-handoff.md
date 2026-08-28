@@ -762,3 +762,80 @@ metrics permission, publish the required privacy/retention disclosures, and
 meet the bounded sampling, provenance, labeling, data-minimization, and raw-data
 refresh/deletion constraints in the PRD. Pending approval must be disclosed and
 the integration must remain disabled rather than operating without permission.
+
+## Local campaign-plus-video nomination flow
+
+- A nomination now accepts a required public project/campaign URL and an
+  optional, explicitly labeled YouTube trailer or proof-of-concept URL. The
+  campaign remains the research and provenance source; the YouTube URL is
+  normalized to one stable watch URL and becomes the Scout Card player source.
+  A matching YouTube link is removed from supporting leads rather than stored
+  twice.
+- The nomination form explains that the video is optional when the project URL
+  is already YouTube and that a video may be proposed later from the published
+  card. Both URLs appear separately in the final review step.
+- The research input contract, Firestore nomination/project persistence, Python
+  orchestrator, source ledger, and Scout Card assembler carry the separate
+  media URL end to end. A submitted YouTube source is presented as
+  `primary_work / platform_metadata`; a Kickstarter source remains the research
+  provenance while the added YouTube source supplies the privacy-enhanced
+  embed.
+- Published Scout Cards now offer an explicit “Propose this YouTube link as the
+  Scout Card video after review” option in the Community Lead form. The public
+  suggestion stores only the safe `suggestedUse` marker. Verification reuses
+  the normalized reviewed source and publishes a new immutable card/correction
+  version; it does not duplicate the source, rewrite the previous card, change
+  research version, or claim that creator ownership/project identity was
+  verified.
+- Available local gates pass: 20 contract fixtures, 50 web test files / 201
+  tests, lint, strict TypeScript, 91 Python tests, and the Next production
+  build. The Firestore emulator command was not retried after its pre-test Java
+  runtime failure; this workstation has no installed JDK. No Vercel rollout,
+  GitHub sync, provider call, or attempt `16` was performed for this slice.
+
+## Project-native pathways and American Pachuco correction
+
+- The reusable pathway stage no longer injects Junichiro-specific animation
+  labels. Stage 4 now persists a strict, source-linked project profile for
+  medium, form, and lifecycle. Stage 5 returns exactly three typed, model-
+  authored directions with deterministic IDs and project-medium metadata.
+- The deterministic publication guard rejects labels or formats that
+  contradict the declared medium. A cross-format adaptation must be explicit,
+  use the adaptation strategy, and cite an exact `qualified` claim; inference
+  or unsupported evidence cannot authorize it. Unknown-medium projects are
+  restricted to medium-neutral pathways.
+- Provider-free behavior fixtures cover documentary, animation, live action,
+  unknown medium, contradictory labels, and valid/invalid cross-format
+  evidence. All 98 agent tests, 203 web tests, 20 cross-runtime contract
+  fixtures, Ruff, source mypy, ESLint, TypeScript, and the production Next
+  build pass. The Firestore emulator command could not start because this
+  workstation has no Java runtime; the command was not retried and no test case
+  failed.
+- Cloud Build `f3432a76-7520-41c9-a657-438eea2ed943` produced immutable image
+  `us-central1-docker.pkg.dev/test-app-mkark4/audience-take/agents:project-native-pathways-20260828-v1`.
+  Cloud Run revision `audience-take-agents-00021-zcw` is Ready and serves 100%
+  of traffic with the prior service account, secret binding, pinned
+  `gemini-3.5-flash` model, 2 CPU / 2 GiB, concurrency 1, max instance 1, and
+  zero deployment-time error logs.
+- Firestore rules compiled and were released with rules-only deployment. The
+  new public correction projection may expose its corrected pathway IDs and
+  source-linked project profile; actor identity remains only in the private
+  audit collection.
+- The American Pachuco project `vSU2DLAPidOArl8MbA5E` now points to immutable
+  card `card-vSU2DLAPidOArl8MbA5E-v1-correction-b8983b06ad45`. The original
+  `card-vSU2DLAPidOArl8MbA5E-v1` still exists unchanged, research version
+  remains `1`, and this was not another agent attempt or provider call.
+  Correction `correction-b8983b06ad45985775f6` records the public transition
+  without actor identity; its private same-ID audit retains the operator.
+- The corrected card and Industry Lens share `pathway-01` through
+  `pathway-03`: Festival and theatrical expansion, Public media and
+  educational licensing, and Community impact screenings. The public Vercel
+  route returns `200`, contains all three labels, and contains none of the old
+  animation labels.
+- The research queue remains `PAUSED` and empty. A resume command was rejected
+  by the safety gate because resuming enables future production task execution
+  and requires its own explicit approval. Do not bypass that gate; no task or
+  provider call was started.
+- The approved future phase is a separately specified Gemini YouTube Trailer
+  Critic. It has not been implemented or deployed yet and must begin with its
+  own behavior-evaluation contract.

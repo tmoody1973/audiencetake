@@ -102,6 +102,7 @@ describe("Firestore evidence store", () => {
       submittedByUid: "fan-1",
       canonicalUrl,
       note: "A potentially useful public report.",
+      suggestedUse: "scout_card_video" as const,
       fingerprint,
     };
 
@@ -122,6 +123,7 @@ describe("Firestore evidence store", () => {
       status: "community_lead",
       submitterLabel: "Community member",
       visibility: "public",
+      suggestedUse: "scout_card_video",
     });
     expect(suggestion.submittedByUid).toBeUndefined();
     expect(suggestion.reviewReason).toBeUndefined();
@@ -163,6 +165,7 @@ describe("Firestore evidence store", () => {
           submittedByUid: "fan-1",
           canonicalUrl,
           sourceFingerprint: fingerprint,
+          suggestedUse: "scout_card_video",
           status: "community_lead",
         },
       },
@@ -182,7 +185,12 @@ describe("Firestore evidence store", () => {
       },
     });
 
-    expect(result).toMatchObject({ status: "verified_incorporated", changed: true });
+    expect(result).toMatchObject({
+      status: "verified_incorporated",
+      canonicalUrl,
+      suggestedUse: "scout_card_video",
+      changed: true,
+    });
     const source = fake.creates.find(({ ref }) => ref.collection === "sources")?.data;
     expect(source).toMatchObject({
       origin: "community_lead",
