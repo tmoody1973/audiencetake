@@ -732,8 +732,13 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   readable while private audit data stays default-denied. The local emulator
   suite was not retried after its first pre-test failure because this
   workstation has no Java runtime; no test case failed. All available gates
-  passed: 20 cross-runtime fixtures, 46 web files / 186 tests, lint, strict
+  passed: 20 cross-runtime fixtures, 47 web files / 188 tests, lint, strict
   TypeScript, 90 Python tests, and the Next production build.
+- Live verification of the first web rollout caught and locally corrected one
+  presentation-only audit bug: the “Initial research publication” label had
+  used the current correction card ID. The UI now walks the public from/to
+  chain back to the original v1 card, with pure tests for chained and note-only
+  corrections.
 - The production correction tool is
   `scripts/publish_scout_card_correction.mjs`. It defaults to a read-only dry
   run, requires an explicit `--apply` plus private audit label to write, uses a

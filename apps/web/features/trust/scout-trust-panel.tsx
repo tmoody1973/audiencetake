@@ -10,6 +10,7 @@ import { hasFirebaseClientConfig } from "@/lib/firebase/config";
 
 import type { ClaimStatus, ScoutCard } from "../scout-card/types";
 import { trustCommand } from "./client";
+import { initialCardVersionId } from "./correction-history";
 
 type EvidenceLead = {
   id: string;
@@ -75,6 +76,7 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const initialPublishedCardVersionId = initialCardVersionId(card.cardVersionId, corrections);
 
   useEffect(() => {
     if (!hasFirebaseClientConfig()) return;
@@ -294,7 +296,7 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
       <section className="correction-ledger" aria-labelledby="correction-history-title">
         <h3 id="correction-history-title">Update &amp; correction history</h3>
         <p>The published Scout Card remains an immutable research object. Material corrections name the earlier basis instead of silently replacing it.</p>
-        <ol><li><strong>Initial research publication</strong><span>Card {card.cardVersionId} · research version {card.researchVersion}</span></li>{corrections.map((correction) => <li key={correction.id}><strong>{correction.section ?? "Project"} correction</strong><p>{correction.summary}</p><small>Prior basis: {correction.priorBasis}</small><span>{correction.toCardVersionId ? `Card ${correction.fromCardVersionId ?? correction.cardVersionId} → ${correction.toCardVersionId}` : `Card basis retained: ${correction.cardVersionId}`}</span></li>)}</ol>
+        <ol><li><strong>Initial research publication</strong><span>Card {initialPublishedCardVersionId} · research version {card.researchVersion}</span></li>{corrections.map((correction) => <li key={correction.id}><strong>{correction.section ?? "Project"} correction</strong><p>{correction.summary}</p><small>Prior basis: {correction.priorBasis}</small><span>{correction.toCardVersionId ? `Card ${correction.fromCardVersionId ?? correction.cardVersionId} → ${correction.toCardVersionId}` : `Card basis retained: ${correction.cardVersionId}`}</span></li>)}</ol>
       </section>
 
       <details className="report-desk">
