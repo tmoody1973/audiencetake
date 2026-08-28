@@ -839,15 +839,16 @@ the integration must remain disabled rather than operating without permission.
   verified `RUNNING` with zero tasks. It retains one concurrent dispatch, one
   dispatch per second, `maxAttempts: 1`, and the application-level retry-count
   suppression. Resuming the empty queue did not start a task or provider call.
-- The approved next phase is the independently versioned Gemini YouTube
-  Trailer Critic described below. It remains undeployed and has made no real
-  model request.
+- At that checkpoint, the next phase was the independently versioned Gemini
+  YouTube Trailer Critic described below; its subsequent deployment and first
+  approved production run are recorded in the next section.
 
-## Deployed Gemini Trailer Critic (provider run pending)
+## Deployed Gemini Trailer Critic (first provider run complete)
 
-- Tarik explicitly approved one Trailer Critic rollout on 2026-08-28. This
-  approval does not authorize a real Gemini video-analysis request; the first
-  provider-bearing Trailer Critic run remains a separate approval boundary.
+- Tarik explicitly approved the Trailer Critic rollout and, separately, exactly
+  one provider-bearing Trailer Critic run on the existing Junichiro card on
+  2026-08-28. That single-run approval is consumed; another provider request
+  requires fresh explicit approval.
 - Current Google documentation confirms that Vertex video understanding
   accepts one public YouTube URL per request and that the GA
   `gemini-3.7-flash` model accepts video input through the global endpoint.
@@ -897,10 +898,30 @@ the integration must remain disabled rather than operating without permission.
 - The preflight caught one AJV `strictTypes` defect in the new matrix schema
   before deployment. Each `allOf` properties branch now declares
   `type: object`; 21 contract fixtures then passed under strict validation.
-- No Gemini request, Cloud Tasks dispatch, video-analysis Firestore artifact,
-  Parallel call, or research run was performed. The research queue remains
-  running and empty. A real Trailer Critic run still requires fresh explicit
-  approval.
+- Before the approved request, production preflight verified the project was
+  published and clear, immutable card
+  `card-junichiro-live-20260826-1918-v1-correction-5ea5f36d0447` was current and
+  public, reviewed primary-work source
+  `source-community-lead-9fa6f8c91dbc03ed` matched canonical YouTube video
+  `s8G7425lfKs`, the queue was running and empty with `maxAttempts: 1`, and the
+  deterministic job and artifact did not exist.
+- Exactly one Cloud Task,
+  `trailer-junichiro-live-20260826-1918-s8G7425lfKs-v1`, was created at
+  `2026-08-28T09:43:45Z`. Revision `audience-take-agents-00022-bg8` handled one
+  POST with status `200` in `39.200251729s`; no retry was dispatched and the
+  queue returned to empty.
+- The private job completed without a failure code and published immutable
+  artifact `video-analysis-2c32e95e5b61766219b44498-v1` using pinned
+  `gemini-3.7-flash`, analysis version `1`, and the exact current card/source
+  identity. The project pointer contains that single artifact.
+- The live artifact passes the strict public JSON schema with four ordered
+  beats, the required six ordered matrix categories, four allowed source IDs,
+  and five limitations. The production Scout Card returns `200` and renders
+  the Trailer Critic heading, model ID, artifact ID, and source video.
+- This run did not execute the six-stage research agent, did not call Parallel,
+  and did not change research version, card version, claims, pathways, or the
+  source ledger. The one-call approval is exhausted; research-before-retry and
+  fresh explicit approval apply to any future provider request.
 
 ## Local audience-first section order
 
