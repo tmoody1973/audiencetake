@@ -21,6 +21,8 @@
     "sourceType": { "enum": ["submitted_video", "official_project", "creator_profile", "editorial_coverage", "interview", "campaign", "comparable", "external_commentary", "other"] },
     "availability": { "enum": ["available", "unavailable", "restricted"] },
     "verificationStatus": { "enum": ["observed", "verified", "qualified", "conflicting", "unverified"] },
+    "sourceRole": { "enum": ["primary_work", "commentary", "trade_reporting", "community", "creator_statement", "other"] },
+    "sourceTier": { "enum": ["primary", "creator_authorized", "reputable_trade", "platform_metadata", "secondary", "community"] },
     "supportsClaimIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
     "conflictsWithClaimIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
     "externalCommentary": { "type": "boolean" },

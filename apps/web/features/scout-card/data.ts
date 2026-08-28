@@ -116,7 +116,7 @@ type QueryLike = { where(field: string, operator: "==", value: unknown): QueryLi
 type CollectionLike = QueryLike & { doc(id: string): { get(): Promise<DocumentSnapshotLike> } };
 export type ScoutCardFirestore = { collection(name: string): CollectionLike };
 
-function parsePublishedCard(value: unknown, expected: { cardVersionId: string; projectId: string; slug: string }): ScoutCard | null {
+export function parsePublishedCard(value: unknown, expected: { cardVersionId: string; projectId: string; slug: string }): ScoutCard | null {
   if (!value || typeof value !== "object" || (value as { visibility?: unknown }).visibility !== "public") return null;
   const { visibility: _visibility, ...publicValue } = value as Record<string, unknown>;
   void _visibility;

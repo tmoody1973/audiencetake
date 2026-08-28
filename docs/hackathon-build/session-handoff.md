@@ -693,6 +693,58 @@ and the new `PathwayDraft` (`google-adk 2.7.1`, `google-genai 2.20.0`, Pydantic
   not synced to GitHub yet because a push would trigger another Vercel rollout
   before the existing production `500` is diagnosed.
 
+## Evidence-first Scout Card and immutable TeamTO correction
+
+- The evidence-first Scout Card redesign is locally complete and visually
+  approved. The first viewport now separates structural completeness from
+  evidence strength, starts with source media, presents a concise evidence
+  brief, keeps pathway confidence framed as exploratory evidence readiness,
+  and adds a bounded decision brief before the comparative Industry Lens.
+- YouTube media is projected from the immutable source ledger into a
+  privacy-enhanced, no-autoplay carousel. Each source retains its own role,
+  tier, verification state, title, and outbound link. The player now uses a
+  dedicated responsive `16 / 9` viewport instead of inheriting the square-like
+  image minimum height. Browser measurements confirmed ratio `1.778` at both
+  desktop (`278 × 156.375`) and 390px mobile (`312 × 175.5`) widths.
+- YouTube's oEmbed endpoint identified the reviewed community lead
+  `https://www.youtube.com/watch?v=s8G7425lfKs` as “Junichiro Jackson (JJ) -
+  Proof of Concept” by TeamTO. This verifies public platform metadata and an
+  embeddable source; it does not prove creator ownership, rights, or the wider
+  project relationship.
+- Firestore Standard database `(default)` in `test-app-mkark4` now contains an
+  immutable correction publication for project
+  `junichiro-live-20260826-1918`. The original card
+  `card-junichiro-live-20260826-1918-v1` still exists unchanged. The mutable
+  project pointer now targets
+  `card-junichiro-live-20260826-1918-v1-correction-5ea5f36d0447`; both
+  `researchVersion` and `publishedResearchVersion` remain `1`, and the existing
+  completed run ID remains unchanged. This was not attempt `16` and did not
+  invoke a paid provider.
+- The new card labels the TeamTO source as `primary_work /
+  platform_metadata / observed`, retains the original submitted YouTube source
+  as `commentary / community`, exposes two source videos, and remains
+  `source_limited`. Public correction
+  `correction-5ea5f36d0447bb8f1d3b` records the v1-to-correction transition and
+  contains no actor identity. The same-ID private audit retains the operator
+  field. A replay returned `changed: false`, proving idempotency.
+- Firestore rules were compiled with `firebase deploy --dry-run` and released
+  successfully so the optional public from/to/source correction fields remain
+  readable while private audit data stays default-denied. The local emulator
+  suite was not retried after its first pre-test failure because this
+  workstation has no Java runtime; no test case failed. All available gates
+  passed: 20 cross-runtime fixtures, 46 web files / 186 tests, lint, strict
+  TypeScript, 90 Python tests, and the Next production build.
+- The production correction tool is
+  `scripts/publish_scout_card_correction.mjs`. It defaults to a read-only dry
+  run, requires an explicit `--apply` plus private audit label to write, uses a
+  compare-and-set pointer, creates every immutable artifact with deterministic
+  IDs, and treats exact retries as no-ops.
+- The approved web/GitHub sync should deploy the evidence-first UI and 16:9
+  player to `https://audiencetake.vercel.app`. After rollout, verify the live
+  route renders the correction card ID, TeamTO primary embed, second commentary
+  video, source-limited label, and public correction history. Do not prepare or
+  run attempt `16`.
+
 ## Recorded final MVP enhancement
 
 The PRD now records a compliance-gated Industry Lens enhancement for aggregate

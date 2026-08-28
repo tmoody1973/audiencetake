@@ -45,7 +45,9 @@ describe("ScoutCard", () => {
     expect(screen.getByLabelText("Source video carousel, 2 videos")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous source video" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Show source video 2: Additional Junichiro Jackson video" }));
-    expect(screen.getByTitle("Additional Junichiro Jackson video")).toHaveAttribute("src", "https://www.youtube-nocookie.com/embed/s8G7425lfKs");
+    const player = screen.getByTitle("Additional Junichiro Jackson video");
+    expect(player).toHaveAttribute("src", "https://www.youtube-nocookie.com/embed/s8G7425lfKs");
+    expect(player.parentElement).toHaveClass("source-video-viewport");
     expect(screen.getByText("Community lead / Observed source")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next source video" })).toBeDisabled();
     expect(screen.getByRole("link", { name: "Open source video" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=s8G7425lfKs&list=RDs8G7425lfKs");

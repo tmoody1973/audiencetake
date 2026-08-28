@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 
+import { privacyEnhancedYouTubeEmbed, youtubeVideoId } from "@/lib/media/youtube";
+
 import { sourcePresentation } from "./evidence-display";
 import type { ScoutCard } from "./types";
 
 const MAX_SOURCE_VIDEOS = 5;
-const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 
 export type SourceVideo = {
   id: string;
@@ -17,25 +18,6 @@ export type SourceVideo = {
   accessibleFallback: string;
   provenance: string;
 };
-
-function youtubeVideoId(value: string): string | null {
-  try {
-    const url = new URL(value);
-    const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
-    let candidate: string | null = null;
-
-    if (hostname === "youtu.be") candidate = url.pathname.split("/").filter(Boolean)[0] ?? null;
-    if (["youtube.com", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com"].includes(hostname)) {
-      candidate = url.pathname === "/watch"
-        ? url.searchParams.get("v")
-        : url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1] ?? null;
-    }
-
-    return candidate && YOUTUBE_VIDEO_ID.test(candidate) ? candidate : null;
-  } catch {
-    return null;
-  }
-}
 
 function provenanceLabel(source: ScoutCard["sourceLedger"][number]): string {
   const presentation = sourcePresentation(source);
@@ -73,7 +55,7 @@ export function sourceVideosForCard(card: ScoutCard): SourceVideo[] {
       id: source.id,
       title: source.title,
       sourceUrl: source.url,
-      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
+      embedUrl: privacyEnhancedYouTubeEmbed(source.url) ?? `https://www.youtube-nocookie.com/embed/${videoId}`,
       attribution: `${source.title}. Audience Take embeds the public source and does not rehost it.`,
       accessibleFallback: `Open ${source.title} on YouTube if the embedded player is unavailable.`,
       provenance: provenanceLabel(source),
@@ -98,15 +80,17 @@ export function SourceVideoCarousel({ card }: { card: ScoutCard }) {
           <span>Source video {activeIndex + 1} / {videos.length}</span>
           <span>{activeVideo.provenance}</span>
         </div>
-        <iframe
-          key={activeVideo.id}
-          src={activeVideo.embedUrl}
-          title={activeVideo.title}
-          loading="lazy"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
+        <div className="source-video-viewport">
+          <iframe
+            key={activeVideo.id}
+            src={activeVideo.embedUrl}
+            title={activeVideo.title}
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
         <div className="source-video-caption">
           <p>{activeVideo.attribution}</p>
           <a href={activeVideo.sourceUrl} target="_blank" rel="noreferrer">Open source video</a>

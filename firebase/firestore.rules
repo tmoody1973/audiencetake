@@ -189,7 +189,9 @@ service cloud.firestore {
         ]) &&
         resource.data.keys().hasOnly([
           'correctionId', 'projectId', 'section', 'summary', 'priorBasis',
-          'cardVersionId', 'visibility', 'createdAt', 'updatedAt'
+          'cardVersionId', 'correctionType', 'fromCardVersionId',
+          'toCardVersionId', 'correctedSourceId', 'visibility', 'createdAt',
+          'updatedAt'
         ]);
       // Public correction rows are a dedicated projection; actor identity and
       // operational details remain in projectCorrectionAudits.

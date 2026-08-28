@@ -27,7 +27,15 @@ type CreatorUpdate = {
   media?: Array<{ id?: string; url?: string }>;
   demoLabel?: string;
 };
-type Correction = { id: string; section?: string; summary?: string; priorBasis?: string; cardVersionId?: string };
+type Correction = {
+  id: string;
+  section?: string;
+  summary?: string;
+  priorBasis?: string;
+  cardVersionId?: string;
+  fromCardVersionId?: string;
+  toCardVersionId?: string;
+};
 
 type ClaimRequest = { id: string; status?: "pending" | "approved" | "rejected" };
 type ReportReason = "spam" | "impersonation" | "copyright_privacy" | "harassment" | "misleading" | "other";
@@ -286,7 +294,7 @@ export function ScoutTrustPanel({ card }: { card: ScoutCard }) {
       <section className="correction-ledger" aria-labelledby="correction-history-title">
         <h3 id="correction-history-title">Update &amp; correction history</h3>
         <p>The published Scout Card remains an immutable research object. Material corrections name the earlier basis instead of silently replacing it.</p>
-        <ol><li><strong>Initial research publication</strong><span>Card {card.cardVersionId} · research version {card.researchVersion}</span></li>{corrections.map((correction) => <li key={correction.id}><strong>{correction.section ?? "Project"} correction</strong><p>{correction.summary}</p><small>Prior basis: {correction.priorBasis}</small><span>Card basis retained: {correction.cardVersionId}</span></li>)}</ol>
+        <ol><li><strong>Initial research publication</strong><span>Card {card.cardVersionId} · research version {card.researchVersion}</span></li>{corrections.map((correction) => <li key={correction.id}><strong>{correction.section ?? "Project"} correction</strong><p>{correction.summary}</p><small>Prior basis: {correction.priorBasis}</small><span>{correction.toCardVersionId ? `Card ${correction.fromCardVersionId ?? correction.cardVersionId} → ${correction.toCardVersionId}` : `Card basis retained: ${correction.cardVersionId}`}</span></li>)}</ol>
       </section>
 
       <details className="report-desk">
