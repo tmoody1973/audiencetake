@@ -64,6 +64,18 @@ export function IndustryLens({ card }: { card: ScoutCard }) {
                 <th scope="row">Next experiment</th>
                 {card.pathways.map((pathway) => <td key={pathway.id}><strong>{pathway.nextExperiment.title}</strong><p>{pathway.nextExperiment.method}</p><small>Timebox: {pathway.nextExperiment.timebox}</small></td>)}
               </tr>
+              <tr>
+                <th scope="row">Execution readiness</th>
+                {card.pathways.map((pathway) => <td key={pathway.id}><dl className="execution-readiness">
+                  <div><dt>Owner</dt><dd>{pathway.nextExperiment.owner ?? "Unknown"}</dd></div>
+                  <div><dt>Prerequisite</dt><dd>{pathway.nextExperiment.prerequisite ?? "Unknown"}</dd></div>
+                  <div><dt>Permission</dt><dd>{pathway.nextExperiment.requiredPermission ?? "Unknown"}</dd></div>
+                  <div><dt>Cost class</dt><dd>{pathway.nextExperiment.costClass ?? "Unknown"}</dd></div>
+                  <div><dt>Success criterion</dt><dd>{pathway.nextExperiment.successCriterion ?? "Unknown"}</dd></div>
+                  <div><dt>Signal to observe</dt><dd>{pathway.nextExperiment.signal}</dd></div>
+                  <div><dt>Audience Take role</dt><dd>{pathway.nextExperiment.audienceTakeRole ?? "Unknown"}</dd></div>
+                </dl></td>)}
+              </tr>
             </tbody>
           </table>
         </div>

@@ -1,5 +1,6 @@
 import { IndustryLens } from "../industry-lens/industry-lens";
 import { citationText, createCitationLabels } from "./citation-labels";
+import { DecisionBrief } from "./decision-brief";
 import {
   claimEvidenceState,
   evidenceStateLabel,
@@ -173,6 +174,7 @@ export function ScoutCard({ card }: { card: ScoutCardModel }) {
         </aside>
       </article>
 
+      <DecisionBrief card={card} />
       <IndustryLens card={card} />
       <ScoutSocialPanel card={card} />
       <ScoutTrustPanel card={card} />

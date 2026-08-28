@@ -172,7 +172,13 @@
         "method": { "type": "string", "minLength": 1, "maxLength": 800 },
         "participantAction": { "type": "string", "minLength": 1, "maxLength": 500 },
         "signal": { "type": "string", "minLength": 1, "maxLength": 500 },
-        "timebox": { "type": "string", "minLength": 1, "maxLength": 120 }
+        "timebox": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "owner": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "prerequisite": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "costClass": { "enum": ["low", "medium", "high", "unknown"] },
+        "requiredPermission": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "successCriterion": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "audienceTakeRole": { "type": "string", "minLength": 1, "maxLength": 500 }
       }
     },
     "pathway": {

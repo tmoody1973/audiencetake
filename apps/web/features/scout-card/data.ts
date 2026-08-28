@@ -20,7 +20,11 @@ const completeness = z.enum(["complete", "partial"]);
 const evidenceStatus = z.enum(["verified_core", "verification_in_progress", "source_limited", "conflicting"]);
 const stringList = z.array(text);
 
-const nextExperimentSchema = z.object({ title: text, hypothesis: text, method: text, participantAction: text, signal: text, timebox: text });
+const nextExperimentSchema = z.object({
+  title: text, hypothesis: text, method: text, participantAction: text, signal: text, timebox: text,
+  owner: text.optional(), prerequisite: text.optional(), costClass: z.enum(["low", "medium", "high", "unknown"]).optional(),
+  requiredPermission: text.optional(), successCriterion: text.optional(), audienceTakeRole: text.optional(),
+});
 const pathwaySchema = z.object({
   id: text, order: z.number().int().min(1).max(3), label: text, format: text, audience: text, rationale: text,
   supportingClaimIds: stringList.min(1), comparableSourceIds: stringList, strengths: stringList.min(1), risks: stringList.min(1),

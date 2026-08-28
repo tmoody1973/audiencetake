@@ -13,6 +13,12 @@ export type NextExperiment = {
   participantAction: string;
   signal: string;
   timebox: string;
+  owner?: string;
+  prerequisite?: string;
+  costClass?: "low" | "medium" | "high" | "unknown";
+  requiredPermission?: string;
+  successCriterion?: string;
+  audienceTakeRole?: string;
 };
 
 export type ScoutPathway = {
