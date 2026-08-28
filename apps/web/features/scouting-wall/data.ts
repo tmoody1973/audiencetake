@@ -27,7 +27,26 @@ export type ScoutingWallEntry = {
   publishedAt: string;
   sourceCount: number;
   pathwayLabels: string[];
+  audiencePulse: {
+    follows: number;
+    wouldWatch: number;
+    wouldPay: number;
+    bringToCity: number;
+    backNextChapter: number;
+  };
 };
+
+function trustedCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.trunc(value))
+    : 0;
+}
+
+function trustedCommitmentCounts(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
 
 function trustedClaimStatus(value: unknown): ClaimStatus {
   return typeof value === "string" && claimStatuses.has(value as ClaimStatus)
@@ -63,6 +82,7 @@ export async function loadScoutingWallEntries(
         slug: projectData.slug,
       });
       if (!card) return null;
+      const commitmentCounts = trustedCommitmentCounts(projectData.commitmentCounts);
 
       return {
         accessionId: card.cardVersionId,
@@ -78,6 +98,13 @@ export async function loadScoutingWallEntries(
         publishedAt: card.publishedAt,
         sourceCount: card.sourceLedger.length,
         pathwayLabels: card.pathways.map((pathway) => pathway.label),
+        audiencePulse: {
+          follows: trustedCount(projectData.followerCount),
+          wouldWatch: trustedCount(commitmentCounts.would_watch),
+          wouldPay: trustedCount(commitmentCounts.would_pay),
+          bringToCity: trustedCount(commitmentCounts.bring_to_city),
+          backNextChapter: trustedCount(commitmentCounts.back_next_chapter),
+        },
       } satisfies ScoutingWallEntry;
     }));
 

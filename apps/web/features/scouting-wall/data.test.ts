@@ -50,6 +50,13 @@ function publishedRecord(card: ReturnType<typeof getScoutCardFixture>, overrides
     moderationState: "clear",
     latestCardVersionId: card.cardVersionId,
     claimStatus: "pending",
+    followerCount: 12,
+    commitmentCounts: {
+      would_watch: 7,
+      would_pay: 2,
+      bring_to_city: 1,
+      back_next_chapter: 4,
+    },
     ...overrides,
   };
 }
@@ -79,7 +86,34 @@ describe("loadScoutingWallEntries", () => {
 
     await expect(loadScoutingWallEntries(database)).resolves.toEqual([
       expect.objectContaining({ slug: "new-project", claimStatus: "approved", completeness: "partial" }),
-      expect.objectContaining({ slug: older.slug, claimStatus: "pending", sourceCount: older.sourceLedger.length }),
+      expect.objectContaining({
+        slug: older.slug,
+        claimStatus: "pending",
+        sourceCount: older.sourceLedger.length,
+        audiencePulse: { follows: 12, wouldWatch: 7, wouldPay: 2, bringToCity: 1, backNextChapter: 4 },
+      }),
+    ]);
+  });
+
+  it("fails closed on malformed or demo-only social counters", async () => {
+    const card = structuredClone(getScoutCardFixture("complete"));
+    const database = fakeDatabase({
+      projects: [{
+        id: card.projectId,
+        value: publishedRecord(card, {
+          followerCount: -3,
+          demoFollowerCount: 99,
+          commitmentCounts: { would_watch: Number.NaN, would_pay: 2.9 },
+          demoCommitmentCounts: { would_watch: 88 },
+        }),
+      }],
+      cards: [{ id: card.cardVersionId, value: { ...card, visibility: "public" } }],
+    });
+
+    await expect(loadScoutingWallEntries(database)).resolves.toEqual([
+      expect.objectContaining({
+        audiencePulse: { follows: 0, wouldWatch: 0, wouldPay: 2, bringToCity: 0, backNextChapter: 0 },
+      }),
     ]);
   });
 

@@ -7,6 +7,7 @@ import {
   loadScoutingWallEntries,
   type ScoutingWallEntry,
 } from "../../features/scouting-wall/data";
+import { AudiencePulseStrip } from "../../features/scouting-wall/audience-pulse-strip";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,7 @@ function WallCard({ entry, index }: { entry: ScoutingWallEntry; index: number })
             <ol className="wall-pathways" aria-label="Pathway hypotheses">
               {entry.pathwayLabels.map((label, pathwayIndex) => <li key={label}><span>0{pathwayIndex + 1}</span>{label}</li>)}
             </ol>
+            <AudiencePulseStrip counts={entry.audiencePulse} />
             <footer><span>Published <time dateTime={entry.publishedAt}>{dateFormatter.format(new Date(entry.publishedAt))}</time></span><strong>Open Scout Card <ArrowIcon /></strong></footer>
           </div>
           <span className="wall-accession" aria-hidden="true">{entry.accessionId}</span>

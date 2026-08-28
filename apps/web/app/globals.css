@@ -211,13 +211,30 @@ svg { width: 1.25em; height: 1.25em; fill: none; stroke: currentColor; stroke-wi
 .wall-pathways { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: 13px 0 0; padding: 0; list-style: none; }
 .wall-pathways li { min-width: 0; display: flex; gap: 6px; padding-right: 9px; font-family: var(--meta); font-size: .56rem; font-weight: 800; line-height: 1.3; text-transform: uppercase; }
 .wall-pathways span { flex: 0 0 auto; color: var(--coral); }
+/* Hallmark · component scope · genre: editorial · audience-pulse ledger · read-only social proof · pre-emit critique: P5 H5 E5 S5 R5 V4 */
+.wall-audience-pulse { margin-top: var(--space-md); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.wall-audience-pulse > header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); padding-block: var(--space-2xs); font-family: var(--meta); font-size: .55rem; font-weight: 900; line-height: 1.2; text-transform: uppercase; }
+.wall-audience-pulse > header span { padding: var(--space-2xs) var(--space-xs); background: var(--yellow); }
+.wall-audience-pulse > header small { color: var(--ink); font: inherit; opacity: .68; }
+.wall-cell-copy section.wall-audience-pulse dl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin: 0; border-top: 1px solid var(--ink); }
+.wall-cell-copy section.wall-audience-pulse dl div { min-width: 0; display: flex; flex-direction: column; padding: var(--space-xs) var(--space-2xs); border-inline-end: 1px solid var(--ink); border-bottom: 0; }
+.wall-cell-copy section.wall-audience-pulse dl div:nth-child(3), .wall-cell-copy section.wall-audience-pulse dl div:last-child { border-inline-end: 0; }
+.wall-cell-copy section.wall-audience-pulse dl div:nth-child(n+4) { border-top: 1px solid var(--ink); }
+.wall-audience-pulse dd { order: -1; margin: 0; font-family: var(--display); font-size: 1.9rem; line-height: .78; font-variant-numeric: tabular-nums; }
+.wall-audience-pulse dt { margin-top: var(--space-2xs); font-family: var(--meta); font-size: .5rem; font-weight: 900; line-height: 1.15; text-transform: uppercase; }
 .wall-cell-copy footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 19px; padding-top: 12px; border-top: 1px dashed var(--ink); font-family: var(--meta); font-size: .58rem; text-transform: uppercase; }
-.wall-cell-copy footer strong { display: inline-flex; align-items: center; gap: 9px; color: var(--blue); font-size: .63rem; }
+.wall-cell-copy footer strong { display: inline-flex; align-items: center; gap: 9px; color: var(--blue); font-size: .63rem; white-space: nowrap; }
 .wall-accession { position: absolute; inset: 0 6px 0 auto; display: flex; align-items: center; justify-content: center; font-family: var(--meta); font-size: .52rem; font-weight: 800; text-transform: uppercase; writing-mode: vertical-rl; opacity: .58; }
 .wall-empty { min-height: 360px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: clamp(34px,7vw,90px); border: var(--rule); border-top: 0; background: #fffaf0; }
 .wall-empty > span { color: var(--coral); font-family: var(--meta); font-size: .68rem; font-weight: 900; text-transform: uppercase; }
 .wall-empty h2 { max-width: 720px; margin: 10px 0; font-family: var(--display); font-size: clamp(3.5rem,7vw,6.4rem); font-weight: 400; line-height: .75; text-transform: uppercase; }
 .wall-empty p { max-width: 62ch; }
+
+@media (min-width: 48rem) {
+  .wall-cell-copy section.wall-audience-pulse dl { grid-template-columns: repeat(5,minmax(0,1fr)); }
+  .wall-cell-copy section.wall-audience-pulse dl div:nth-child(2), .wall-cell-copy section.wall-audience-pulse dl div:nth-child(3) { border-inline-end: 1px solid var(--ink); }
+  .wall-cell-copy section.wall-audience-pulse dl div:nth-child(n+4) { border-top: 0; }
+}
 
 /* Nomination */
 .nominate-page { display: grid; grid-template-columns: minmax(320px,.64fr) minmax(600px,1.36fr); align-items: start; }

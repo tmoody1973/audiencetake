@@ -23,6 +23,13 @@ const entry: ScoutingWallEntry = {
   publishedAt: "2026-08-27T20:00:00.000Z",
   sourceCount: 3,
   pathwayLabels: ["Feature", "Series", "Short proof"],
+  audiencePulse: {
+    follows: 12,
+    wouldWatch: 7,
+    wouldPay: 2,
+    bringToCity: 1,
+    backNextChapter: 4,
+  },
 };
 
 describe("Scouting Wall page", () => {
@@ -38,6 +45,8 @@ describe("Scouting Wall page", () => {
     expect(screen.getByRole("heading", { name: "Scouting Wall" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open Project One Scout Card" })).toHaveAttribute("href", "/projects/project-one");
     expect(screen.getByText("Source limited")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Audience Pulse organic participation signals" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Follow: 12")).toBeInTheDocument();
     expect(screen.getByText("01 card")).toBeInTheDocument();
   });
 
